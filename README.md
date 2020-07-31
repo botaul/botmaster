@@ -35,6 +35,8 @@ cd twitter_autobase
 . bin/activate
 pip3 install -r requirements.txt
 ```
+run app.py using syntax: python3 app.py
+
 ## Push to Github
 ```bash
 git init
