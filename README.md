@@ -20,18 +20,19 @@ Note: This project is a recode from https://github.com/ydhnwb/autodm_base with m
 - Heroku Account
 
 ## Instructions
-- Install pip, virtualenv, git, git lfs
+- Install pip3, virtualenv, git, git lfs
 - Do Installation
 - Edit values in constants.py
 - Push to Github
 - Deploy to Heroku
 
 ## Installation on Linux
-Open your linux terminal and open specified folder<br>
+Open your linux terminal on specified folder<br>
 ```bash
 git clone https://github.com/fakhrirofi/twitter_autobase.git
 virtualenv twitter_autobase
 cd twitter_autobase
+. bin/activate
 pip3 install -r requirements.txt
 ```
 ## Push to Github
