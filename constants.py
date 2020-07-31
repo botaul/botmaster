@@ -1,0 +1,12 @@
+CONSUMER_KEY = "VALUE"
+CONSUMER_SECRET = "VALUE"
+ACCESS_KEY = "VALUE"
+ACCESS_SECRET = "VALUE"
+Github_username = "VALUE"
+Github_password = "VALUE"
+Github_repo = "VALUE" #use another repo instead of primary repo
+First_Keyword = "VALUE" #primary keyword for tweet, video, and image
+Second_Keyword = "VALUE" #for make image quoted
+Sub2_Keyword = "VALUE" #give image quoted name
+Third_keyword = "VALUE" #ask admin
+Admin_id = "VALUE" #send dm to admin base 
