@@ -23,7 +23,7 @@ class Media:
     def process_image(self, text, author):
         try:
             text = textwrap.fill(text, width=35)
-            image = Image.open("downloaded_bg.png").filter(ImageFilter.GaussianBlur(10))
+            image = Image.open("downloaded_bg.png").filter(ImageFilter.GaussianBlur(5))
             image = ImageEnhance.Brightness(image)
             image.enhance(0.5).save('image.png')
             time.sleep(5)
@@ -39,7 +39,7 @@ class Media:
                 draw.text(((720 - x) / 2, ((1280 / 2) + h) + 60), _author, (255, 255, 255),font = font, align="bottom")
             image.save('ready.png')
             time.sleep(5)
-            os.remove('downloaded_bg')
+            os.remove('downloaded_bg.png')
             os.remove('image.png')
         except Exception as ex:
             print(ex)

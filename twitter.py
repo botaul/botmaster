@@ -24,39 +24,13 @@ class Twitter:
         try:
             api = self.api
             dm = api.list_direct_messages()
+            p = 0
             for x in range(len(dm)):
                 sender_id = dm[x].message_create['sender_id']
                 message = dm[x].message_create['message_data']['text']
                 message_data = str(dm[x].message_create['message_data'])
                 json_data = _json.encode_basestring(message_data)
                 if constants.First_Keyword in message or constants.Second_Keyword in message or constants.Third_keyword in message:
-                    if constants.First_Keyword in message or constants.Second_Keyword in message:
-                        try:
-                            y = x+1
-                            waktu = datetime.datetime.now() + datetime.timedelta(hours= 7, seconds = x*50+70)
-                            hour = waktu.hour
-                            minute = waktu.minute
-                            if hour < 10:
-	                               hour = "0" + str(waktu.hour)
-                            elif minute < 10:
-	                               minute = "0" + str(waktu.minute)
-                            notif = f"[BOT]\n\nMenfess kamu berada pada urutan ke-{str(y)}, akan terkirim sekitar pukul {hour}:{minute}"
-                            api.send_direct_message(recipient_id = sender_id, text = notif)
-                        except Exception as ex:
-                            time.sleep(60)
-                            print(ex)
-                            pass
-
-                    elif constants.Third_keyword in message:
-                        try:
-                            message1 = message.replace(constants.Third_keyword, "")
-                            notif = f"[BOT]\n\"{message1}\"\nPesan kamu akan dikirimkan ke admin, silakan tunggu balasan.."
-                            api.send_direct_message(recipient_id = sender_id, text = notif)
-                        except Exception as ex:
-                            print(ex)
-                            time.sleep(60)
-                            pass
-
                     print("Getting message -> by sender id " + str(sender_id))
                     if 'attachment' not in json_data:
                         print("DM does not have any media..")
@@ -89,6 +63,38 @@ class Twitter:
             print(str(len(dms)) + " collected")
             if len(dms) > 1 :
                 dms.reverse()
+            for i in range(len(dms)):
+                message = dms[i]['message']
+                sender_id = dms[i]['sender_id']
+                if constants.First_Keyword in message or constants.Second_Keyword in message:
+                    try:
+                        y = p+1
+                        waktu = datetime.datetime.now() + datetime.timedelta(hours= 7, seconds = p*50+70)
+                        p += 1
+                        hour = waktu.hour
+                        minute = waktu.minute
+                        if hour < 10:
+                               hour = "0" + str(waktu.hour)
+                        elif minute < 10:
+                               minute = "0" + str(waktu.minute)
+                        notif = f"[BOT]\n\nMenfess kamu berada pada urutan ke-{str(y)}, akan terkirim sekitar pukul {hour}:{minute}"
+                        api.send_direct_message(recipient_id = sender_id, text = notif)
+                    except Exception as ex:
+                        time.sleep(60)
+                        print(ex)
+                        pass
+
+                elif constants.Third_keyword in message:
+                    try:
+                        p += 1
+                        message1 = message.replace(constants.Third_keyword, "")
+                        notif = f"[BOT]\n\"{message1}\"\nPesan kamu akan dikirimkan ke admin, silakan tunggu balasan.."
+                        api.send_direct_message(recipient_id = sender_id, text = notif)
+                    except Exception as ex:
+                        print(ex)
+                        time.sleep(60)
+                        pass
+
             time.sleep(60)
             return dms
 
@@ -232,12 +238,14 @@ class Twitter:
                         clip_resized.write_videofile("output.mp4", fps=20)
                     time.sleep(5)
                     if len(tweet) <= 280:
+                        time.sleep(5)
                         videoTweet = VideoTweet('output.mp4')
                         videoTweet.upload_init()
                         videoTweet.upload_append()
                         videoTweet.upload_finalize()
                         videoTweet.Tweet(tweet)
                     elif len(tweet) > 280:
+                        time.sleep(5)
                         name = 'output.mp4'
                         self.Thread(name, type, tweet)
                     os.remove('video.mp4')
