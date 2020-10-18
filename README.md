@@ -1,6 +1,7 @@
 # twitter_autobase
 Twitter bot that can reads your dm, then tweets dm like Twitter autobase.<br>
-Note: This project is a recode from https://github.com/ydhnwb/autodm_base with many improvements and fixed bug.
+Note: This project is a recode from https://github.com/ydhnwb/autodm_base with many improvements and fixed bug.<br>
+      I know this bot is not perfect yet, so issues and pull requests are open. I have other changes in my local repository, but I don't intend to completely commit them to this repository.<br>
 
 ## New Features & Fixed Bug
 - Only list & delete dm message that contains keyword (constants.py), so another dm would not deleted
