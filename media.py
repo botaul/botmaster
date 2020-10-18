@@ -16,6 +16,8 @@ class Media:
             r = requests.get(url, allow_redirects=True)
             with open("downloaded_bg.png", 'wb') as f:
                 f.write(r.content)
+                f.close()
+            time.sleep(2)
             while exists('downloaded_bg.png') == False:
                 time.sleep(3)
         except Exception as ex:
@@ -29,6 +31,7 @@ class Media:
                 ImageFilter.GaussianBlur(5))
             image = ImageEnhance.Brightness(image)
             image.enhance(0.5).save('image.png')
+            time.sleep(2)
             while exists('image.png') == False:
                 time.sleep(3)
             image = Image.open('image.png')
@@ -45,6 +48,7 @@ class Media:
                 draw.text(((720 - x) / 2, ((1280 / 2) + h) + 60),
                           _author, (255, 255, 255), font=font, align="bottom")
             image.save('ready.png')
+            time.sleep(2)
             while exists('ready.png') == False:
                 time.sleep(3)
             os.remove('downloaded_bg.png')
