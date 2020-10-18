@@ -45,6 +45,7 @@ Twitter bot that can reads your DMs, then tweets like Twitter autobase.<br>
 
 
 ## Installation on Linux
+Note: You can run this bot from Windows as well. But I didn't write those steps<br>
 Open your linux terminal on specified folder<br>
 ```bash
 git clone https://github.com/fakhrirofi/twitter_autobase.git
@@ -63,7 +64,7 @@ The algorithms of auto accept message is:<br>
 3. Follower stop following, remove follower from follower_data.txt<br>
 
 
-## Push to Github (If you deploy to Heroku with Github repo)
+## Push to Github (If you deploy to Heroku with Github repo) or Fork this repository
 Make a private repo, because data in constants.py is important<br>
 Add lib and bin to .gitignore
 ```bash
