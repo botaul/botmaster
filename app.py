@@ -33,12 +33,12 @@ def start():
 
         tw.follower = follower
 
-        if first == "\n":
+        if len(first) <= 3:
             data1 = "\n".join(follower) + "\n"
             new = open("follower_data.txt", "w")
             new.write(data1)
             new.close()
-            first = 1
+            first = "checked"
 
         data = open('follower_data.txt').read()  # inside loop
         data1 = ""  # inside loop
