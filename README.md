@@ -49,6 +49,9 @@ git commit -m "first commit"
 git push origin master
 ```
 
+## Push to Heroku, I suggest you to push from heroku CLI. You can search it on google
+Note: when you have deploy to Heroku, then you want to commit changes, DON'T COMMIT follower_data.txt. If you commit it, this bot will automatically send DMs to all of your followers. 
+
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
