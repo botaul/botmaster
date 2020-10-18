@@ -33,7 +33,7 @@ Twitter bot that can reads your DMs, then tweets like Twitter autobase.<br>
 - Push to Github
 - Deploy to Heroku
 
-## Note: Constants
+## Constants
 - Github repo, a repo that will be simple database.
 - First keyword, keyword for video, photo, and gif.
 - Second keyword, keyword to make quote.
@@ -54,6 +54,14 @@ cd twitter_autobase
 pip3 install -r requirements.txt
 ```
 run app.py using syntax: python3 app.py
+
+## Notes
+When follower_data.txt is empty, This bot will automatically fill all follower to follower_data. So it can't track new follower when bot was just started.<br>
+The algorithms of auto accept message is:<br>
+1. follower_data.txt is empty, fill all followers to follower_data.txt<br>
+2. Follower not in follower_data.txt, send message to new follower<br>
+3. Follower stop following, remove follower from follower_data.txt<br>
+
 
 ## Push to Github (If you deploy to Heroku with Github repo)
 ```bash
