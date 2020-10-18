@@ -33,7 +33,7 @@ def start():
 
         tw.follower = follower
 
-        if first == "":
+        if first == "\n":
             data1 = "\n".join(follower) + "\n"
             new = open("follower_data.txt", "w")
             new.write(data1)
