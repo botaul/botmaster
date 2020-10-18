@@ -261,7 +261,6 @@ class Twitter:
 
             elif type == 'animated_gif':
                 try:
-                    time.sleep(3)
                     clip = mp.VideoFileClip('animated_gif.mp4')
                     clip.subclip((0), (0, 2)).resize(0.2).without_audio()
                     clip.write_gif('animated.gif', fps=12, program='ffmpeg')
@@ -288,7 +287,6 @@ class Twitter:
 
             elif type == 'video':
                 try:
-                    time.sleep(3)
                     clip = mp.VideoFileClip("video.mp4")
                     width = clip.w
                     height = clip.h
