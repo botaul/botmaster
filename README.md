@@ -27,7 +27,7 @@ Twitter bot that can reads your DMs, then tweets like Twitter autobase.<br>
 - Heroku Account
 
 ## Instructions
-- Install pip3, virtualenv, git, git lfs. (git lfs is optional)
+- Install pip3, virtualenv, git
 - Do Installation
 - Edit values in constants.py
 - Push to Github
@@ -64,17 +64,16 @@ The algorithms of auto accept message is:<br>
 
 
 ## Push to Github (If you deploy to Heroku with Github repo)
+Make a private repo, because data in constants.py is important
 ```bash
 git init
-git lfs install
-git add .gitattributes
-git add .
 git remote add origin ((your repo))
+git add .
 git commit -m "first commit"
 git push origin master
 ```
 
-## Push to Heroku, I suggest you to push from heroku CLI. You can search it on google
+## Deploy to Heroku, You can search it on google
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
