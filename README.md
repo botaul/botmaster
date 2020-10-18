@@ -64,7 +64,8 @@ The algorithms of auto accept message is:<br>
 
 
 ## Push to Github (If you deploy to Heroku with Github repo)
-Make a private repo, because data in constants.py is important
+Make a private repo, because data in constants.py is important<br>
+Add lib and bin to .gitignore
 ```bash
 git init
 git remote add origin ((your repo))
