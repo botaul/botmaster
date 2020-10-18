@@ -204,6 +204,7 @@ class Twitter:
             if type == 'photo':
                 with open('photo.jpg', 'wb') as f:
                     f.write(r.content)
+                    f.close()
                 time.sleep(3)
                 while exists('photo.jpg') == False:
                     time.sleep(3)
@@ -211,6 +212,7 @@ class Twitter:
             elif type == 'video':
                 with open('video.mp4', 'wb') as f:
                     f.write(r.content)
+                    f.close()
                 time.sleep(3)
                 while exists('video.mp4') == False:
                     time.sleep(3)
@@ -218,6 +220,7 @@ class Twitter:
             elif type == 'animated_gif':
                 with open('animated_gif.mp4', 'wb') as f:
                     f.write(r.content)
+                    f.close()
                 time.sleep(3)
                 while exists('animated_gif.mp4') == False:
                     time.sleep(3)
@@ -238,6 +241,7 @@ class Twitter:
                         second = str(round(int(dimension[1])*0.8))
                         foo = foo.resize((first, second), Image.ANTIALIAS)
                         foo.save('photo.jpg', optimize=True, quality=95)
+                        time.sleep(3)
                         while exists('photo.jpg') == False:
                             time.sleep(3)
                         size = os.path.getsize('photo.jpg')
@@ -261,6 +265,7 @@ class Twitter:
                     clip = mp.VideoFileClip('animated_gif.mp4')
                     clip.subclip((0), (0, 2)).resize(0.2).without_audio()
                     clip.write_gif('animated.gif', fps=12, program='ffmpeg')
+                    clip.close()
 
                     time.sleep(3)
                     while exists('animated.gif') == False:
@@ -297,6 +302,7 @@ class Twitter:
                         clip_resized = clip.resize(height=720, width=720)
                         clip_resized.write_videofile("output.mp4", fps=20)
 
+                    clip_resized.close()
                     time.sleep(3)
                     while exists('output.mp4') == False:
                         time.sleep(3)
