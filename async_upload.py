@@ -7,7 +7,6 @@ from requests_oauthlib import OAuth1
 import constants
 
 
-
 MEDIA_ENDPOINT_URL = 'https://upload.twitter.com/1.1/media/upload.json'
 POST_TWEET_URL = 'https://api.twitter.com/1.1/statuses/update.json'
 
@@ -35,7 +34,8 @@ class VideoTweet:
             'media_category': 'tweet_video'
         }
 
-        req = requests.post(url=MEDIA_ENDPOINT_URL, data=request_data, auth=oauth)
+        req = requests.post(url=MEDIA_ENDPOINT_URL,
+                            data=request_data, auth=oauth)
         media_id = req.json()['media_id']
 
         self.media_id = media_id
@@ -64,19 +64,19 @@ class VideoTweet:
                 'media': chunk
             }
 
-            req = requests.post(url=MEDIA_ENDPOINT_URL, data=request_data, files=files, auth=oauth)
+            req = requests.post(url=MEDIA_ENDPOINT_URL,
+                                data=request_data, files=files, auth=oauth)
 
             if req.status_code < 200 or req.status_code > 299:
                 print(req.status_code)
                 print("Getting error status code")
                 return False
             else:
-                print(req.status_code)
                 segment_id = segment_id + 1
                 bytes_sent = file.tell()
-                print('%s of %s bytes uploaded' % (str(bytes_sent), str(self.total_bytes)))
+                print('%s of %s bytes uploaded' %
+                      (str(bytes_sent), str(self.total_bytes)))
                 print('Upload chunks complete.')
-
 
     def upload_finalize(self):
         '''
@@ -89,8 +89,8 @@ class VideoTweet:
             'media_id': self.media_id
         }
 
-        req = requests.post(url=MEDIA_ENDPOINT_URL, data=request_data, auth=oauth)
-        print(req.json())
+        req = requests.post(url=MEDIA_ENDPOINT_URL,
+                            data=request_data, auth=oauth)
 
         self.processing_info = req.json().get('processing_info', None)
         self.check_status()
@@ -104,13 +104,6 @@ class VideoTweet:
         req = requests.post(url=POST_TWEET_URL, data=request_data, auth=oauth)
         complete = req.json()['id']
         return complete
-        #request_data = {
-        #    'status': tweet,
-        #    'media_ids': self.media_id
-        #}
-
-        #req = requests.post(url=POST_TWEET_URL, data=request_data, auth=oauth)
-        #print(req.json())
 
     def check_status(self):
         '''
@@ -120,7 +113,6 @@ class VideoTweet:
             return
 
         state = self.processing_info['state']
-        print(self.processing_info)
         print('Media processing status is %s ' % state)
 
         if state == 'succeeded':
@@ -143,7 +135,8 @@ class VideoTweet:
                 'media_id': self.media_id
             }
 
-            req = requests.get(url=MEDIA_ENDPOINT_URL, params=request_params, auth=oauth)
+            req = requests.get(url=MEDIA_ENDPOINT_URL,
+                               params=request_params, auth=oauth)
 
             self.processing_info = req.json().get('processing_info', None)
             self.check_status()
