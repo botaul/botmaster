@@ -1,7 +1,7 @@
 # twitter_autobase
-Twitter bot that can reads your DMs, then tweets like Twitter autobase. This project is a recode from https://github.com/ydhnwb/autodm_base with many improvements and fixed bugs. I know this bot is not perfect yet, so issues and pull requests are welcome. Feel free to contact me on Twitter if you have any questions.
+Twitter bot that can reads your DMs, then tweets like Twitter autobase. This project is a recode from https://github.com/ydhnwb/autodm_base with many improvements and fixed bugs. I know this bot is not perfect yet, so issues and pull requests are welcome.
 
-## New Features & Fixed Bug
+## New Features & Fixed Bugs
 - Wait ratelimit with tweepy
 - Added muted words
 - Only follower that can sends menfess
@@ -64,7 +64,7 @@ When follower_data.txt is empty, This bot will automatically fill all follower t
 
 ## DMs examples (based on constants)
 `fess! Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.` #automatically make Thread <br><br>
-`fess! Upload media` (then attach a media) #send dm with media attachment <br><br>
+`fess! Upload media` (by attaching a media) #send dm with media attachment <br><br>
 `set! add_muted covid corona anjay` #set muted words from DM <br><br>
 `[quote] hello hai hello hai` #make quote inside image <br><br>
 `[quote] -s hello hai hello` #add sender screen_name to quote <br><br>
