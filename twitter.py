@@ -90,10 +90,9 @@ class Twitter:
 
                             for data in content:
                                 try:
-                                    command = command.format(f"\"{data}\"")
-                                    print(command)
-                                    notif = notif + f"\n{command}"
-                                    exec(command)
+                                    command1 = command.format(f"\"{data}\"")
+                                    notif = notif + f"\n{command1}"
+                                    exec(command1)
                                 except Exception as ex:
                                     notif = notif + f"\nexcept: {ex}"
                                     pass
