@@ -8,9 +8,7 @@ from os.path import exists
 import requests
 from async_upload import VideoTweet
 import moviepy.editor as mp
-from moviepy.video.fx.all import crop
 from PIL import Image
-
 
 
 class Twitter:
@@ -20,8 +18,9 @@ class Twitter:
             constants.CONSUMER_KEY, constants.CONSUMER_SECRET)
         self.auth.set_access_token(
             constants.ACCESS_KEY, constants.ACCESS_SECRET)
-        self.api = tweepy.API(self.auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
-        self.follower = None
+        self.api = tweepy.API(
+            self.auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+        self.follower = list()
         self.bot_id = None
 
     def read_dm(self):
@@ -40,24 +39,82 @@ class Twitter:
                 # check follower
                 if str(sender_id) not in self.follower:
                     if str(sender_id) == str(self.bot_id):
-                        print("delete bot messages")
+                        print("deleting bot messages")
                         self.delete_dm(id)
-                        
+
                     else:
                         try:
                             print("sender not in follower")
-                            self.delete_dm(id)
                             notif = "[BOT]\nHmm kayaknya kamu belum follow base ini. Follow dulu ya biar bisa ngirim menfess"
-                            sent = api.send_direct_message(recipient_id=sender_id, text=notif)
+                            sent = api.send_direct_message(
+                                recipient_id=sender_id, text=notif)
+                            self.delete_dm(id)
                             self.delete_dm(sent.id)
                         except Exception as ex:
                             print(ex)
                             time.sleep(30)
                             pass
-                        
+
                     continue
 
-                if constants.First_Keyword in message or constants.Second_Keyword in message or constants.Third_keyword in message:
+                # muted words
+                elif any(i in message for i in constants.Muted_words) and str(sender_id) != str(constants.Admin_id):
+                    try:
+                        print("deleting muted menfess")
+                        notif = "[BOT]\nMenfess kamu mengandung muted words, jangan lupa baca peraturan base yaa!"
+                        sent = api.send_direct_message(
+                            recipient_id=sender_id, text=notif)
+                        self.delete_dm(id)
+                        self.delete_dm(sent.id)
+                    except Exception as ex:
+                        time.sleep(60)
+                        print(ex)
+                        pass
+
+                    continue
+
+                elif constants.Set_keyword in message:
+                    print("command in progress...")
+                    try:
+                        message = message.split()
+                        command, *content = message[1:]
+
+                        if type(content) == list:
+                            pass
+                        else:
+                            content = content.split()
+
+                        notif = "commands:"
+                        if command in constants.Dict_set_keyword.keys():
+                            command = constants.Dict_set_keyword[command]
+
+                            for data in content:
+                                try:
+                                    command = command.format(f"\"{data}\"")
+                                    print(command)
+                                    notif = notif + f"\n{command}"
+                                    exec(command)
+                                except Exception as ex:
+                                    notif = notif + f"\nexcept: {ex}"
+                                    pass
+
+
+                    except Exception as ex:
+                        notif = "some commands failed" + f"\n{ex}" + f"\n{notif}"
+                        print(ex)
+                        pass
+
+                    finally:
+                        print(notif)
+                        sent = api.send_direct_message(
+                            recipient_id=sender_id, text=notif)
+                        self.delete_dm(id)
+                        self.delete_dm(sent.id)
+                        continue
+
+                keywords = [constants.First_Keyword, constants.Second_Keyword,
+                            constants.Third_keyword, constants.Set_keyword]
+                if any(i in message for i in keywords):
                     print("Getting message -> by sender id " + str(sender_id))
                     if 'attachment' not in json_data:
                         print("DM does not have any media..")
@@ -92,28 +149,22 @@ class Twitter:
                             dms.append(d)
 
                 else:
-                    self.delete_dm(id)
-
-            print(str(len(dms)) + " collected")
-            if len(dms) > 1:
-                dms.reverse()
-            for i in range(len(dms)):
-                message = dms[i]['message']
-                sender_id = dms[i]['sender_id']
-                id = dms[i]['id']
-                if any(i in message for i in constants.Muted_words) == True:
                     try:
-                        print("deleting muted menfess")
-                        dms[i]['message'] = "muted"
-                        notif = "[BOT]\nMenfess kamu mengandung muted words, jangan lupa baca peraturan base yaa!"
-                        sent = api.send_direct_message(recipient_id=sender_id, text=notif)
+                        print("deleting message (keyword not in message)")
+                        notif = "[BOT]\nKeyword yang kamu kirim salah!"
+                        sent = api.send_direct_message(
+                            recipient_id=sender_id, text=notif)
                         self.delete_dm(id)
                         self.delete_dm(sent.id)
+
                     except Exception as ex:
                         time.sleep(60)
                         print(ex)
                         pass
-                
+
+            print(str(len(dms)) + " collected")
+            if len(dms) > 1:
+                dms.reverse()
 
             time.sleep(60)
             return dms
@@ -128,10 +179,35 @@ class Twitter:
         print("Deleting dm with id = " + str(id))
         try:
             self.api.destroy_direct_message(id)
-            time.sleep(10)
         except Exception as ex:
             print(ex)
             time.sleep(60)
+            pass
+
+    def ASK(self, message, screen_name):
+        print("ASKING")
+        try:
+            message = message + " @" + screen_name
+            sent = self.api.send_direct_message(
+                recipient_id=constants.Admin_id, text=message)
+            return sent
+
+        except Exception as ex:
+            print(ex)
+            time.sleep(60)
+            pass
+
+    def get_user_screen_name(self, id):
+        try:
+            print("Getting username")
+            user = self.api.get_user(id)
+            return user.screen_name
+
+        except Exception as ex:
+            print(ex)
+            user = "Exception"
+            time.sleep(60)
+            return user
             pass
 
     def Thread(self, name, type, tweet):
@@ -178,6 +254,23 @@ class Twitter:
             time.sleep(30)
             pass
 
+    def post_tweet_quote(self, name):
+        print("Uploading..")
+        try:
+            if name is None:
+                tweet = constants.Second_Keyword
+            elif name != None:
+                tweet = f"{constants.Second_Keyword} by @{name}"
+            postid = self.api.update_with_media(
+                filename="ready.png", status=tweet).id
+            os.remove('ready.png')
+            time.sleep(20)
+            return postid
+        except Exception as ex:
+            print(ex)
+            time.sleep(60)
+            pass
+
     def post_tweet(self, tweet):
         try:
             if len(tweet) <= 280:
@@ -192,7 +285,12 @@ class Twitter:
             print(ex)
             pass
 
-    def post_tweet_with_media(self, tweet, media_url, type):
+    def download_media(self, media_url, filename):
+        '''
+        media_url   : url -> string
+        filename    : filename with exstension -> string
+        '''
+
         try:
             print("Downloading media...")
             #arr = str(media_url).split('/')
@@ -200,35 +298,36 @@ class Twitter:
                            client_secret=constants.CONSUMER_SECRET,
                            resource_owner_key=constants.ACCESS_KEY,
                            resource_owner_secret=constants.ACCESS_SECRET)
+
             r = requests.get(media_url, auth=oauth)
-            if type == 'photo':
-                with open('photo.jpg', 'wb') as f:
-                    f.write(r.content)
-                    f.close()
+            with open(filename, 'wb') as f:
+                f.write(r.content)
+                f.close()
+
+            time.sleep(3)
+            while exists(filename) == False:
                 time.sleep(3)
-                while exists('photo.jpg') == False:
-                    time.sleep(3)
+
+            print("Download media successfully")
+
+        except Exception as ex:
+            print(ex)
+            pass
+
+    def post_tweet_with_media(self, tweet, media_url, type):
+        try:
+
+            if type == 'photo':
+                self.download_media(media_url, 'photo.jpg')
 
             elif type == 'video':
-                with open('video.mp4', 'wb') as f:
-                    f.write(r.content)
-                    f.close()
-                time.sleep(3)
-                while exists('video.mp4') == False:
-                    time.sleep(3)
+                self.download_media(media_url, 'video.mp4')
 
             elif type == 'animated_gif':
-                with open('animated_gif.mp4', 'wb') as f:
-                    f.write(r.content)
-                    f.close()
-                time.sleep(3)
-                while exists('animated_gif.mp4') == False:
-                    time.sleep(3)
+                self.download_media(media_url, 'animated_gif.mp4')
 
-            print("Media download successfully!")
             tweet = tweet.split()
-            tweet.pop()
-            tweet = " ".join(tweet)
+            tweet = " ".join(tweet[:len(tweet)-1])
 
             if type == 'photo':
                 try:

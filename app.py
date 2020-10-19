@@ -1,14 +1,15 @@
 from twitter import Twitter
-from twitter2 import Twitter2
 from media import Media
 import time
 import threading
 from github import Github
 import datetime
 import constants
+import requests
+from requests_oauthlib import OAuth1
+from os.path import exists
 
 tw = Twitter()
-tw2 = Twitter2()
 media = Media()
 github = Github(constants.Github_username, constants.Github_password)
 
@@ -80,7 +81,7 @@ def start():
                     message = dms[i]['message']
                     sender_id = dms[i]['sender_id']
                     id = dms[i]['id']
-                    screen_name = tw2.get_user_screen_name(sender_id)
+                    screen_name = tw.get_user_screen_name(sender_id)
                     globals()['DATABASE'] = DATABASE + "\n" + message + \
                         " - @" + screen_name + " - " + sender_id
                     print("Heroku Database saved")
@@ -114,14 +115,14 @@ def start():
                             tw.delete_dm(sent.id)
 
                     elif constants.Second_Keyword in message and "https://" not in message and "http://" not in message and "twitter.com" not in message and len(message) <= 500:
+                        message = message.replace(
+                            constants.Second_Keyword, "")
                         if constants.Sub2_Keyword in message:
-                            message = message.replace(
-                                constants.Second_Keyword, "")
                             message = message.replace(
                                 constants.Sub2_Keyword, "")
                             media.download_image()
                             media.process_image(message, screen_name)
-                            postid = tw2.post_tweet(name=screen_name)
+                            postid = tw.post_tweet_quote(screen_name)
                             if postid != None:
                                 text = notif + str(postid)
                                 sent = api.send_direct_message(
@@ -129,14 +130,12 @@ def start():
                             else:
                                 sent = api.send_direct_message(
                                     recipient_id=sender_id, text="[BOT]\nMaaf ada kesalahan pada sistem :(\ntolong screenshot & laporkan kepada admin")
-                            tw2.delete_dm(id)
+                            tw.delete_dm(id)
                             tw.delete_dm(sent.id)
                         else:
-                            message = message.replace(
-                                constants.Second_Keyword, "")
                             media.download_image()
                             media.process_image(message, None)
-                            postid = tw2.post_tweet(name=None)
+                            postid = tw.post_tweet_quote(name=None)
                             if postid != None:
                                 text = notif + str(postid)
                                 sent = api.send_direct_message(
@@ -144,22 +143,35 @@ def start():
                             else:
                                 sent = api.send_direct_message(
                                     recipient_id=sender_id, text="[BOT]\nMaaf ada kesalahan pada sistem :(\ntolong screenshot & laporkan kepada admin")
-                            tw2.delete_dm(id)
+                            tw.delete_dm(id)
                             tw.delete_dm(sent.id)
 
                     elif constants.Third_keyword in message:
                         message = message.replace(constants.Third_keyword, "")
-                        sent1 = tw2.ASK(message, screen_name)
+                        if dms[i]['media'] is None:
+                            sent1 = tw.ASK(message, screen_name)
+                        elif dms[i]['type'] != 'photo':
+                            sent1 = tw.ASK(
+                                str(message + " video type"), screen_name)
+                        else:
+                            print("asking with media")
+                            message = message.split()
+                            message = " ".join(message[:len(message)-1])
+                            tw.download_media(dms[i]['media'], "photo.jpg")
+                            media = api.media_upload("photo.jpg")
+                            sent1 = api.send_direct_message(sender_id, str(message + " @" + screen_name),
+                                                            None, 'media', media.media_id_string)
+
                         sent = api.send_direct_message(
                             recipient_id=sender_id, text="[BOT]\nPesan kamu telah dikirimkan ke admin")
                         tw.delete_dm(sent1.id)
                         tw.delete_dm(sent.id)
-                        tw2.delete_dm(id)
-
-                    elif "muted" in message:
-                        pass
+                        tw.delete_dm(id)
 
                     else:
+                        sent = api.send_direct_message(
+                            sender_id, "ketentuan keyword menfess kamu tidak sesuai!")
+                        tw.delete_dm(sent.id)
                         tw.delete_dm(id)
 
                 except Exception as ex:
