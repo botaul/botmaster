@@ -158,9 +158,9 @@ def start():
                             message = message.split()
                             message = " ".join(message[:len(message)-1])
                             tw.download_media(dms[i]['media'], "photo.jpg")
-                            media = api.media_upload("photo.jpg")
+                            media1 = api.media_upload("photo.jpg")
                             sent1 = api.send_direct_message(sender_id, str(message + " @" + screen_name),
-                                                            None, 'media', media.media_id_string)
+                                                            None, 'media', media1.media_id_string)
 
                         sent = api.send_direct_message(
                             recipient_id=sender_id, text="[BOT]\nPesan kamu telah dikirimkan ke admin")
