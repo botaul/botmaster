@@ -1,7 +1,5 @@
 # twitter_autobase
-Twitter bot that can reads your DMs, then tweets like Twitter autobase.<br>
-This project is a recode from https://github.com/ydhnwb/autodm_base with many improvements and fixed bug.<br>
-I know this bot is not perfect yet, so issues and pull requests are welcome. Feel free to contact me on Twitter if you have any questions! <br>
+Twitter bot that can reads your DMs, then tweets like Twitter autobase. This project is a recode from https://github.com/ydhnwb/autodm_base with many improvements and fixed bugs. I know this bot is not perfect yet, so issues and pull requests are welcome. Feel free to contact me on Twitter if you have any questions.
 
 ## New Features & Fixed Bug
 - Wait ratelimit with tweepy
@@ -56,8 +54,7 @@ pip3 install -r requirements.txt
 run app.py using syntax: python3 app.py
 
 ## Notes
-When follower_data.txt is empty, This bot will automatically fill all follower to follower_data. So it can't track new follower when bot was just started.<br>
-The algorithms of auto accept message is:<br>
+When follower_data.txt is empty, This bot will automatically fill all follower to follower_data. So it can't track new follower when bot was just started. The algorithms of auto accept message is:<br>
 1. follower_data.txt is empty, fill all followers to follower_data.txt<br>
 2. Follower not in follower_data.txt, send message to new follower<br>
 3. Follower stop following, remove follower from follower_data.txt<br>
