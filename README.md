@@ -1,8 +1,7 @@
 # twitter_autobase
 Twitter bot that can reads your DMs, then tweets like Twitter autobase.<br>
-- This project is a recode from https://github.com/ydhnwb/autodm_base with many improvements and fixed bug.<br>
-- I know this bot is not perfect yet, so issues and pull requests are welcome.<br>
-- Feel free to contact me on Twitter if you have any questions! <br>
+This project is a recode from https://github.com/ydhnwb/autodm_base with many improvements and fixed bug.<br>
+I know this bot is not perfect yet, so issues and pull requests are welcome. Feel free to contact me on Twitter if you have any questions! <br>
 
 ## New Features & Fixed Bug
 - Wait ratelimit with tweepy
@@ -14,7 +13,7 @@ Twitter bot that can reads your DMs, then tweets like Twitter autobase.<br>
 - Support gif and video
 - Edited media for Twitter API requirements
 - Fix moviepy when saving file
-- Thread in tweets
+- Make (tweets) a Thread when character > 280
 - Tweets quoted image
 - Upload simple database(txt) with push on github repo for backup
 - Set timezone from constants
@@ -26,7 +25,7 @@ Twitter bot that can reads your DMs, then tweets like Twitter autobase.<br>
 - Github Account
 - Heroku Account
 
-## Instructions
+## How to run this bot
 - Install pip3, virtualenv, git
 - Do Installation
 - Edit values in constants.py
