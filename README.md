@@ -76,9 +76,11 @@ git push origin master
 ```
 
 ## Deploy to Heroku, You can search it on google
+I suggest you to deploy it from Heroku CLI
 
 ## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.<br>
 Please make sure to update tests as appropriate.
 
+## LICENSE
+[MIT](https://github.com/fakhrirofi/twitter_autobase/blob/master/LICENSE)
