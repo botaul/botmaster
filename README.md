@@ -11,7 +11,7 @@ Twitter bot that can reads your DMs, then tweets like Twitter autobase. This pro
 - Support gif and video
 - Edited media for Twitter API requirements
 - Fix moviepy when saving file
-- Make (tweets) a Thread when character > 280
+- Make (tweets) a Thread when characters > 280
 - Tweets quoted image
 - Upload simple database(txt) with push on github repo for backup
 - Set timezone from constants
@@ -26,7 +26,7 @@ Twitter bot that can reads your DMs, then tweets like Twitter autobase. This pro
 ## How to run this bot
 - Install pip3, virtualenv, git
 - Do Installation
-- Edit values in constants.py
+- Edit contents in constants.py
 - Push to Github
 - Deploy to Heroku
 
@@ -61,8 +61,8 @@ When follower_data.txt is empty, This bot will automatically fill all follower t
 
 
 ## Push to Github (If you deploy to Heroku with Github repo) or Fork this repository
-Make a private repo, because data in constants.py is important<br>
-Add lib and bin to .gitignore
+- Make a private repo, because data in constants.py is important
+- Add lib and bin to .gitignore
 ```bash
 git init
 git remote add origin ((your repo))
@@ -75,8 +75,7 @@ git push origin master
 I suggest you to deploy it from Heroku CLI
 
 ## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.<br>
-Please make sure to update tests as appropriate.
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. Please make sure to update tests as appropriate.
 
 ## [MIT License](https://github.com/fakhrirofi/twitter_autobase/blob/master/LICENSE)
 
