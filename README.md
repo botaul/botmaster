@@ -62,12 +62,13 @@ When follower_data.txt is empty, This bot will automatically fill all follower t
 2. Follower not in follower_data.txt, send message to new follower<br>
 3. Follower stop following, remove follower from follower_data.txt<br>
 <br>
+
 ### DMs examples (based on constants)
-`fess! Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.` #automatically make Thread<br>
-`fess! Upload media` (then attach a media) #send dm with media attachment<br>
-`set! add_muted covid corona anjay` #set muted words from DM<br>
-`[quote] hello hai hello hai` #make quote inside image<br>
-`[quote] -s hello hai hello` #add sender screen_name to quote<br>
+`fess! Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.` #automatically make Thread <br>
+`fess! Upload media` (then attach a media) #send dm with media attachment <br>
+`set! add_muted covid corona anjay` #set muted words from DM <br>
+`[quote] hello hai hello hai` #make quote inside image <br>
+`[quote] -s hello hai hello` #add sender screen_name to quote <br>
 `[ask] asking to admin` #send message to admin
 
 ## Push to Github (If you deploy to Heroku with Github repo) or Fork this repository
