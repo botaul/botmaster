@@ -33,7 +33,7 @@ Twitter bot that can reads your DMs, then tweets like Twitter autobase.<br>
 - Push to Github
 - Deploy to Heroku
 
-## Constants
+## [Constants](https://github.com/fakhrirofi/twitter_autobase/blob/master/constants.py)
 - Github repo, a repo that will be simple database.
 - First keyword, keyword for video, photo, and gif.
 - Second keyword, keyword to make quote.
