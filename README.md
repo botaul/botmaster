@@ -82,7 +82,7 @@ I suggest you to deploy it from Heroku CLI
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.<br>
 Please make sure to update tests as appropriate.
 
-## [MIT LICENSE](https://github.com/fakhrirofi/twitter_autobase/blob/master/LICENSE)
+## [MIT License](https://github.com/fakhrirofi/twitter_autobase/blob/master/LICENSE)
 
 Copyright (c) 2020 Fakhri Catur Rofi
 
