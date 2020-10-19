@@ -15,6 +15,7 @@ Twitter bot that can reads your DMs, then tweets like Twitter autobase. This pro
 - Tweets quoted image
 - Upload simple database(txt) with push on github repo for backup
 - Set timezone from constants
+- Set muted_words from DM
 
 ## Requirements
 - Good at basic python programming
@@ -31,12 +32,14 @@ Twitter bot that can reads your DMs, then tweets like Twitter autobase. This pro
 - Deploy to Heroku
 
 ## [Constants](https://github.com/fakhrirofi/twitter_autobase/blob/master/constants.py)
-- Github repo, a repo that will be simple database.
-- First keyword, keyword for video, photo, and gif.
-- Second keyword, keyword to make quote.
-- Sub2 keyword, when menfess contains Second keyword and Sub2 keyword, the sender username will be added to quote.
-- Third keyword, when DMs contains this keyword, the DMs will be sent to admin id.
-- Muted words, when muted words in DMs. the DMs will be deleted.
+- Github_repo; a repo that will be simple database.
+- First_keyword; keyword for video, photo, and gif.
+- Second_keyword; keyword to make quote.
+- Sub2_keyword; when menfess contains Second keyword and Sub2 keyword, the sender username will be added to quote.
+- Third_keyword; when DMs contains this keyword, the DMs will be sent to admin id.
+- Muted_words; when muted words in DMs. the DMs will be deleted.
+- Set_keyword; when Set keywords in DMs, it will edit Muted_words.
+- Dict_set_keyword; command that will be executed with exec.
 - Admin id, used when DMs contains Third_keyword. You can find admin id when your admin account send message (when bot active) to autobase account. The sender id is an Admin id.
 - Timezone, Heroku timezone is on UTC. So, when this bot running on heroku server, the timezone is 7 for Jakarta
 
@@ -58,6 +61,10 @@ When follower_data.txt is empty, This bot will automatically fill all follower t
 1. follower_data.txt is empty, fill all followers to follower_data.txt<br>
 2. Follower not in follower_data.txt, send message to new follower<br>
 3. Follower stop following, remove follower from follower_data.txt<br>
+<br>
+DMs examples:<br>
+![Image](https://i.ibb.co/Qj7C4y7/foto.png)
+![Image of Yaktocat](https://octodex.github.com/images/yaktocat.png)
 
 
 ## Push to Github (If you deploy to Heroku with Github repo) or Fork this repository
