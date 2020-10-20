@@ -28,7 +28,6 @@ Twitter bot that can reads your DMs, then tweets like Twitter autobase. This pro
 - Install pip3, virtualenv, git
 - Do Installation
 - Edit contents in constants.py
-- Push to Github
 - Deploy to Heroku
 
 ## [Constants](https://github.com/fakhrirofi/twitter_autobase/blob/master/constants.py)
@@ -77,7 +76,8 @@ When follower_data.txt is empty, This bot will automatically fill all follower t
 `[quote] -s hello hai hello` #add sender screen_name to quote <br><br>
 `[ask] asking to admin` #send message to admin <br>
 
-## Push to Github (If you deploy to Heroku with Github repo) or Fork this repository
+## Deploy to Heroku
+### Push to Github (If you deploy to Heroku with Github repo) or Fork this repository
 - Use a private repo, because data in constants.py is important
 ```bash
 git init
@@ -86,10 +86,9 @@ git add .
 git commit -m "first commit"
 git push origin master
 ```
+Then deploy github repository to Heroku, search it on Google. <br>
 
-## Deploy to Heroku
-You can deploy github repository to Heroku, search it on Google. <br>
-Or deploy it from terminal: 
+### Deploy from linux terminal
 ```bash
 git add .
 git commit -m "first commit"
