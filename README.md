@@ -28,6 +28,7 @@ Twitter bot that can reads your DMs, then tweets like Twitter autobase. This pro
 - Install pip3, virtualenv, git
 - Do Installation
 - Edit contents in constants.py
+- Delete all contents in follower_data.txt before push/deploy to github and heroku
 - Push to Github
 - Deploy to Heroku
 
