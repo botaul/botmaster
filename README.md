@@ -71,8 +71,7 @@ When follower_data.txt is empty, This bot will automatically fill all follower t
 `[ask] asking to admin` #send message to admin <br>
 
 ## Push to Github (If you deploy to Heroku with Github repo) or Fork this repository
-- Make a private repo, because data in constants.py is important
-- Add lib and bin to .gitignore
+- Use a private repo, because data in constants.py is important
 ```bash
 git init
 git remote add origin ((your repo))
