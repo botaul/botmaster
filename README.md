@@ -54,7 +54,8 @@ cd twitter_autobase
 . bin/activate
 pip3 install -r requirements.txt
 ```
-run app.py using syntax: python3 app.py
+Make .gitignore <br>
+Run app.py using syntax: python3 app.py
 
 ## Notes: Auto Accept message 
 When follower_data.txt is empty, This bot will automatically fill all follower to follower_data. So it can't track new follower when bot was just started. The algorithms of auto accept message is:<br>
