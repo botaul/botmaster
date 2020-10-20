@@ -109,7 +109,8 @@ class Twitter:
                             recipient_id=sender_id, text=notif)
                         self.delete_dm(id)
                         self.delete_dm(sent.id)
-                        continue
+                        
+                    continue
 
                 keywords = [constants.First_Keyword, constants.Second_Keyword,
                             constants.Third_keyword, constants.Set_keyword]
