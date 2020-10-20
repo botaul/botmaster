@@ -8,6 +8,7 @@ import constants
 import requests
 from requests_oauthlib import OAuth1
 from os.path import exists
+import os
 
 tw = Twitter()
 media = Media()
@@ -20,7 +21,8 @@ def start():
     api = tw.api
     me = api.me()
     tw.bot_id = me.id
-    first = open('follower_data.txt').read()  # outside loop
+    open('follower_data.txt', 'w').truncate()
+    first = open('follower_data.txt').read()
 
     while True:
 
@@ -36,13 +38,11 @@ def start():
 
         if len(first) <= 3:
             data1 = "\n".join(follower) + "\n"
-            new = open("follower_data.txt", "w")
-            new.write(data1)
-            new.close()
+            open("follower_data.txt", "w").write(data1)
             first = "checked"
 
-        data = open('follower_data.txt').read()  # inside loop
-        data1 = ""  # inside loop
+        data = open('follower_data.txt').read()
+        data1 = ""
 
         for i in range(len(follower)):
             if follower[i] not in data:
@@ -52,25 +52,18 @@ def start():
 
         data2 = data[:len(data)-1].split("\n")
         data3 = data[:len(data)-1].split("\n")
-        i = 0
-        max = len(data2)-1
-        while i <= max:
+        
+        for i in range(len(data2)):
             if data2[i] not in follower:
-                data2.remove(data2[i])
-                max -= 1
-                i -= 1
-            i += 1
-        # data =  follower sebelumnya(text)
-        # data1 = follower baru (text)
-        # data2 = follower sebelumnya yg berubah (list)
-        # data3 = follower sebelumnya yg tetap (list)
+                data3.remove(data2[i])
+
         if data2 != data3:
-            data = "\n".join(data2) + "\n"
+            data = "\n".join(data3) + "\n"
             data = data + data1
             new = open("follower_data.txt", "w")
             new.write(data)
             new.close()
-        elif data2 == data3:
+        elif data2 == data3 and len(data1) != 0:
             new = open("follower_data.txt", "a")
             new.write(data1)
             new.close()
@@ -151,14 +144,17 @@ def start():
                         if dms[i]['media'] is None:
                             sent1 = tw.ASK(message, screen_name)
                         elif dms[i]['type'] != 'photo':
+                            message = message.split()
+                            message = " ".join(message[:len(message)-1])
                             sent1 = tw.ASK(
-                                str(message + " video type"), screen_name)
+                                str(message + " [video]"), screen_name)
                         else:
                             print("asking with media")
                             message = message.split()
                             message = " ".join(message[:len(message)-1])
                             tw.download_media(dms[i]['media'], "photo.jpg")
                             media1 = api.media_upload("photo.jpg")
+                            os.remove("photo.jpg")
                             sent1 = api.send_direct_message(sender_id, str(message + " @" + screen_name),
                                                             None, 'media', media1.media_id_string)
 
