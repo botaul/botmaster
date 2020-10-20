@@ -87,8 +87,15 @@ git commit -m "first commit"
 git push origin master
 ```
 
-## Deploy to Heroku, You can search it on google
-I suggest you to deploy it from Heroku CLI
+## Deploy to Heroku
+You can deploy github repository to Heroku, search it on Google. <br>
+Or deploy it from terminal: 
+```bash
+git add .
+git commit -m "first commit"
+heroku git:remote -a ((your heroku app name))
+git push heroku master
+```
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. Please make sure to update tests as appropriate.
