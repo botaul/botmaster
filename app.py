@@ -193,26 +193,27 @@ def start():
 
 
 def push():
-    try:
-        if len(ACTION) > 20:
-            globals()['ACTION'] = ""
-            print("Github threading active...")
-            repo = github.get_repo(constants.Github_repo)
-            name = f"DATABASE {str(datetime.datetime.now() + datetime.timedelta(hours = constants.Timezone))}.txt"
-            repo.create_file(name, "commit", DATABASE)
-            globals()['DATABASE'] = "_MENFESS DATABASE_"
-            print("Github Database updated")
-            time.sleep(3600)
-            push()
-        else:
-            time.sleep(5)
-            push()
-    except Exception as ex:
-        print(ex)
-        print("Github threading failed..")
-        time.sleep(720)
-        push()
-        pass
+    while True:
+        try:
+            if len(ACTION) > 20:
+                globals()['ACTION'] = ""
+                print("Github threading active...")
+                repo = github.get_repo(constants.Github_repo)
+                name = f"DATABASE {str(datetime.datetime.now() + datetime.timedelta(hours = constants.Timezone))}.txt"
+                repo.create_file(name, "commit", DATABASE)
+                globals()['DATABASE'] = "_MENFESS DATABASE_"
+                print("Github Database updated")
+                time.sleep(3600)
+        
+            else:
+                time.sleep(10)
+            
+            
+        except Exception as ex:
+            print(ex)
+            print("Github threading failed..")
+            time.sleep(720)
+            pass
 
 
 if __name__ == "__main__":
