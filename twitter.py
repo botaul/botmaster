@@ -134,8 +134,14 @@ class Twitter:
 
                         elif media_type == 'video':
                             media = dm[x].message_create['message_data']['attachment']['media']
-                            media_url = media['video_info']['variants'][0]
-                            video_url = media_url['url']
+                            temp_bitrate = list()
+                            media_url = media['video_info']['variants']
+                            for varian in media_url:
+                                if varian['content_type'] == "video/mp4":
+                                    temp_bitrate.append((varian['bitrate'], varian['url']))
+                            temp_bitrate.sort()
+                            temp_bitrate.reverse()
+                            video_url = temp_bitrate[0][1]
                             d = dict(message=message, sender_id=sender_id,
                                      id=dm[x].id, media=video_url, type=media_type)
                             dms.append(d)
