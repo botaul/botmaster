@@ -72,6 +72,7 @@ When follower_data.txt is empty, This bot will automatically fill all follower t
 
 ## Push to Github (If you deploy to Heroku with Github repo) or Fork this repository
 - Use a private repo, because data in constants.py is important
+- Make .gitignore
 ```bash
 git init
 git remote add origin ((your repo))
@@ -81,7 +82,7 @@ git push origin master
 ```
 
 ## Deploy to Heroku, You can search it on google
-I suggest you to deploy it from Heroku CLI
+Don't forget to make .gitignore file. I suggest you to deploy it from Heroku CLI
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. Please make sure to update tests as appropriate.
