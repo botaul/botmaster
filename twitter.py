@@ -142,6 +142,7 @@ class Twitter:
                             temp_bitrate.sort()
                             temp_bitrate.reverse()
                             video_url = temp_bitrate[0][1]
+                            temp_bitrate.clear()
                             d = dict(message=message, sender_id=sender_id,
                                      id=dm[x].id, media=video_url, type=media_type)
                             dms.append(d)
