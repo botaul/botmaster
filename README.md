@@ -1,5 +1,5 @@
 # twitter_autobase
-Twitter bot that can reads your DMs, then tweets like Twitter autobase. This project is a recode of [autodm_base](https://github.com/ydhnwb/autodm_base)-[ydhnwb](https://github.com/ydhnwb) with many improvements and fixed bugs. I know this bot is not perfect yet, issues and pull requests are welcome. If you like my projets, support me by giving me star! Please report if you found a bug!
+Twitter bot that can reads your DMs, then tweets like Twitter autobase. This project is a recode of [autodm_base](https://github.com/ydhnwb/autodm_base)-[ydhnwb](https://github.com/ydhnwb) with many improvements and fixed bugs. I know this bot is not perfect yet, issues and pull requests are welcome. If you like my projects, support me by giving me star! Please report if you found a bug!
 
 ## New Features & Fixed Bugs
 - Wait ratelimit with Tweepy
