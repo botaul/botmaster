@@ -11,6 +11,10 @@ class Media:
         print("Initialize media..")
 
     def download_image(self):
+        '''
+        download random image from picsum
+        save downloaded_bg.png
+        '''
         try:
             url = 'https://picsum.photos/720/1280/?random'
             r = requests.get(url, allow_redirects=True)
@@ -25,6 +29,12 @@ class Media:
             pass
 
     def process_image(self, text, author):
+        '''
+        edit image
+        text: -> str
+        author: -> str
+        save ready.png
+        '''
         try:
             text = textwrap.fill(text, width=35)
             image = Image.open("downloaded_bg.png").filter(

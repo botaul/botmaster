@@ -1,21 +1,22 @@
 # twitter_autobase
-Twitter bot that can reads your DMs, then tweets like Twitter autobase. This project is a recode from https://github.com/ydhnwb/autodm_base with many improvements and fixed bugs. I know this bot is not perfect yet, so issues and pull requests are welcome.
+Twitter bot that can reads your DMs, then tweets like Twitter autobase. This project is a recode of [autodm_base](https://github.com/ydhnwb/autodm_base)-[ydhnwb](https://github.com/ydhnwb) with many improvements and fixed bugs. I know this bot is not perfect yet, so issues and pull requests are welcome. If you like my projets, support me by giving me star! Please report if you found a bug!
 
 ## New Features & Fixed Bugs
-- Wait ratelimit with tweepy
+- Wait ratelimit with Tweepy
 - Added muted words
-- Only follower that can sends menfess
+- Only follower can sends menfess and message to admin
 - Auto accept message requests (for open DM) by interacting sending DM to new follower
 - Send DM to admin account
 - Notify sender when the menfess sent or not
-- Support gif and video
-- Edited media for Twitter API requirements
+- Tweet gif and video
+- Edit media for Twitter API requirements
 - Fix moviepy when saving file
 - Make (tweets) a Thread when characters > 280
-- Tweets quoted image
-- Upload simple database(txt) with push on github repo for backup
+- Tweet a quote image
+- Upload simple database (txt) with push on github repo for backup
 - Set timezone from constants
 - Set muted_words from DM
+- Upload 4 media
 
 ## Requirements
 - Good at basic python programming
@@ -33,6 +34,7 @@ Twitter bot that can reads your DMs, then tweets like Twitter autobase. This pro
 ## [Constants](https://github.com/fakhrirofi/twitter_autobase/blob/master/constants.py)
 - Github_repo; a repo that will be simple database.
 - First_keyword; keyword for video, photo, and gif.
+- Sub1_keyword; when url tweet exists, it will be a retweet.
 - Second_keyword; keyword to make quote.
 - Sub2_keyword; when menfess contains Second keyword and Sub2 keyword, the sender username will be added to quote.
 - Third_keyword; when DMs contains this keyword, the DMs will be sent to admin id.
@@ -62,21 +64,46 @@ pyvenv.cfg
 ```
 Run app.py using syntax: python3 app.py
 
-## Notes: Auto Accept message 
+## Notes
+### Auto Accept message 
 When follower_data.txt is empty, This bot will automatically fill all follower to follower_data. So it can't track new follower when bot was just started. The algorithms of auto accept message is:<br>
 1. follower_data.txt is empty, fill all followers to follower_data.txt<br>
 2. Follower not in follower_data.txt, send message to new follower<br>
 3. Follower stop following, remove follower from follower_data.txt
+### Addition
+- admin can sends menfess although admin doesn't follow the bot
+
 
 ## DMs examples (based on constants)
-`fess! Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.` #automatically make Thread <br><br>
-`fess! Upload media` (by attaching a media) #send dm with media attachment <br><br>
-`set! add_muted covid corona anjay` #set muted words from DM <br><br>
-`[quote] hello hai hello hai` #make quote inside image <br><br>
-`[quote] -s hello hai hello` #add sender screen_name to quote <br><br>
-`[ask] asking to admin` #send message to admin <br>
+### Upload 4 Media
+tweet 4 media with a sender account, then send tweet url to the bot. only support 4 photo or 1 video.
+`fess! your message https://twitter.com/username/41890813214140?=19`
+if media doesnt exists or media is gif in tweet url, automatically make quote-retweet.
+### Quote-retweet
+`fess! RT your message https://twitter.com/username/41890813214140?=19` (by attaching tweet url)
+### Make a thread
+All menfess keywords are supported with 'Thread'
+`fess! Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.` (by attaching media, or not)
+### Normal tweet
+`fess! your message` (by attaching media, or not)
+### Make quote image
+`[quote] your quote` (media and url are not allowed)
+`[quote] -s your quote` (media and url are not allowed)
+### Ask to admin
+`[ask] your message` (by attaching media, tweet url, or not)
+### Set muted words
+`set! add_muted word1 word2 word3 word-n` (media and url are not allowed)
+`set! rm_muted word1 word2 word3 word-n` (media and url are not allowed)
+
 
 ## Deploy to Heroku
+### Deploy with Heroku CLI
+```bash
+git add .
+git commit -m "first commit"
+heroku git:remote -a ((your heroku app name))
+git push heroku master
+```
 ### Push to Github (If you deploy to Heroku with Github repo) or Fork this repository
 - Use a private repo, because data in constants.py is important
 ```bash
@@ -88,13 +115,6 @@ git push origin master
 ```
 Then deploy github repository to Heroku, search it on Google. <br>
 
-### Deploy from linux terminal
-```bash
-git add .
-git commit -m "first commit"
-heroku git:remote -a ((your heroku app name))
-git push heroku master
-```
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. Please make sure to update tests as appropriate.

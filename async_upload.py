@@ -17,22 +17,59 @@ oauth = OAuth1(constants.CONSUMER_KEY,
                resource_owner_secret=constants.ACCESS_SECRET)
 
 
-class VideoTweet:
+class MediaUpload:
 
-    def __init__(self, file_name):
+    def __init__(self, file_name, media_category=True):
+        '''
+        Upload file to twitter
+        file_name: -> str
+        media_category: True for tweet, False for DM
+        objects from this:
+            - video_filename
+            - total_bytes
+            - media_id
+            - processing_info
+            - media_type
+            - media_category
+        '''
         self.video_filename = file_name
         self.total_bytes = os.path.getsize(self.video_filename)
         self.media_id = None
         self.processing_info = None
+        data_media = {
+            'gif'		: 'image/gif',
+            'mp4'		: 'video/mp4',
+            'jpg'		: 'image/jpeg',
+            'webp'		: 'image/webp',
+            'png'		: 'image/png',
+            'image/gif'	: 'tweet_gif',
+            'video/mp4'	: 'tweet_video',
+            'image/jpeg': 'tweet_image',
+            'image/webp': 'tweet_image',
+            'image/png'	: 'tweet_image'
+        }
+        if file_name.split('.')[-1] in data_media.keys():
+            self.media_type = data_media[file_name.split('.')[-1]]
+            self.media_category = data_media[self.media_type]
+        else:
+            raise Exception("sorry, the file format is not supported")
+        if media_category == False:
+            self.media_category = None
 
     def upload_init(self):
+        '''
+        init section
+        return media id -> int
+        '''
         print('INIT')
         request_data = {
             'command': 'INIT',
-            'media_type': 'video/mp4',
+            'media_type': self.media_type,
             'total_bytes': self.total_bytes,
-            'media_category': 'tweet_video'
+            'media_category': self.media_category
         }
+        if self.media_category == None:
+            del request_data['media_category']
 
         req = requests.post(url=MEDIA_ENDPOINT_URL,
                             data=request_data, auth=oauth)
@@ -42,8 +79,12 @@ class VideoTweet:
 
         print('Media ID: %s' % str(media_id))
 
-    def upload_append(self):
+        return media_id
 
+    def upload_append(self):
+        '''
+        append section
+        '''
         segment_id = 0
         bytes_sent = 0
         file = open(self.video_filename, 'rb')
@@ -96,6 +137,11 @@ class VideoTweet:
         self.check_status()
 
     def Tweet(self, tweet):
+        '''
+        tweet a tweet with media_id
+        tweet: -> str
+        return tweet id -> int
+        '''
         request_data = {
             'status': tweet,
             'media_ids': self.media_id
