@@ -384,9 +384,12 @@ class Twitter:
                         photo_url = media['media_url']
                         media_urls.append(photo_url)
                         filename = photo_url.replace("/", " ")
+                        filename = photo_url.replace("?", " ")
                         filename = filename.split()
-                        filename = filename[-1]
-                        filenames.append(filename)
+                        filename1 = filename[-1]
+                        if "?" in photo_url:
+                            filename1 = filename[-2]
+                        filenames.append(filename1)
                     else:
                         media_url = status._json['extended_entities']['media'][0]['video_info']['variants']
                         temp_bitrate = list()
@@ -401,8 +404,10 @@ class Twitter:
                         filename = video_url.replace('/', ' ')
                         filename = filename.replace('?', ' ')
                         filename = filename.split()
-                        filename = filename[-2]
-                        filenames.append(filename)
+                        filename1 = filename[-1]
+                        if "?" in video_url:
+                            filename1 = filename[-2]
+                        filenames.append(filename1)
 
                 media_ids = list()
                 for i in range(len(media_urls)):
@@ -443,16 +448,14 @@ class Twitter:
 
             r = requests.get(media_url, auth=oauth)
 
-            if filename == None:
-                if "?" not in media_url:
-                    filename = media_url.replace('/', ' ')
-                    filename = filename.split()
-                    filename = filename[-1]
-                else:
-                    filename = media_url.replace('/', ' ')
-                    filename = filename.replace('?', ' ')
-                    filename = filename.split()
-                    filename = filename[-2]
+            if filename == None:    
+                filename = media_url.replace('/', ' ')
+                filename = filename.replace('?', ' ')
+                filename = filename.split()
+                filename1 = filename[-1]
+                if "?" in media_url:
+                    filename1 = filename[-2]
+                filename = str(filename1)
 
             with open(filename, 'wb') as f:
                 f.write(r.content)
@@ -477,10 +480,10 @@ class Twitter:
         return media id -> str
         '''
         try:
-            videoTweet = MediaUpload(filename, media_category)
-            media_id = videoTweet.upload_init()
-            videoTweet.upload_append()
-            videoTweet.upload_finalize()
+            mediaupload = MediaUpload(filename, media_category)
+            media_id = mediaupload.upload_init()
+            mediaupload.upload_append()
+            mediaupload.upload_finalize()
             return str(media_id)
 
         except Exception as ex:
