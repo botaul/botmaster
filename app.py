@@ -23,7 +23,7 @@ def start():
     tw.bot_id = me.id
     open('follower_data.txt', 'w').truncate()
     first = open('follower_data.txt').read()
-    # sent = api.send_direct_message(recipient_id=me.id, text="Twitter autobase is starting...!").id
+    # sent = api.send_direct_message(recipient_id=constants.Admin_id, text="Twitter autobase is starting...!").id
     # tw.delete_dm(sent)
 
     while True:
