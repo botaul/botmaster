@@ -58,7 +58,7 @@ class Twitter:
                 id = dm[x].id
 
                 # check follower
-                if sender_id not in self.follower and sender_id != constants.Admin_id:
+                if int(sender_id) not in self.follower and sender_id != constants.Admin_id:
                     if sender_id == self.bot_id:
                         print("deleting bot messages")
                         self.delete_dm(id)
