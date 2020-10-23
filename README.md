@@ -46,7 +46,7 @@ Twitter bot that can reads your DMs, then tweets like Twitter autobase. This pro
 
 
 ## Installation on Linux
-Note: You can run this bot from Windows as well. Searcg it on Google. <br>
+Note: You can run this bot from Windows as well. Search it on Google. <br>
 Open your linux terminal on specified folder <br>
 ```bash
 git clone https://github.com/fakhrirofi/twitter_autobase.git
@@ -83,11 +83,12 @@ if media in tweet url doesn't exists, automatically make quote-retweet.
 `fess! RT your message https://twitter.com/username/41890813214140?=19` (by attaching tweet url)
 ### Make a thread
 All menfess keywords are supported with 'making a Thread' when more than 280 characters are given. <br>
-`fess! Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.` (by attaching media, url, or not)
+`fess! Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.` (by attaching media, tweet url, or not)
 ### Normal tweet
 `fess! your message` (by attaching media, or not)
 ### Make quote image
-`[quote] your quote` (media and url are not allowed)
+limited to 500 characters <br>
+`[quote] your quote` (media and url are not allowed) <br>
 `[quote] -s your quote` (media and url are not allowed)
 ### Ask to admin
 `[ask] your message` (by attaching media, tweet url, or not)
