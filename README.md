@@ -46,8 +46,8 @@ Twitter bot that can reads your DMs, then tweets like Twitter autobase. This pro
 
 
 ## Installation on Linux
-Note: You can run this bot from Windows as well. But I didn't write those steps<br>
-Open your linux terminal on specified folder<br>
+Note: You can run this bot from Windows as well. Searcg it on Google. <br>
+Open your linux terminal on specified folder <br>
 ```bash
 git clone https://github.com/fakhrirofi/twitter_autobase.git
 virtualenv twitter_autobase
@@ -76,14 +76,14 @@ When follower_data.txt is empty, This bot will automatically fill all follower t
 
 ## DMs examples (based on constants)
 ### Upload 4 Media
-tweet media with a sender account, then send tweet url by sending message to the bot. only support 4 photo, 1 video, or 1 gif.
-`fess! your message https://twitter.com/username/41890813214140?=19`
+tweet media with a sender account, then send tweet url by sending message to the bot. only support 4 photo, 1 video, or 1 gif. <br>
+`fess! your message https://twitter.com/username/41890813214140?=19` <br>
 if media in tweet url doesn't exists, automatically make quote-retweet.
 ### Quote-retweet
 `fess! RT your message https://twitter.com/username/41890813214140?=19` (by attaching tweet url)
 ### Make a thread
-All menfess keywords are supported with 'Thread'
-`fess! Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.` (by attaching media, or not)
+All menfess keywords are supported with 'making a Thread' when more than 280 characters are given. <br>
+`fess! Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.` (by attaching media, url, or not)
 ### Normal tweet
 `fess! your message` (by attaching media, or not)
 ### Make quote image
@@ -92,7 +92,7 @@ All menfess keywords are supported with 'Thread'
 ### Ask to admin
 `[ask] your message` (by attaching media, tweet url, or not)
 ### Set muted words
-`set! add_muted word1 word2 word3 word-n` (media and url are not allowed)
+`set! add_muted word1 word2 word3 word-n` (media and url are not allowed) <br>
 `set! rm_muted word1 word2 word3 word-n` (media and url are not allowed)
 
 
