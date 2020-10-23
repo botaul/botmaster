@@ -79,7 +79,7 @@ In the beginning, this bot will automatically fill all followers to follower_dat
 ### Upload 4 Media
 Tweet media with a sender account, then send the tweet url by sending message to the bot. Only support 4 photo, 1 video, or 1 GIF. <br>
 `fess! your message https://twitter.com/username/41890813214140?=19` <br>
-If the media in the tweet url don't exist, automatically make the quote-retweet.
+If the media in the tweet url doesn't exist, automatically make the quote-retweet.
 ### Quote-retweet
 `fess! RT your message https://twitter.com/username/41890813214140?=19` (by attaching tweet url)
 ### Make a thread
