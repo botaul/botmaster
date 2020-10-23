@@ -78,7 +78,7 @@ When follower_data.txt is empty, This bot will automatically fill all follower t
 ### Upload 4 Media
 tweet 4 media with a sender account, then send tweet url to the bot. only support 4 photo or 1 video.
 `fess! your message https://twitter.com/username/41890813214140?=19`
-if media doesnt exists or media is gif in tweet url, automatically make quote-retweet.
+if media in tweet url doesn't exists, automatically make quote-retweet.
 ### Quote-retweet
 `fess! RT your message https://twitter.com/username/41890813214140?=19` (by attaching tweet url)
 ### Make a thread
