@@ -76,7 +76,7 @@ When follower_data.txt is empty, This bot will automatically fill all follower t
 
 ## DMs examples (based on constants)
 ### Upload 4 Media
-tweet 4 media with a sender account, then send tweet url to the bot. only support 4 photo or 1 video.
+tweet media with a sender account, then send tweet url by sending message to the bot. only support 4 photo, 1 video, or 1 gif.
 `fess! your message https://twitter.com/username/41890813214140?=19`
 if media in tweet url doesn't exists, automatically make quote-retweet.
 ### Quote-retweet
