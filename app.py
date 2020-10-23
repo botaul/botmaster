@@ -105,9 +105,7 @@ def start():
                                 message = message.split()
                                 message = " ".join(message[:-1])
                                 postid = tw.post_tweet(message, attachment_url=dms[i]['urls'])
-                                text = notif + \
-                                    "\nfyi:hanya dapat mengirim 4 foto atau 1 video" + \
-                                    str(postid)
+                                text = notif + str(postid)
                                 sent = api.send_direct_message(
                                     recipient_id=sender_id, text=text).id
                             elif postid != None:
