@@ -1,16 +1,18 @@
 # twitter_autobase
-A Twitter bot that can read your DMs, then tweets like Twitter autobase. This project is a re-code of [autodm_base](https://github.com/ydhnwb/autodm_base)-[ydhnwb](https://github.com/ydhnwb) with many improvements and fixed bugs. I know this bot is not perfect yet, issues and pull requests are welcome. If you like my projects, support me by giving me a star! Please report if you found a bug! If you have any questions, feel free to contact me on [Twitter (synthesis____)](https://twitter.com/synthesis____).
+A Twitter bot that can read your DMs, then tweets like Twitter autobase. This project is a re-code of [autodm_base](https://github.com/ydhnwb/autodm_base)-[ydhnwb](https://github.com/ydhnwb) with many improvements and fixed bugs. I know this bot is not perfect yet, issues and pull requests are welcome. If you like my projects, support me by giving me a star! Please report if you found a bug! If you have any questions, feel free to contact me on [Twitter (synthesis____)](https://twitter.com/synthesis____). <br>
+
+I have a plan to create a website to provide free twitter autobase services. Contact me if you want to join and competent in front-end programming :) 
 
 ## Notes
+- If you have followers more than 5K, follower filter may not work properly. Please delete or comment line 67-76 on twitter.py
+- Admin can send menfess although admin doesn't follow the bot
+- Admin pass muted word filters
+
 ### Auto Accept message 
 In the beginning, this bot will automatically fill all followers to follower_data. So it can't track new followers when the bot was just started. The algorithms of auto accept message is:<br>
 1. follower_data.txt is empty, fill all followers to follower_data.txt<br>
 2. Follower not in follower_data.txt, send message to new follower<br>
 3. Follower stop following, remove follower from follower_data.txt
-### Addition
-- If you have followers more than 5K, follower filter may not work properly. Please delete or comment line 67-76 on twitter.py
-- Admin can send menfess although admin doesn't follow the bot
-- Admin pass muted word filters
 
 ## New Features & Fixed Bugs
 - Wait ratelimit with Tweepy
