@@ -1,7 +1,7 @@
 import requests
 import textwrap
 from PIL import Image, ImageDraw, ImageFont, ImageEnhance, ImageFilter
-import os
+from os import remove
 import time
 from os.path import exists
 
@@ -61,8 +61,8 @@ class Media:
             time.sleep(2)
             while exists('ready.png') == False:
                 time.sleep(3)
-            os.remove('downloaded_bg.png')
-            os.remove('image.png')
+            remove('downloaded_bg.png')
+            remove('image.png')
         except Exception as ex:
             print(ex)
             pass
