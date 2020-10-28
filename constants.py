@@ -1,19 +1,19 @@
-CONSUMER_KEY = "**********"
-CONSUMER_SECRET = "**********"
-ACCESS_KEY = "**********"
-ACCESS_SECRET = "**********"
+CONSUMER_KEY = "*********************"
+CONSUMER_SECRET = "*********************"
+ACCESS_KEY = "*********************"
+ACCESS_SECRET = "*********************"
 
 
-Github_username = "fakhrirofi"
-Github_password = "**********"
-Github_repo = "fakhrirofi/database"  # use another repo instead of primary repo
+Github_token = "*********************"
+# get it from https://github.com/settings/tokens , set allow for editing repo
+Github_repo = "yourgithubusername/database"  # use another repo instead of primary repo
 
 
 First_Keyword = "fess!"  # primary keyword for tweet, video, and image
-Sub1_keyword = "RT" # retweet when tweet url is exists
-Second_Keyword = "[quote]"  # for make image quoted
-Sub2_Keyword = "-s"  # give image quoted name
-Third_keyword = "[ask]"  # ask admin
+Sub1_keyword = "attach"  # upload media from tweet url
+# Second_Keyword = "[quote]"  # for make image quoted
+# Sub2_Keyword = "-s"  # give image quoted name
+# Third_keyword = "[ask]"  # ask admin
 Muted_words = ['covid', 'blablabla']
 Set_keyword = "set!"  # set muted_words and etc.
 Dict_set_keyword = {
@@ -22,5 +22,5 @@ Dict_set_keyword = {
 }
 
 
-Admin_id = "**********"
-Timezone = 7  # Heroku's timezone is on utc
+Admin_id = "*********************"
+# Admin id is like sender id. To check it, send a menfess from your admin account

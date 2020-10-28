@@ -2,13 +2,11 @@ import tweepy
 import constants
 from time import sleep
 import _json
-import os
+from os import remove
 from os.path import exists
 import requests
 from requests_oauthlib import OAuth1
 from async_upload import MediaUpload
-import moviepy.editor as mp
-from PIL import Image
 
 
 class Twitter:
@@ -135,8 +133,9 @@ class Twitter:
                     continue
 
                 # primary keywords
-                keywords = [constants.First_Keyword, constants.Second_Keyword,
-                            constants.Third_keyword, constants.Set_keyword]
+                keywords = [constants.First_Keyword, constants.Set_keyword]
+                # keywords = [constants.First_Keyword, constants.Second_Keyword,
+                #             constants.Third_keyword, constants.Set_keyword]
                 if any(i in message for i in keywords):
                     print("Getting message -> by sender id " + str(sender_id))
                     # attachment
@@ -290,7 +289,8 @@ class Twitter:
                 complete = self.api.update_status(
                     tweet1, media_ids=media_ids).id
             elif file_type == 'normal':
-                complete = self.api.update_status(tweet1, attachment_url=attachment_url).id
+                complete = self.api.update_status(
+                    tweet1, attachment_url=attachment_url).id
             elif file_type == "retweet":
                 complete = self.api.update_status(
                     tweet1, media_ids=media_ids).id
@@ -319,28 +319,28 @@ class Twitter:
             sleep(30)
             return None
 
-    def post_tweet_quote(self, name):
-        '''
-        tweet a quote image (ready.png)
-        name: username -> string
-        return tweet id -> str
-        '''
-        print("Uploading..")
-        try:
-            if name is None:
-                tweet = constants.Second_Keyword
-            elif name != None:
-                tweet = f"{constants.Second_Keyword} by @{name}"
-            postid = self.api.update_with_media(
-                filename="ready.png", status=tweet).id
-            os.remove('ready.png')
-            sleep(20)
-            return str(postid)
-        except Exception as ex:
-            pass
-            print(ex)
-            sleep(60)
-            return None
+    # def post_tweet_quote(self, name):
+    #     '''
+    #     tweet a quote image (ready.png)
+    #     name: username -> string
+    #     return tweet id -> str
+    #     '''
+    #     print("Uploading..")
+    #     try:
+    #         if name is None:
+    #             tweet = constants.Second_Keyword
+    #         elif name != None:
+    #             tweet = f"{constants.Second_Keyword} by @{name}"
+    #         postid = self.api.update_with_media(
+    #             filename="ready.png", status=tweet).id
+    #         remove('ready.png')
+    #         sleep(20)
+    #         return str(postid)
+    #     except Exception as ex:
+    #         pass
+    #         print(ex)
+    #         sleep(60)
+    #         return None
 
     def post_tweet(self, tweet, attachment_url=None):
         '''
@@ -351,9 +351,11 @@ class Twitter:
         '''
         try:
             if len(tweet) <= 280:
-                postid = self.api.update_status(tweet, attachment_url=attachment_url).id
+                postid = self.api.update_status(
+                    tweet, attachment_url=attachment_url).id
             elif len(tweet) > 280:
-                postid = self.Thread(None, "normal", tweet, None, attachment_url=attachment_url)
+                postid = self.Thread(None, "normal", tweet,
+                                     None, attachment_url=attachment_url)
             sleep(20)
             return postid
         except Exception as ex:
@@ -378,18 +380,11 @@ class Twitter:
 
             if "extended_entities" in status._json:
                 media_urls = list()
-                filenames = list()
                 for media in status._json['extended_entities']['media']:
                     if "video_info" not in media:
                         photo_url = media['media_url']
                         media_urls.append(photo_url)
-                        filename = photo_url.replace("/", " ")
-                        filename = photo_url.replace("?", " ")
-                        filename = filename.split()
-                        filename1 = filename[-1]
-                        if "?" in photo_url:
-                            filename1 = filename[-2]
-                        filenames.append(filename1)
+
                     else:
                         media_url = status._json['extended_entities']['media'][0]['video_info']['variants']
                         temp_bitrate = list()
@@ -401,20 +396,13 @@ class Twitter:
                         temp_bitrate.reverse()
                         video_url = temp_bitrate[0][1]
                         media_urls.append(video_url)
-                        filename = video_url.replace('/', ' ')
-                        filename = filename.replace('?', ' ')
-                        filename = filename.split()
-                        filename1 = filename[-1]
-                        if "?" in video_url:
-                            filename1 = filename[-2]
-                        filenames.append(filename1)
 
                 media_ids = list()
                 for i in range(len(media_urls)):
-                    self.download_media(media_urls[i], filenames[i])
-                    media_id = self.media_upload_chunk(filenames[i])
+                    filename = self.download_media(media_urls[i])
+                    media_id = self.media_upload_chunk(filename)
                     media_ids.append(media_id)
-                    os.remove(filenames[i])
+                    remove(filename)
 
                 if len(tweet) <= 280:
                     postid = self.api.update_status(
@@ -448,7 +436,7 @@ class Twitter:
 
             r = requests.get(media_url, auth=oauth)
 
-            if filename == None:    
+            if filename == None:
                 filename = media_url.replace('/', ' ')
                 filename = filename.replace('?', ' ')
                 filename = filename.split()
@@ -504,28 +492,14 @@ class Twitter:
 
             if file_type == 'photo':
                 try:
-                    filename = media_url.replace('/', ' ')
-                    filename = filename.split()
-                    filename = filename[-1]
-                    self.download_media(media_url, filename)
-                    size = os.path.getsize(filename)
-                    print("Photo size: " + str(size))
-                    while size > 3000000:
-                        foo = Image.open(filename)
-                        dimension = "{} {}".format(*foo).split(' ')
-                        first = str(round(int(dimension[0])*0.8))
-                        second = str(round(int(dimension[1])*0.8))
-                        foo = foo.resize((first, second), Image.ANTIALIAS)
-                        foo.save(filename, optimize=True, quality=95)
-                        sleep(3)
-                        while exists(filename) == False:
-                            sleep(3)
+                    filename = self.download_media(media_url)
                     if len(tweet) <= 280:
                         postid = self.api.update_with_media(
                             filename=filename, status=tweet).id
+                        sleep(20)
                     elif len(tweet) > 280:
                         postid = self.Thread(filename, file_type, tweet)
-                    os.remove(filename)
+                    remove(filename)
                     return postid
 
                 except Exception as ex:
@@ -534,53 +508,19 @@ class Twitter:
                     sleep(30)
                     return None
 
-            elif file_type == 'animated_gif':
-                try:
-                    filename = media_url.replace('/', ' ')
-                    filename = filename.split()
-                    filename = filename[-1]
-                    self.download_media(media_url, filename)
-                    clip = mp.VideoFileClip(filename)
-                    clip.subclip((0), (0, 2)).resize(0.2).without_audio()
-                    clip.write_gif(f'{filename}.gif', fps=12, program='ffmpeg')
-                    clip.close()
-
-                    sleep(3)
-                    while exists(f'{filename}.gif') == False:
-                        sleep(3)
-
-                    print("gif size: " +
-                          str(os.path.getsize(f'{filename}.gif')))
-                    if len(tweet) <= 280:
-                        postid = self.api.update_with_media(
-                            filename=f'{filename}.gif', status=tweet).id
-                    elif len(tweet) > 280:
-                        postid = self.Thread(
-                            f"{filename}.gif", file_type, tweet)
-                    os.remove(filename)
-                    os.remove(f'{filename}.gif')
-                    return postid
-                except Exception as ex:
-                    pass
-                    print(ex)
-                    sleep(30)
-                    return None
-
-            elif file_type == 'video':
-                filename = media_url.replace('/', ' ')
-                filename = filename.replace('?', ' ')
-                filename = filename.split()
-                filename = filename[-2]
-                self.download_media(media_url, filename)
+            elif file_type == 'video' or file_type == 'animated_gif':
+                filename = self.download_media(media_url)
                 if len(tweet) <= 280:
                     media_id = self.media_upload_chunk(filename)
                     media_ids = list()
                     media_ids.append(media_id)
                     postid = self.api.update_status(
                         tweet, media_ids=media_ids).id
+                    sleep(20)
                 elif len(tweet) > 280:
+                    file_type = 'video'
                     postid = self.Thread(filename, file_type, tweet)
-                os.remove(filename)
+                remove(filename)
                 return postid
 
             print("Upload with media success!")

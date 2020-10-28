@@ -1,35 +1,32 @@
 # twitter_autobase
-A Twitter bot that can read your DMs, then tweets like Twitter autobase. This project is a re-code of [autodm_base](https://github.com/ydhnwb/autodm_base)-[ydhnwb](https://github.com/ydhnwb) with many improvements and fixed bugs. I know this bot is not perfect yet, issues and pull requests are welcome. If you like my projects, support me by giving me a star! Please report if you found a bug! If you have any questions, feel free to contact me on [Twitter (synthesis____)](https://twitter.com/synthesis____). <br>
-
-I have a plan to create a website to provide free twitter autobase services. Contact me if you want to join and competent in front-end programming :) 
+A Twitter bot that can read your DMs, then tweets like Twitter autobase. This project is a re-code of [autodm_base](https://github.com/ydhnwb/autodm_base) by [Prieyudha Akadita S.](https://github.com/ydhnwb) with many improvements and fixed bugs. I know this bot is not perfect yet, issues and pull requests are welcome. If you like my projects, support me by giving me a star! Please report if you found a bug! If you have any questions, feel free to contact me on [Twitter](https://twitter.com/synthesis____)
 
 ## Notes
-- If you have followers more than 5K, follower filter may not work properly. Please delete or comment line 67-76 on twitter.py
 - Admin can send menfess although admin doesn't follow the bot
 - Admin pass muted word filters
-
+- If your followers are more than 5K, follower filter may not work properly. Comment or delete line 66-74 on twitter.py
+- I have 'commented' (deactivated) some nonessential features for autobase. If you want to make it active, just delete the comments in the script code
 ### Auto Accept message 
-In the beginning, this bot will automatically fill all followers to follower_data. So it can't track new followers when the bot was just started. The algorithms of auto accept message is:<br>
-1. follower_data.txt is empty, fill all followers to follower_data.txt<br>
-2. Follower not in follower_data.txt, send message to new follower<br>
-3. Follower stop following, remove follower from follower_data.txt
+In the beginning, this bot will automatically fill all followers to follower_data. So it can't track new followers when the bot was just started. The algorithms of auto accept message is:
+1. Truncate (delete contents) follower_data.txt, fill all followers to follower_data.txt
+2. Follower not in follower_data.txt, send message to new follower
+3. Follower stop following, remove follower from follower_data.txt <br>
+If your followers didn't receive a message from the bot. Unfollow this bot for some minutes then follow it again.
+
 
 ## New Features & Fixed Bugs
-- Wait ratelimit with Tweepy
 - Added muted words
 - Only follower can sends menfess and message to admin
 - Auto accepts message requests (for open DM) by interacting sending a DM to new follower
-- Send DM to admin account
+- Send DM to admin account (deactivated)
 - Notify sender when the menfess sent or not
 - Tweet GIF and video
 - Edit media for Twitter API requirements
-- Fix moviepy when saving the file
 - Make (tweets) a Thread when characters > 280
-- Tweet a quote image
-- Upload simple database (text) with push on github repo for backup
-- Set Timezone from constants
+- Tweet a quote image (deactivated)
+- Sync simple database (text) on github repository
 - Set muted_words from DM
-- Upload 4 media
+- Upload more than one media
 
 ## Requirements
 - Good at basic python programming
@@ -45,18 +42,17 @@ In the beginning, this bot will automatically fill all followers to follower_dat
 - Deploy to Heroku
 
 ## [Constants](https://github.com/fakhrirofi/twitter_autobase/blob/master/constants.py)
+- Github_token; a token to access your github. Get it from [here](https://github.com/settings/tokens) and set allow for editing repository.
 - Github_repo; a repo that will be simple database.
 - First_keyword; keyword for video, photo, and GIF.
-- Sub1_keyword; when tweet url exists, it will be a retweet.
-- Second_keyword; keyword to make quote.
-- Sub2_keyword; when menfess contains Second keyword and Sub2 keyword, the sender username will be added to quote.
-- Third_keyword; when DMs contains this keyword, the DMs will be sent to admin id.
+- Sub1_keyword; when tweet url exists, it will attach media from tweet url. A.k.a. upload more than one media.
+- Second_keyword; keyword to make quote. (deactivated)
+- Sub2_keyword; when menfess contains Second keyword and Sub2 keyword, the sender username will be added to quote. (deactivated)
+- Third_keyword; when DMs contains this keyword, the DMs will be sent to admin id. (deactivated)
 - Muted_words; when muted words in DMs. The DMs will be deleted.
 - Set_keyword; when Set keywords in DMs, it will edit Muted_words.
 - Dict_set_keyword; command that will be executed with exec.
 - Admin_id; used when DMs contains Third_keyword. You can find the admin id when your admin account send message (when bot active) to autobase account. The sender id is an Admin id.
-- Timezone; Heroku Timezone is on UTC. So, when this bot running on Heroku server, the Timezone is 7 for Jakarta.
-
 
 ## Installation on Linux
 Note: You can run this bot from Windows as well. Search it on Google. <br>
@@ -77,31 +73,34 @@ pyvenv.cfg
 ```
 Run app.py by using syntax: python3 app.py
 
+
+
 ## DMs examples (based on constants)
-### Upload 4 Media
-Tweet media with a sender account, then send the tweet url by sending message to the bot. Only support 4 photo, 1 video, or 1 GIF. <br>
-`fess! your message https://twitter.com/username/41890813214140?=19` <br>
+### Upload (attach) more than one media
+Tweet media with a sender account, then send the tweet url by sending message to the bot. Only support maximum 4 photo, 1 video, or 1 GIF. Using First_keyword and Sub1_keyword.<br>
+`fess! attach your message https://twitter.com/username/41890813214140?=19` (by attaching tweet url. media are not allowed)<br>
 If the media in the tweet url doesn't exist, automatically make the quote-retweet.
 ### Quote-retweet
-`fess! RT your message https://twitter.com/username/41890813214140?=19` (by attaching tweet url)
+`fess! your message https://twitter.com/username/41890813214140?=19` (by attaching tweet url)
 ### Make a thread
 All menfess keywords are supported with 'making a Thread' when more than 280 characters are given. <br>
-`fess! Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.` (by attaching media, tweet url, or not)
+`fess! Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.` (by attaching media, tweet url, url, or not)
 ### Normal tweet
-`fess! your message` (by attaching media, or not)
-### Make quote image
+`fess! your message` (by attaching media, url, or not)
+### Make quote image (deactivated)
 Limited to 500 characters <br>
 `[quote] your quote` (media and url are not allowed) <br>
 `[quote] -s your quote` (media and url are not allowed)
-### Ask to admin
-`[ask] your message` (by attaching media, tweet url, or not)
+### Ask to admin (deactivated)
+`[ask] your message` (by attaching media, url, or not)
 ### Set muted words
-`set! add_muted word1 word2 word3 word-n` (media and url are not allowed) <br>
-`set! rm_muted word1 word2 word3 word-n` (media and url are not allowed)
+`set! add_muted word1 word2 word3 word-n` (media are not allowed) <br>
+`set! rm_muted word1 word2 word3 word-n` (media are not allowed)
 
 
 ## Deploy to Heroku
 ### Deploy with Heroku CLI
+Make sure you have deleted the local Database if you previously ran the bot on local.
 ```bash
 git add .
 git commit -m "first commit"
