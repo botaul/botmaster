@@ -3,7 +3,7 @@ from twitter import Twitter
 from time import sleep
 from threading import Thread
 from github import Github
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import constants
 from os.path import exists
 from os import remove
@@ -221,8 +221,9 @@ def start():
 def Check_file_github(new=True):
     print("checking github file...")
     try:
+        datee = datetime.now(timezone.utc) + timedelta(hours=7)
         globals()['filename_github'] = "Database {}-{}-{}.txt".format(
-            datetime.now().day, datetime.now().month, datetime.now().year)
+            datee.day, datee.month, datee.year)
         contents = repo.get_contents("")
         if any(filename_github == content.name for content in contents):
             print(f"filename_github detected, set: {str(new)}")
@@ -278,9 +279,10 @@ def database():
 
 
 if __name__ == "__main__":
+    datee = datetime.now(timezone.utc) + timedelta(hours=7)
     global filename_github, repo, ACTION
     filename_github = "Database {}-{}-{}.txt".format(
-        datetime.now().day, datetime.now().month, datetime.now().year)
+        datee.day, datee.month, datee.year)
     repo = github.get_repo(constants.Github_repo)
     ACTION = 0
 
