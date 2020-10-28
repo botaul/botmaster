@@ -244,7 +244,7 @@ def Check_file_github(new=True):
         open(filename_github, 'w').write(contents)
         try:
             remove("Database {}-{}-{}.txt".format(
-                datetime.now().day - 1, datetime.now().month, datetime.now().year))
+                datee.day - 1, datee.month, datee.year))
             print("Yesterday's database has been deleted (UTC)")
         except:
             pass
