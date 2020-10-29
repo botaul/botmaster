@@ -91,21 +91,18 @@ def start():
                             if 'urls' not in dms[i]:
                                 postid = tw.post_tweet(message)
                             else:
-                                message = message.split()
-                                message = " ".join(message[:-1])
                                 if constants.Sub1_keyword in message:
+                                    message = message.split()
+                                    message = " ".join(message[:-1])
                                     message = message.replace(constants.Sub1_keyword, "")
                                     postid = tw.post_multiple_media(
                                         message, dms[i]['urls'])
                                 else:
                                     postid = tw.post_tweet(
-                                        message, attachment_url=dms[i]['urls'])
+                                        message)
 
                             if postid == "not_available":
-                                message = message.split()
-                                message = " ".join(message[:-1])
-                                postid = tw.post_tweet(
-                                    message, attachment_url=dms[i]['urls'])
+                                postid = tw.post_tweet(message)
                                 text = notif + str(postid)
                                 sent = api.send_direct_message(
                                     recipient_id=sender_id, text=text).id
