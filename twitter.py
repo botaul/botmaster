@@ -214,10 +214,10 @@ class Twitter:
             x = 0
             time = datetime.now(timezone.utc) + timedelta(hours=constants.Timezone)
             for i in dms:
-                x += len(i['message']) // 270 + 1
+                x += (len(i['message']) // 270) + 1
                 if i['media'] != None:
-                    x += 0.2
-                sent_time = time + timedelta(minutes=1, seconds= 5 + x*28)
+                    x += 0.3
+                sent_time = time + timedelta(minutes=1, seconds= x*26)
                 hour = sent_time.hour
                 minute = sent_time.minute
                 if hour < 10:
@@ -303,11 +303,6 @@ class Twitter:
             left = 0
             right = 270
             leftcheck = 240
-
-            if attachment_url != None:
-                right -= len(attachment_url)
-                leftcheck -= len(attachment_url)
-
             check = tweet[leftcheck:right].split()
             separator = len(check[-1])
             tweet1 = html.unescape(tweet[left:right-separator]) + '(cont..)'
@@ -325,8 +320,8 @@ class Twitter:
                 complete = self.api.update_status(
                     tweet1, media_ids=media_ids, attachment_url=attachment_url).id
 
-            postid = str(complete)
             sleep(25)
+            postid = str(complete)
             tweet2 = tweet[right-separator:]
             while len(tweet2) > 280:
                 leftcheck += 270 - separator
@@ -384,16 +379,13 @@ class Twitter:
         '''
         try:
             max_char = len(tweet)
-            if attachment_url != None:
-                max_char += len(attachment_url)
-
             if max_char <= 280:
                 postid = self.api.update_status(
                     html.unescape(tweet), attachment_url=attachment_url).id
+                sleep(25)
             elif max_char > 280:
                 postid = self.Thread(None, "normal", tweet,
                                      None, attachment_url)
-            sleep(25)
             return postid
         except Exception as ex:
             pass
@@ -430,8 +422,7 @@ class Twitter:
                 f.write(r.content)
                 f.close()
 
-            sleep(3)
-            while exists(filename) == False:
+            if exists(filename) == False:
                 sleep(3)
 
             print("Download media successfully")
@@ -471,8 +462,6 @@ class Twitter:
             tweet = tweet.split()
             tweet = " ".join(tweet[:-1])
             max_char = len(tweet)
-            if attachment_url != None:
-                max_char += len(attachment_url)
 
             if file_type == 'photo':
                 try:
