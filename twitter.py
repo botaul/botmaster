@@ -216,7 +216,7 @@ class Twitter:
             for i in dms:
                 x += (len(i['message']) // 270) + 1
                 if i['media'] != None:
-                    x += 0.3
+                    x += 0.2
                 sent_time = time + timedelta(minutes=1, seconds= x*26)
                 hour = sent_time.hour
                 minute = sent_time.minute
