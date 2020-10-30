@@ -212,7 +212,7 @@ class Twitter:
                 dms.reverse()
             
             x = 0
-            time = datetime.now(timezone.utc) + timedelta(hours=7)
+            time = datetime.now(timezone.utc) + timedelta(hours=constants.Timezone)
             for i in dms:
                 x += len(i['message']) // 280 + 1
                 sent_time = time + timedelta(minutes=1, seconds= 5 + x*25)
