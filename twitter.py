@@ -211,9 +211,10 @@ class Twitter:
             if len(dms) > 1:
                 dms.reverse()
             
-            x = 1
+            x = 0
             time = datetime.now(timezone.utc) + timedelta(hours=7)
             for i in dms:
+                x += len(i['message']) // 280 + 1
                 sent_time = time + timedelta(minutes=1, seconds= 5 + x*25)
                 hour = sent_time.hour
                 minute = sent_time.minute
@@ -222,7 +223,6 @@ class Twitter:
                 if minute < 10:
                     minute = f"0{minute}"
                 sent_time = f"{str(hour)}:{str(minute)}"
-                x += 1
                 notif = f"[BOT]\nMenfess kamu akan terkirim sekitar pukul {sent_time}"
                 sent = api.send_direct_message(recipient_id=i['sender_id'], text=notif)
                 self.delete_dm(sent.id)
