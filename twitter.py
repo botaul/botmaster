@@ -7,6 +7,7 @@ import requests
 from requests_oauthlib import OAuth1
 from async_upload import MediaUpload
 import html
+from datetime import datetime, timezone, timedelta
 
 
 class Twitter:
@@ -209,6 +210,22 @@ class Twitter:
             print(str(len(dms)) + " collected")
             if len(dms) > 1:
                 dms.reverse()
+            
+            x = 1
+            time = datetime.now(timezone.utc) + timedelta(hours=7)
+            for i in dms:
+                sent_time = time + timedelta(minutes=1, seconds= 5 + x*30)
+                hour = sent_time.hour
+                minute = sent_time.minute
+                if hour < 10:
+                    hour = f"0{hour}"
+                if minute < 10:
+                    minute = f"0{minute}"
+                sent_time = f"{str(hour)}:{str(minute)}"
+                x += 1
+                notif = f"[BOT]\nMenfess kamu akan terkirim sekitar pukul {sent_time}"
+                sent = api.send_direct_message(recipient_id=i['sender_id'], text=notif)
+                self.delete_dm(sent.id)
 
             sleep(60)
             return dms
