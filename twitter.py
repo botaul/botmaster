@@ -214,7 +214,7 @@ class Twitter:
             x = 0
             time = datetime.now(timezone.utc) + timedelta(hours=constants.Timezone)
             for i in dms:
-                x += len(i['message']) // 280 + 1
+                x += len(i['message']) // 270 + 1
                 if i['media'] != None:
                     x += 0.2
                 sent_time = time + timedelta(minutes=1, seconds= 5 + x*28)
