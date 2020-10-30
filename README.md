@@ -1,5 +1,6 @@
 # twitter_autobase
 A Twitter bot that can read your DMs, then tweets like Twitter autobase. This project is a re-code of [autodm_base](https://github.com/ydhnwb/autodm_base) by [Prieyudha Akadita S.](https://github.com/ydhnwb) with many improvements and fixed bugs. I know this bot is not perfect yet, issues and pull requests are welcome. If you like my projects, support me by giving me a star! Please report if you found a bug! If you have any questions, feel free to contact me on [Twitter](https://twitter.com/synthesis____). <br>
+
 **USING THIS BOT FOR 'ADULT' BASE IS STRICTLY PROHIBITED**
 
 ## Notes
@@ -7,6 +8,7 @@ A Twitter bot that can read your DMs, then tweets like Twitter autobase. This pr
 - Admin pass muted word filters
 - If your followers are more than 5K, follower filter may not work properly. Comment or delete line 109-124 on twitter.py
 - I have 'commented' (deactivated) some nonessential features for autobase. If you want to make it active, just delete the comments in the script code
+- If you use github repository to deploy to heroku, make sure to set the repository to private. Github automatically will delete your github token if your repository is public
 
 ### Auto Accept message 
 In the beginning, this bot will automatically fill all followers to follower_data. So it can't track new followers when the bot was just started. The algorithms of auto accept message is:
