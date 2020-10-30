@@ -214,7 +214,7 @@ class Twitter:
             x = 1
             time = datetime.now(timezone.utc) + timedelta(hours=7)
             for i in dms:
-                sent_time = time + timedelta(minutes=1, seconds= 5 + x*30)
+                sent_time = time + timedelta(minutes=1, seconds= 5 + x*25)
                 hour = sent_time.hour
                 minute = sent_time.minute
                 if hour < 10:
