@@ -4,15 +4,15 @@ A Twitter bot that can read your DMs, then tweets like Twitter autobase. This pr
 ## Notes
 - Admin can send menfess although admin doesn't follow the bot
 - Admin pass muted word filters
-- If your followers are more than 5K, follower filter may not work properly. Comment or delete line 66-74 on twitter.py
+- If your followers are more than 5K, follower filter may not work properly. Comment or delete line 108-122 on twitter.py
 - I have 'commented' (deactivated) some nonessential features for autobase. If you want to make it active, just delete the comments in the script code
+
 ### Auto Accept message 
 In the beginning, this bot will automatically fill all followers to follower_data. So it can't track new followers when the bot was just started. The algorithms of auto accept message is:
 1. Truncate (delete contents) follower_data.txt, fill all followers to follower_data.txt
 2. Follower not in follower_data.txt, send message to new follower
 3. Follower stop following, remove follower from follower_data.txt <br>
 If your followers didn't receive a message from the bot. Unfollow this bot for some minutes then follow it again.
-
 
 ## New Features & Fixed Bugs
 - Added muted words
@@ -25,8 +25,9 @@ If your followers didn't receive a message from the bot. Unfollow this bot for s
 - Make (tweets) a Thread when characters > 280
 - Tweet a quote image (deactivated)
 - Sync simple database (text) on github repository
-- Set muted_words from DM
+- Set muted_words & update database from DM
 - Upload more than one media
+- fix attachment url 
 
 ## Requirements
 - Good at basic python programming
@@ -36,7 +37,7 @@ If your followers didn't receive a message from the bot. Unfollow this bot for s
 - Heroku Account
 
 ## How to run this bot?
-- Install pip3, virtualenv, git
+- Install pip3, virtualenv, git, heroku
 - Do Installation
 - Edit contents in constants.py
 - Deploy to Heroku
@@ -45,7 +46,6 @@ If your followers didn't receive a message from the bot. Unfollow this bot for s
 - Github_token; a token to access your github. Get it from [here](https://github.com/settings/tokens) and set allow for editing repository.
 - Github_repo; a repo that will be simple database.
 - First_keyword; keyword for video, photo, and GIF.
-- Sub1_keyword; when tweet url exists, it will attach media from tweet url. A.k.a. upload more than one media.
 - Second_keyword; keyword to make quote. (deactivated)
 - Sub2_keyword; when menfess contains Second keyword and Sub2 keyword, the sender username will be added to quote. (deactivated)
 - Third_keyword; when DMs contains this keyword, the DMs will be sent to admin id. (deactivated)
@@ -76,10 +76,7 @@ Run app.py by using syntax: python3 app.py
 
 
 ## DMs examples (based on constants)
-### Upload (attach) more than one media
-Tweet media with a sender account, then send the tweet url by sending message to the bot. Only support maximum 4 photo, 1 video, or 1 GIF. Using First_keyword and Sub1_keyword.<br>
-`fess! attach your message https://twitter.com/username/41890813214140?=19` (by attaching tweet url. media are not allowed)<br>
-If the media in the tweet url doesn't exist, automatically make the quote-retweet.
+You can tweet more than one media with media link on tweet. Open your twitter app then tap (hold) the tweet. media link will automatically copied. then send the link to this bot from DM.
 ### Quote-retweet
 `fess! your message https://twitter.com/username/41890813214140?=19` (by attaching tweet url)
 ### Make a thread
@@ -93,9 +90,10 @@ Limited to 500 characters <br>
 `[quote] -s your quote` (media and url are not allowed)
 ### Ask to admin (deactivated)
 `[ask] your message` (by attaching media, url, or not)
-### Set muted words
+### Set
 `set! add_muted word1 word2 word3 word-n` (media are not allowed) <br>
-`set! rm_muted word1 word2 word3 word-n` (media are not allowed)
+`set! rm_muted word1 word2 word3 word-n` (media are not allowed) <br>
+`set! db_update`
 
 
 ## Deploy to Heroku

@@ -7,6 +7,7 @@ from datetime import datetime, timezone, timedelta
 import constants
 from os.path import exists
 from os import remove
+import html
 
 tw = Twitter()
 # media = Media()
@@ -19,6 +20,7 @@ def start():
     api = tw.api
     me = api.me()
     tw.bot_id = me.id
+    constants.screen_name = me.screen_name
     open('follower_data.txt', 'w').truncate()
     first = open('follower_data.txt').read()
     # sent = api.send_direct_message(recipient_id=constants.Admin_id, text="Twitter autobase is starting...!").id
@@ -81,32 +83,22 @@ def start():
                     id = dms[i]['id']
                     screen_name = tw.get_user_screen_name(sender_id)
                     open(filename_github, 'a').write(
-                        "\n\"" + message + "\" " + screen_name + " " + sender_id)
+                        f'''\n"""{html.unescape(message)}""" {screen_name} {sender_id}\n''')
                     print("Heroku Database saved")
 
                     notif = f"Yeay, Menfess kamu telah terkirim! https://twitter.com/{me.screen_name}/status/"
                     if constants.First_Keyword in message:
-                        if dms[i]['media'] is None:
+                        if dms[i]['media'] == None:
                             print("DM will be posted")
-                            if 'urls' not in dms[i]:
+                            if dms[i]['url'] == None:
                                 postid = tw.post_tweet(message)
                             else:
-                                if constants.Sub1_keyword in message:
-                                    message = message.split()
-                                    message = " ".join(message[:-1])
-                                    message = message.replace(constants.Sub1_keyword, "")
-                                    postid = tw.post_multiple_media(
-                                        message, dms[i]['urls'])
-                                else:
-                                    postid = tw.post_tweet(
-                                        message)
-
-                            if postid == "not_available":
-                                postid = tw.post_tweet(message)
-                                text = notif + str(postid)
-                                sent = api.send_direct_message(
-                                    recipient_id=sender_id, text=text).id
-                            elif postid != None:
+                                message = message.split()
+                                message.remove(dms[i]['url'][0])
+                                message = " ".join(message)
+                                postid = tw.post_tweet(message, dms[i]['url'][1])
+ 
+                            if postid != None:
                                 text = notif + str(postid)
                                 sent = api.send_direct_message(
                                     recipient_id=sender_id, text=text).id
@@ -117,8 +109,16 @@ def start():
                             tw.delete_dm(sent)
                         else:
                             print("DM will be posted with media.")
-                            postid = tw.post_tweet_with_media(
-                                message, dms[i]['media'], dms[i]['type'])
+                            if dms[i]['url'] == None:
+                                postid = tw.post_tweet_with_media(
+                                    message, dms[i]['media'], dms[i]['type'])
+                            else:
+                                message = message.split()
+                                message.remove(dms[i]['url'][0])
+                                message = " ".join(message)
+                                postid = tw.post_tweet_with_media(
+                                    message, dms[i]['media'], dms[i]['type'], dms[i]['url'][1])
+                            
                             if postid != None:
                                 text = notif + str(postid)
                                 sent = api.send_direct_message(
@@ -130,6 +130,7 @@ def start():
                             tw.delete_dm(sent)
 
                     # elif constants.Second_Keyword in message and "https://" not in message and "http://" not in message and "twitter.com" not in message and len(message) <= 500:
+                    #     message = html.unescape(message)
                     #     message = message.replace(
                     #         constants.Second_Keyword, "")
                     #     if constants.Sub2_Keyword in message:
@@ -162,6 +163,7 @@ def start():
                     #         tw.delete_dm(sent)
 
                     # elif constants.Third_keyword in message:
+                    #     message = html.unescape(message)
                     #     message = message.replace(constants.Third_keyword, "")
                     #     if dms[i]['media'] is None:
                     #         sent1 = tw.ASK(message, screen_name)
@@ -218,20 +220,22 @@ def start():
 def Check_file_github(new=True):
     print("checking github file...")
     try:
-        datee = datetime.now(timezone.utc) + timedelta(hours=7)
+        datee = datetime.now(timezone.utc) + timedelta(hours=constants.Timezone)
         globals()['filename_github'] = "Database {}-{}-{}.txt".format(
             datee.day, datee.month, datee.year)
+        constants.filename_github = filename_github
         contents = repo.get_contents("")
+
         if any(filename_github == content.name for content in contents):
             print(f"filename_github detected, set: {str(new)}")
             if new == False:
                 return
-            else:
-                contents = repo.get_contents(filename_github)
-                contents = contents.decoded_content.decode()
-                if contents[-1] == "\n":
-                    contents = contents[:-1]
-
+            for content in contents:
+                if filename_github == content.name:
+                    contents = content.decoded_content.decode()
+                    if contents[-1] != "\n":
+                        contents += "\n"
+                    break
         else:
             print("filename_github not detected")
             repo.create_file(filename_github, "first commit",
@@ -239,13 +243,13 @@ def Check_file_github(new=True):
             contents = "MESSAGE USERNAME SENDER_ID"
 
         open(filename_github, 'w').write(contents)
-        try:
+        if exists("Database {}-{}-{}.txt".format(
+                datee.day - 1, datee.month, datee.year)):
             remove("Database {}-{}-{}.txt".format(
                 datee.day - 1, datee.month, datee.year))
-            print("Yesterday's database has been deleted (UTC)")
-        except:
-            pass
-            print("Heroku Yesterday's database doesn't exist (UTC)")
+            print("Heroku yesterday's database has been deleted")
+        else:
+            print("Heroku yesterday's database doesn't exist")
 
     except Exception as ex:
         pass
@@ -263,7 +267,7 @@ def database():
                     filename_github).read(), contents.sha)
                 Check_file_github(new=False)
                 print("Github Database updated")
-                sleep(3600)
+                sleep(1800)
 
             else:
                 sleep(10)
@@ -276,12 +280,15 @@ def database():
 
 
 if __name__ == "__main__":
-    datee = datetime.now(timezone.utc) + timedelta(hours=7)
+    datee = datetime.now(timezone.utc) + timedelta(hours=constants.Timezone)
     global filename_github, repo, ACTION
     filename_github = "Database {}-{}-{}.txt".format(
         datee.day, datee.month, datee.year)
     repo = github.get_repo(constants.Github_repo)
     ACTION = 0
+
+    constants.repo = repo
+    constants.filename_github = filename_github
 
     Check_file_github(new=True)
     Thread(target=start).start()

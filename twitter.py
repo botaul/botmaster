@@ -1,19 +1,19 @@
 import tweepy
 import constants
 from time import sleep
-import _json
 from os import remove
 from os.path import exists
 import requests
 from requests_oauthlib import OAuth1
 from async_upload import MediaUpload
+import html
 
 
 class Twitter:
     def __init__(self):
         '''
         initialize tweepy
-        objects from this:
+        objects:
             - api
             - follower
             - bot_id
@@ -32,9 +32,9 @@ class Twitter:
         '''
         read and filter DMs
         filters:
+            - set from DM
             - check follower (exception for admin)
             - muted words (exception for admin)
-            - set muted words from DM
             - primary keywords
                 - attachment
                     - attachment_url
@@ -51,28 +51,73 @@ class Twitter:
             for x in range(len(dm)):
                 sender_id = dm[x].message_create['sender_id']
                 message = dm[x].message_create['message_data']['text']
-                message_data = str(dm[x].message_create['message_data'])
-                json_data = _json.encode_basestring(message_data)
+                message_data = dm[x].message_create['message_data']
                 id = dm[x].id
 
-                # check follower
-                if int(sender_id) not in self.follower and sender_id != constants.Admin_id:
-                    if sender_id == self.bot_id:
-                        print("deleting bot messages")
-                        self.delete_dm(id)
+                if sender_id == self.bot_id:
+                    print("deleting bot messages")
+                    self.delete_dm(id)
+                    continue
 
-                    else:
-                        try:
-                            print("sender not in follower")
-                            notif = "[BOT]\nHmm kayaknya kamu belum follow base ini. Follow dulu ya biar bisa ngirim menfess"
-                            sent = api.send_direct_message(
-                                recipient_id=sender_id, text=notif).id
-                            self.delete_dm(id)
-                            self.delete_dm(sent)
-                        except Exception as ex:
-                            print(ex)
-                            sleep(30)
+                # set from DM
+                if constants.Set_keyword in message:
+                    print("command in progress...")
+                    try:
+                        message = message.split()
+                        command, *content = message[1:]
+
+                        if type(content) == list:
                             pass
+                        else:
+                            content = content.split()
+
+                        notif = "commands:"
+                        if command in constants.Dict_set_keyword.keys():
+                            command = constants.Dict_set_keyword[command]
+                            if len(content) != 0:
+                                for data in content:
+                                    try:
+                                        command1 = command.format(f"\"{data}\"")
+                                        notif += f"\nprocessing add/rm_muted {data}"
+                                        exec(command1)
+                                    except Exception as ex:
+                                        notif += f"\nexcept: {ex}"
+                                        pass
+                            else:
+                                try:
+                                    notif += "\nprocessing db_update"
+                                    exec(command)
+                                except Exception as ex:
+                                    notif += f"\nexcept: {ex}"
+                                    pass
+
+                    except Exception as ex:
+                        notif = "some commands failed" + \
+                            f"\n{ex}" + f"\n{notif}"
+                        print(ex)
+                        pass
+
+                    finally:
+                        sent = api.send_direct_message(
+                            recipient_id=sender_id, text=notif).id
+                        self.delete_dm(id)
+                        self.delete_dm(sent)
+
+                    continue
+
+                # check follower
+                elif int(sender_id) not in self.follower and sender_id != constants.Admin_id:
+                    print("sender not in follower")
+                    try:
+                        notif = "[BOT]\nHmm kayaknya kamu belum follow base ini. Follow dulu ya biar bisa ngirim menfess"
+                        sent = api.send_direct_message(
+                            recipient_id=sender_id, text=notif).id
+                        self.delete_dm(id)
+                        self.delete_dm(sent)
+                    except Exception as ex:
+                        print(ex)
+                        sleep(30)
+                        pass
 
                     continue
 
@@ -92,79 +137,43 @@ class Twitter:
 
                     continue
 
-                # set muted words from DM
-                elif constants.Set_keyword in message:
-                    print("command in progress...")
-                    try:
-                        message = message.split()
-                        command, *content = message[1:]
-
-                        if type(content) == list:
-                            pass
-                        else:
-                            content = content.split()
-
-                        notif = "commands:"
-                        if command in constants.Dict_set_keyword.keys():
-                            command = constants.Dict_set_keyword[command]
-
-                            for data in content:
-                                try:
-                                    command1 = command.format(f"\"{data}\"")
-                                    notif = notif + f"\n{command1}"
-                                    exec(command1)
-                                except Exception as ex:
-                                    notif = notif + f"\nexcept: {ex}"
-                                    pass
-
-                    except Exception as ex:
-                        notif = "some commands failed" + \
-                            f"\n{ex}" + f"\n{notif}"
-                        print(ex)
-                        pass
-
-                    finally:
-                        print(notif)
-                        sent = api.send_direct_message(
-                            recipient_id=sender_id, text=notif).id
-                        self.delete_dm(id)
-                        self.delete_dm(sent)
-
-                    continue
-
                 # primary keywords
-                keywords = [constants.First_Keyword, constants.Set_keyword]
+                keywords = [constants.First_Keyword]
                 # keywords = [constants.First_Keyword, constants.Second_Keyword,
-                #             constants.Third_keyword, constants.Set_keyword]
+                #             constants.Third_keyword]
                 if any(i in message for i in keywords):
                     print("Getting message -> by sender id " + str(sender_id))
+                    # attachment_url (retweet)
+                    url = None
+                    urls = message_data['entities']['urls']
+                    if len(urls) != 0:
+                        for i in urls:
+                            if "https://twitter.com/" in i['expanded_url']:
+                                if "video" not in i['expanded_url']:
+                                    if "photo" not in i['expanded_url']:
+                                        if "media" not in i['expanded_url']:
+                                            url = (i['url'], i['expanded_url'])
                     # attachment
-                    if 'attachment' not in json_data:
+                    if 'attachment' not in message_data:
                         print("DM does not have any media..")
                         d = dict(message=message, sender_id=sender_id,
-                                 id=dm[x].id, media=None)
-                        urls = dm[x]._json['message_create']['message_data']['entities']['urls']
-                        # attachment_url
-                        if len(urls) != 0:
-                            urls = dm[x]._json['message_create']['message_data']['entities']['urls'][0]['expanded_url']
-                            d['urls'] = urls
+                                 id=id, media=None, url=url)
                         dms.append(d)
 
                     else:
                         print("DM have an attachment")
-                        media_type = dm[x].message_create['message_data']['attachment']['media']['type']
+                        media = message_data['attachment']['media']
+                        media_type = media['type']
                         # photo
                         if media_type == 'photo':
-                            attachment = dm[x].message_create['message_data']['attachment']
-                            photo_url = attachment['media']['media_url']
+                            photo_url = media['media_url']
                             d = dict(message=message, sender_id=sender_id,
-                                     id=dm[x].id, media=photo_url, type=media_type)
+                                     id=dm[x].id, media=photo_url, type=media_type, url=url)
                             dms.append(d)
                         # video
                         elif media_type == 'video':
-                            media = dm[x].message_create['message_data']['attachment']['media']
-                            temp_bitrate = list()
                             media_url = media['video_info']['variants']
+                            temp_bitrate = list()
                             for varian in media_url:
                                 if varian['content_type'] == "video/mp4":
                                     temp_bitrate.append(
@@ -173,15 +182,14 @@ class Twitter:
                             temp_bitrate.reverse()
                             video_url = temp_bitrate[0][1]
                             d = dict(message=message, sender_id=sender_id,
-                                     id=dm[x].id, media=video_url, type=media_type)
+                                     id=dm[x].id, media=video_url, type=media_type, url=url)
                             dms.append(d)
                         # animation_gif
                         elif media_type == 'animated_gif':
-                            media = dm[x].message_create['message_data']['attachment']['media']
                             media_url = media['video_info']['variants'][0]
                             video_url = media_url['url']
                             d = dict(message=message, sender_id=sender_id,
-                                     id=dm[x].id, media=video_url, type=media_type)
+                                     id=dm[x].id, media=video_url, type=media_type, url=url)
                             dms.append(d)
 
                 else:
@@ -224,24 +232,24 @@ class Twitter:
             sleep(60)
             pass
 
-    def ASK(self, message, screen_name):
-        '''
-        Send DMs to admin
-        message: message -> str
-        screen_name: sender username -> str
-        return message id -> str
-        '''
-        print("ASKING")
-        try:
-            message = message + " @" + screen_name
-            sent = self.api.send_direct_message(
-                recipient_id=constants.Admin_id, text=message).id
-            return sent
+    # def ASK(self, message, screen_name):
+    #     '''
+    #     Send DMs to admin
+    #     message: message -> str
+    #     screen_name: sender username -> str
+    #     return message id -> str
+    #     '''
+    #     print("ASKING")
+    #     try:
+    #         message = message + " @" + screen_name
+    #         sent = self.api.send_direct_message(
+    #             recipient_id=constants.Admin_id, text=message).id
+    #         return sent
 
-        except Exception as ex:
-            print(ex)
-            sleep(60)
-            pass
+    #     except Exception as ex:
+    #         print(ex)
+    #         sleep(60)
+    #         pass
 
     def get_user_screen_name(self, id):
         '''
@@ -269,49 +277,55 @@ class Twitter:
         tweet: -> str
         media_ids: media id -> list
         attachment_url: url -> str
-        return tweet id -> str 
+        return tweet id -> str
         '''
         print("Tweeting a Thread")
         try:
             left = 0
-            right = 272
-            leftcheck = 260
+            right = 270
+            leftcheck = 240
+
+            if attachment_url != None:
+                right -= len(attachment_url)
+                leftcheck -= len(attachment_url)
+
             check = tweet[leftcheck:right].split()
             separator = len(check[-1])
-            tweet1 = tweet[left:right-separator] + '(cont..)'
-            if file_type == 'photo' or file_type == 'animated_gif':
-                complete = self.api.update_with_media(
-                    filename=name, status=tweet1).id
-            elif file_type == 'video':
+            tweet1 = html.unescape(tweet[left:right-separator]) + '(cont..)'
+
+            if file_type == 'photo' or file_type == 'animated_gif' or file_type == 'video':
                 media_id = self.media_upload_chunk(name)
                 media_ids = list()
                 media_ids.append(media_id)
                 complete = self.api.update_status(
-                    tweet1, media_ids=media_ids).id
+                    tweet1, media_ids=media_ids, attachment_url=attachment_url).id
             elif file_type == 'normal':
                 complete = self.api.update_status(
                     tweet1, attachment_url=attachment_url).id
             elif file_type == "retweet":
                 complete = self.api.update_status(
-                    tweet1, media_ids=media_ids).id
+                    tweet1, media_ids=media_ids, attachment_url=attachment_url).id
 
             postid = str(complete)
-            sleep(20)
-            tweet2 = tweet[right-separator:len(tweet)]
+            sleep(25)
+            tweet2 = tweet[right-separator:]
             while len(tweet2) > 280:
-                leftcheck += 272
-                left += 272
-                right += 272
+                leftcheck += 270 - separator
+                left += 270 - separator
+                right += 270 - separator
                 check = tweet[leftcheck:right].split()
                 separator = len(check[-1])
-                tweet2 = tweet[left:right-separator] + '(cont..)'
+                tweet2 = html.unescape(
+                    tweet[left:right-separator]) + '(cont..)'
                 complete = self.api.update_status(
                     tweet2, in_reply_to_status_id=complete, auto_populate_reply_metadata=True).id
-                sleep(20)
-                tweet2 = tweet[right-separator:len(tweet)]
+                sleep(25)
+                tweet2 = tweet[right-separator:]
+
+            tweet2 = html.unescape(tweet2)
             self.api.update_status(
                 tweet2, in_reply_to_status_id=complete, auto_populate_reply_metadata=True)
-            sleep(20)
+            sleep(25)
             return postid
         except Exception as ex:
             pass
@@ -334,7 +348,7 @@ class Twitter:
     #         postid = self.api.update_with_media(
     #             filename="ready.png", status=tweet).id
     #         remove('ready.png')
-    #         sleep(20)
+    #         sleep(25)
     #         return str(postid)
     #     except Exception as ex:
     #         pass
@@ -350,73 +364,21 @@ class Twitter:
         return tweet id -> str
         '''
         try:
-            if len(tweet) <= 280:
+            max_char = len(tweet)
+            if attachment_url != None:
+                max_char += len(attachment_url)
+
+            if max_char <= 280:
                 postid = self.api.update_status(
-                    tweet, attachment_url=attachment_url).id
-            elif len(tweet) > 280:
+                    html.unescape(tweet), attachment_url=attachment_url).id
+            elif max_char > 280:
                 postid = self.Thread(None, "normal", tweet,
-                                     None, attachment_url=attachment_url)
-            sleep(20)
+                                     None, attachment_url)
+            sleep(25)
             return postid
         except Exception as ex:
             pass
             sleep(60)
-            print(ex)
-            return None
-
-    def post_multiple_media(self, tweet, urls):
-        '''
-        get media from tweet's link and tweet
-        tweet: -> str
-        urls: -> str
-        return tweet id -> str
-        '''
-        try:
-            print("posting multiple media")
-            url = urls.replace('/', ' ')
-            url = url.replace('?', ' ')
-            url = url.split()
-            status = self.api.get_status(url[-2])
-
-            if "extended_entities" in status._json:
-                media_urls = list()
-                for media in status._json['extended_entities']['media']:
-                    if "video_info" not in media:
-                        photo_url = media['media_url']
-                        media_urls.append(photo_url)
-
-                    else:
-                        media_url = status._json['extended_entities']['media'][0]['video_info']['variants']
-                        temp_bitrate = list()
-                        for varian in media_url:
-                            if varian['content_type'] == "video/mp4":
-                                temp_bitrate.append(
-                                    (varian['bitrate'], varian['url']))
-                        temp_bitrate.sort()
-                        temp_bitrate.reverse()
-                        video_url = temp_bitrate[0][1]
-                        media_urls.append(video_url)
-
-                media_ids = list()
-                for i in range(len(media_urls)):
-                    filename = self.download_media(media_urls[i])
-                    media_id = self.media_upload_chunk(filename)
-                    media_ids.append(media_id)
-                    remove(filename)
-
-                if len(tweet) <= 280:
-                    postid = self.api.update_status(
-                        tweet, media_ids=media_ids).id
-                    sleep(20)
-                else:
-                    postid = self.Thread(
-                        None, 'retweet', tweet, media_ids=media_ids)
-                return postid
-            else:
-                return "not_available"
-
-        except Exception as ex:
-            pass
             print(ex)
             return None
 
@@ -478,7 +440,7 @@ class Twitter:
             print(ex)
             pass
 
-    def post_tweet_with_media(self, tweet, media_url, file_type):
+    def post_tweet_with_media(self, tweet, media_url, file_type, attachment_url=None):
         '''
         tweet a tweet with media
         tweet: -> str
@@ -488,17 +450,24 @@ class Twitter:
         '''
         try:
             tweet = tweet.split()
-            tweet = " ".join(tweet[:len(tweet)-1])
+            tweet = " ".join(tweet[:-1])
+            max_char = len(tweet)
+            if attachment_url != None:
+                max_char += len(attachment_url)
 
             if file_type == 'photo':
                 try:
                     filename = self.download_media(media_url)
-                    if len(tweet) <= 280:
-                        postid = self.api.update_with_media(
-                            filename=filename, status=tweet).id
-                        sleep(20)
-                    elif len(tweet) > 280:
-                        postid = self.Thread(filename, file_type, tweet)
+                    if max_char <= 280:
+                        media_id = self.media_upload_chunk(filename)
+                        media_ids = list()
+                        media_ids.append(media_id)
+                        postid = self.api.update_status(
+                            html.unescape(tweet), media_ids=media_ids, attachment_url=attachment_url).id
+                        sleep(25)
+                    elif max_char > 280:
+                        postid = self.Thread(
+                            filename, file_type, tweet, None, attachment_url)
                     remove(filename)
                     return postid
 
@@ -510,16 +479,17 @@ class Twitter:
 
             elif file_type == 'video' or file_type == 'animated_gif':
                 filename = self.download_media(media_url)
-                if len(tweet) <= 280:
+                if max_char <= 280:
                     media_id = self.media_upload_chunk(filename)
                     media_ids = list()
                     media_ids.append(media_id)
                     postid = self.api.update_status(
-                        tweet, media_ids=media_ids).id
-                    sleep(20)
-                elif len(tweet) > 280:
+                        html.unescape(tweet), media_ids=media_ids, attachment_url=attachment_url).id
+                    sleep(25)
+                elif max_char > 280:
                     file_type = 'video'
-                    postid = self.Thread(filename, file_type, tweet)
+                    postid = self.Thread(
+                        filename, file_type, tweet, None, attachment_url)
                 remove(filename)
                 return postid
 
