@@ -1,10 +1,10 @@
-CONSUMER_KEY = "Ar4PIPg9QaAZ7B0759VrUuqVR"
-CONSUMER_SECRET = "qIDndM7ZNevsZ7KMpXDzoX6HJlOiKy7vsJQQPUGyI2VGhQBTWP"
-ACCESS_KEY = "1251147003897118721-NE5wee97zNVRxQSzekuluDumTA1oJw"
-ACCESS_SECRET = "O6BkVZYCYmOVYtlm89bJPT7w5cufISC3Ws1RcG6GBEWEk"
+CONSUMER_KEY = "*********"
+CONSUMER_SECRET = "********"
+ACCESS_KEY = "***********"
+ACCESS_SECRET = "**********"
 
 
-Github_token = "b5f57bc87595f0a14a0770d116eea6514b97d6df"
+Github_token = "************"
 # get it from https://github.com/settings/tokens , set allow for editing repo
 Github_repo = "fakhrirofi/database"  # use another repo instead of primary repo
 
@@ -31,6 +31,6 @@ constants.repo.update_file(contents.path, "updating database", open(
 }
 
 
-Admin_id = "1607653778"
+Admin_id = "***********"
 # Admin id is like sender id. To check it, send a menfess from your admin account
 Timezone = 7
