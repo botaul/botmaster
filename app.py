@@ -7,20 +7,27 @@ from datetime import datetime, timezone, timedelta
 import constants
 from os.path import exists
 from os import remove
-import html
+from html import unescape
+from random import randrange
+from difflib import SequenceMatcher
+
 
 tw = Twitter()
 # media = Media()
 github = Github(constants.Github_token)
 
 
+def similiar(a, b):
+    return SequenceMatcher(None, a, b).ratio()
+
 def start():
     print("Starting program...")
     dms = list()
     api = tw.api
+    constants.api = api
     me = api.me()
     tw.bot_id = me.id
-    constants.screen_name = me.screen_name
+    message_db = tuple()
     open('follower_data.txt', 'w').truncate()
     first = open('follower_data.txt').read()
     # sent = api.send_direct_message(recipient_id=constants.Admin_id, text="Twitter autobase is starting...!").id
@@ -47,7 +54,7 @@ def start():
             for i in follower:
                 if str(i) not in data:
                     data1 += " " + str(i)
-                    notif = "[BOT]\nYEAY! Sekarang kamu bisa mengirim menfess, jangan lupa baca peraturan base yaa!"
+                    notif = "YEAY! Sekarang kamu bisa mengirim menfess, jangan lupa baca peraturan base yaa!"
                     sent = api.send_direct_message(
                         recipient_id=i, text=notif).id
                     tw.delete_dm(sent)
@@ -83,15 +90,42 @@ def start():
                     screen_name = tw.get_user_screen_name(sender_id)
                     if exists(filename_github):
                         open(filename_github, 'a').write(
-                            f'''\n"""{html.unescape(message)}""" {screen_name} {sender_id}\n''')
+                            f'''\n"""{unescape(message)}""" {screen_name} {sender_id}\n''')
                     else:
                         open(filename_github, 'w').write(
                             "MESSAGE USERNAME SENDER_ID\n" +
-                            f'''\n"""{html.unescape(message)}""" {screen_name} {sender_id}\n''')
+                            f'''\n"""{unescape(message)}""" {screen_name} {sender_id}\n''')
                     print("Heroku Database saved")
+
+                    # Message filter
+                    # Based on Twitter rules https://help.twitter.com/en/rules-and-policies/twitter-search-policies
+
+                    # Similiarity checker
+                    notif_temp = 0
+                    for i in message_db:
+                        if similiar(message, i) > 0.85:
+                            print("Message similiarity is more than 0.85")
+                            sent = api.send_direct_message(recipient_id=sender_id, text="Menfess kamu mirip dengan menfess lain (hari ini). Coba gunakan pilihan kata yang lain!")
+                            tw.delete_dm(sent.id)
+                            notif_temp = 1
+                            break
+
+                    if (datetime.now(timezone.utc) + timedelta(hours=7)).day != day:
+                        globals()['day'] = (datetime.now(timezone.utc) + timedelta(hours=7)).day
+                        message_db = (message,)
+                    else:
+                        message_db += (message,)
+
+                    if notif_temp == 1:
+                        continue
 
                     notif = f"Yeay, Menfess kamu telah terkirim! https://twitter.com/{me.screen_name}/status/"
                     if constants.First_Keyword in message:
+                        # Keyword deleter
+                        message = message.split()
+                        message.remove(constants.First_Keyword)
+                        message = " ".join(message)
+
                         if dms[i]['media'] == None:
                             print("DM will be posted")
                             if dms[i]['url'] == None:
@@ -109,7 +143,7 @@ def start():
                                     recipient_id=sender_id, text=text).id
                             else:
                                 sent = api.send_direct_message(
-                                    recipient_id=sender_id, text="[BOT]\nMaaf ada kesalahan pada sistem :(\ntolong screenshot & laporkan kepada admin").id
+                                    recipient_id=sender_id, text="Maaf ada kesalahan pada sistem :(\ntolong screenshot & laporkan kepada admin").id
                             tw.delete_dm(sent)
                         else:
                             print("DM will be posted with media.")
@@ -129,11 +163,11 @@ def start():
                                     recipient_id=sender_id, text=text).id
                             else:
                                 sent = api.send_direct_message(
-                                    recipient_id=sender_id, text="[BOT]\nMaaf ada kesalahan pada sistem :(\ntolong screenshot & laporkan kepada admin").id
+                                    recipient_id=sender_id, text="Maaf ada kesalahan pada sistem :(\ntolong screenshot & laporkan kepada admin").id
                             tw.delete_dm(sent)
 
                     # elif constants.Second_Keyword in message and "https://" not in message and "http://" not in message and "twitter.com" not in message and len(message) <= 500:
-                    #     message = html.unescape(message)
+                    #     message = unescape(message)
                     #     message = message.replace(
                     #         constants.Second_Keyword, "")
                     #     if constants.Sub2_Keyword in message:
@@ -148,7 +182,7 @@ def start():
                     #                 recipient_id=sender_id, text=text).id
                     #         else:
                     #             sent = api.send_direct_message(
-                    #                 recipient_id=sender_id, text="[BOT]\nMaaf ada kesalahan pada sistem :(\ntolong screenshot & laporkan kepada admin").id
+                    #                 recipient_id=sender_id, text="Maaf ada kesalahan pada sistem :(\ntolong screenshot & laporkan kepada admin").id
                     #         tw.delete_dm(sent)
                     #     else:
                     #         media.download_image()
@@ -160,11 +194,11 @@ def start():
                     #                 recipient_id=sender_id, text=text).id
                     #         else:
                     #             sent = api.send_direct_message(
-                    #                 recipient_id=sender_id, text="[BOT]\nMaaf ada kesalahan pada sistem :(\ntolong screenshot & laporkan kepada admin").id
+                    #                 recipient_id=sender_id, text="Maaf ada kesalahan pada sistem :(\ntolong screenshot & laporkan kepada admin").id
                     #         tw.delete_dm(sent)
 
                     # elif constants.Third_keyword in message:
-                    #     message = html.unescape(message)
+                    #     message = unescape(message)
                     #     message = message.replace(constants.Third_keyword, "")
                     #     if dms[i]['media'] is None:
                     #         sent1 = tw.ASK(message, screen_name)
@@ -189,7 +223,7 @@ def start():
                     #                                         None, 'media', media_id.media_id_string).id
 
                     #     sent = api.send_direct_message(
-                    #         recipient_id=sender_id, text="[BOT]\nPesan kamu telah dikirimkan ke admin").id
+                    #         recipient_id=sender_id, text="Pesan kamu telah dikirimkan ke admin").id
                     #     tw.delete_dm(sent1)
                     #     tw.delete_dm(sent)
 
@@ -211,7 +245,7 @@ def start():
             print("Direct message is empty...")
             dms = tw.read_dm()
             if len(dms) == 0:
-                sleep(30)
+                sleep(30+randrange(0, 5))
 
 
 def Check_file_github(new=True):
@@ -283,11 +317,12 @@ def database():
 
 if __name__ == "__main__":
     datee = datetime.now(timezone.utc) + timedelta(hours=constants.Timezone)
-    global filename_github, repo, ACTION
+    global filename_github, repo, ACTION, day
     filename_github = "Database {}-{}-{}.txt".format(
         datee.day, datee.month, datee.year)
     repo = github.get_repo(constants.Github_repo)
     ACTION = 0
+    day = datee.day
 
     constants.repo = repo
     constants.filename_github = filename_github

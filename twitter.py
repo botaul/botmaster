@@ -1,13 +1,14 @@
-import tweepy
+from tweepy import OAuthHandler, API
 import constants
 from time import sleep
 from os import remove
 from os.path import exists
-import requests
+from requests import get
 from requests_oauthlib import OAuth1
 from async_upload import MediaUpload
-import html
+from html import unescape
 from datetime import datetime, timezone, timedelta
+from random import randrange
 
 
 class Twitter:
@@ -18,13 +19,14 @@ class Twitter:
             - api
             - follower
             - bot_id
+            - day
         '''
         print("Initializing twitter...")
-        self.auth = tweepy.OAuthHandler(
+        self.auth = OAuthHandler(
             constants.CONSUMER_KEY, constants.CONSUMER_SECRET)
         self.auth.set_access_token(
             constants.ACCESS_KEY, constants.ACCESS_SECRET)
-        self.api = tweepy.API(
+        self.api = API(
             self.auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
         self.follower = list()
         self.bot_id = int()
@@ -71,20 +73,20 @@ class Twitter:
 
                         notif = "commands:"
                         if command in constants.Dict_set_keyword.keys():
-                            command = constants.Dict_set_keyword[command]
+                            command1 = constants.Dict_set_keyword[command]
                             if len(content) != 0:
                                 for data in content:
                                     try:
-                                        command1 = command.format(f"\"{data}\"")
-                                        notif += f"\nprocessing add/rm_muted {data}"
+                                        command1 = command1.format(f"\"{data}\"")
+                                        notif += f"\nprocessing {command} {data}"
                                         exec(command1)
                                     except Exception as ex:
                                         notif += f"\nexcept: {ex}"
                                         pass
                             else:
                                 try:
-                                    notif += "\nprocessing db_update"
-                                    exec(command)
+                                    notif += f"\nprocessing {command}"
+                                    exec(command1)
                                 except Exception as ex:
                                     notif += f"\nexcept: {ex}"
                                     pass
@@ -106,7 +108,7 @@ class Twitter:
                 elif int(sender_id) not in self.follower and sender_id != constants.Admin_id:
                     print("sender not in follower")
                     try:
-                        notif = "[BOT]\nHmm kayaknya kamu belum follow base ini. Follow dulu ya biar bisa ngirim menfess"
+                        notif = "Hmm kayaknya kamu belum follow base ini. Follow dulu ya biar bisa ngirim menfess"
                         sent = api.send_direct_message(
                             recipient_id=sender_id, text=notif).id
                         self.delete_dm(sent)
@@ -121,7 +123,7 @@ class Twitter:
                 elif any(i in message for i in constants.Muted_words) and sender_id != constants.Admin_id:
                     try:
                         print("deleting muted menfess")
-                        notif = "[BOT]\nMenfess kamu mengandung muted words, jangan lupa baca peraturan base yaa!"
+                        notif = "Menfess kamu mengandung muted words, jangan lupa baca peraturan base yaa!"
                         sent = api.send_direct_message(
                             recipient_id=sender_id, text=notif).id
                         self.delete_dm(sent)
@@ -190,7 +192,7 @@ class Twitter:
                 else:
                     try:
                         print("deleting message (keyword not in message)")
-                        notif = "[BOT]\nKeyword yang kamu kirim salah!"
+                        notif = "Keyword yang kamu kirim salah!"
                         sent = api.send_direct_message(
                             recipient_id=sender_id, text=notif).id
                         self.delete_dm(sent)
@@ -218,11 +220,11 @@ class Twitter:
                 if minute < 10:
                     minute = f"0{minute}"
                 sent_time = f"{str(hour)}:{str(minute)}"
-                notif = f"[BOT]\nMenfess kamu akan terkirim sekitar pukul {sent_time}"
+                notif = f"Menfess kamu akan terkirim sekitar pukul {sent_time}"
                 sent = api.send_direct_message(recipient_id=i['sender_id'], text=notif)
                 self.delete_dm(sent.id)
 
-            sleep(60)
+            sleep(60+randrange(0,10))
             return dms
 
         except Exception as ex:
@@ -298,7 +300,7 @@ class Twitter:
             leftcheck = 240
             check = tweet[leftcheck:right].split()
             separator = len(check[-1])
-            tweet1 = html.unescape(tweet[left:right-separator]) + '(cont..)'
+            tweet1 = unescape(tweet[left:right-separator]) + '(cont..)'
 
             if file_type == 'photo' or file_type == 'animated_gif' or file_type == 'video':
                 media_id = self.media_upload_chunk(name)
@@ -313,7 +315,7 @@ class Twitter:
                 complete = self.api.update_status(
                     tweet1, media_ids=media_ids, attachment_url=attachment_url).id
 
-            sleep(25)
+            sleep(25+randrange(0,10))
             postid = str(complete)
             tweet2 = tweet[right-separator:]
             while len(tweet2) > 280:
@@ -322,17 +324,17 @@ class Twitter:
                 right += 270 - separator
                 check = tweet[leftcheck:right].split()
                 separator = len(check[-1])
-                tweet2 = html.unescape(
+                tweet2 = unescape(
                     tweet[left:right-separator]) + '(cont..)'
                 complete = self.api.update_status(
                     tweet2, in_reply_to_status_id=complete, auto_populate_reply_metadata=True).id
-                sleep(25)
+                sleep(25+randrange(0,10))
                 tweet2 = tweet[right-separator:]
 
-            tweet2 = html.unescape(tweet2)
+            tweet2 = unescape(tweet2)
             self.api.update_status(
                 tweet2, in_reply_to_status_id=complete, auto_populate_reply_metadata=True)
-            sleep(25)
+            sleep(25+randrange(0,10))
             return postid
         except Exception as ex:
             pass
@@ -355,7 +357,7 @@ class Twitter:
     #         postid = self.api.update_with_media(
     #             filename="ready.png", status=tweet).id
     #         remove('ready.png')
-    #         sleep(25)
+    #         sleep(25+randrange(0,10))
     #         return str(postid)
     #     except Exception as ex:
     #         pass
@@ -374,8 +376,8 @@ class Twitter:
             max_char = len(tweet)
             if max_char <= 280:
                 postid = self.api.update_status(
-                    html.unescape(tweet), attachment_url=attachment_url).id
-                sleep(25)
+                    unescape(tweet), attachment_url=attachment_url).id
+                sleep(25+randrange(0,10))
             elif max_char > 280:
                 postid = self.Thread(None, "normal", tweet,
                                      None, attachment_url)
@@ -400,7 +402,7 @@ class Twitter:
                            resource_owner_key=constants.ACCESS_KEY,
                            resource_owner_secret=constants.ACCESS_SECRET)
 
-            r = requests.get(media_url, auth=oauth)
+            r = get(media_url, auth=oauth)
 
             if filename == None:
                 filename = media_url.replace('/', ' ')
@@ -464,8 +466,8 @@ class Twitter:
                         media_ids = list()
                         media_ids.append(media_id)
                         postid = self.api.update_status(
-                            html.unescape(tweet), media_ids=media_ids, attachment_url=attachment_url).id
-                        sleep(25)
+                            unescape(tweet), media_ids=media_ids, attachment_url=attachment_url).id
+                        sleep(25+randrange(0,10))
                     elif max_char > 280:
                         postid = self.Thread(
                             filename, file_type, tweet, None, attachment_url)
@@ -485,8 +487,8 @@ class Twitter:
                     media_ids = list()
                     media_ids.append(media_id)
                     postid = self.api.update_status(
-                        html.unescape(tweet), media_ids=media_ids, attachment_url=attachment_url).id
-                    sleep(25)
+                        unescape(tweet), media_ids=media_ids, attachment_url=attachment_url).id
+                    sleep(25+randrange(0,10))
                 elif max_char > 280:
                     file_type = 'video'
                     postid = self.Thread(
