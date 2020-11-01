@@ -201,8 +201,6 @@ def start():
             dms = list()
             globals()['ACTION'] = 1
             print("waiting Github threading...")
-            sleep(30)
-            globals()['ACTION'] = 0
 
         else:
             print("Direct message is empty...")
@@ -234,7 +232,7 @@ def Check_file_github(new=True):
             print("filename_github not detected")
             repo.create_file(filename_github, "first commit",
                              "MESSAGE USERNAME SENDER_ID")
-            contents = "MESSAGE USERNAME SENDER_ID"
+            contents = "MESSAGE USERNAME SENDER_ID\n"
 
         open(filename_github, 'w').write(contents)
         if exists("Database {}-{}-{}.txt".format(
@@ -261,7 +259,7 @@ def database():
                     filename_github).read(), contents.sha)
                 Check_file_github(new=False)
                 print("Github Database updated")
-                sleep(1800)
+                sleep(3600)
 
             else:
                 sleep(10)
