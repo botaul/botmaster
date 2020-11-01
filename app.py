@@ -81,8 +81,13 @@ def start():
                     message = dms[i]['message']
                     sender_id = dms[i]['sender_id']
                     screen_name = tw.get_user_screen_name(sender_id)
-                    open(filename_github, 'a').write(
-                        f'''\n"""{html.unescape(message)}""" {screen_name} {sender_id}\n''')
+                    if exists(filename_github):
+                        open(filename_github, 'a').write(
+                            f'''\n"""{html.unescape(message)}""" {screen_name} {sender_id}\n''')
+                    else:
+                        open(filename_github, 'w').write(
+                            "MESSAGE USERNAME SENDER_ID\n" +
+                            f'''\n"""{html.unescape(message)}""" {screen_name} {sender_id}\n''')
                     print("Heroku Database saved")
 
                     notif = f"Yeay, Menfess kamu telah terkirim! https://twitter.com/{me.screen_name}/status/"
@@ -95,8 +100,9 @@ def start():
                                 message = message.split()
                                 message.remove(dms[i]['url'][0])
                                 message = " ".join(message)
-                                postid = tw.post_tweet(message, dms[i]['url'][1])
- 
+                                postid = tw.post_tweet(
+                                    message, dms[i]['url'][1])
+
                             if postid != None:
                                 text = notif + str(postid)
                                 sent = api.send_direct_message(
@@ -116,7 +122,7 @@ def start():
                                 message = " ".join(message)
                                 postid = tw.post_tweet_with_media(
                                     message, dms[i]['media'], dms[i]['type'], dms[i]['url'][1])
-                            
+
                             if postid != None:
                                 text = notif + str(postid)
                                 sent = api.send_direct_message(
@@ -186,7 +192,6 @@ def start():
                     #         recipient_id=sender_id, text="[BOT]\nPesan kamu telah dikirimkan ke admin").id
                     #     tw.delete_dm(sent1)
                     #     tw.delete_dm(sent)
-                    
 
                     else:
                         sent = api.send_direct_message(
@@ -212,7 +217,8 @@ def start():
 def Check_file_github(new=True):
     print("checking github file...")
     try:
-        datee = datetime.now(timezone.utc) + timedelta(hours=constants.Timezone)
+        datee = datetime.now(timezone.utc) + \
+            timedelta(hours=constants.Timezone)
         globals()['filename_github'] = "Database {}-{}-{}.txt".format(
             datee.day, datee.month, datee.year)
         constants.filename_github = filename_github
@@ -234,7 +240,11 @@ def Check_file_github(new=True):
                              "MESSAGE USERNAME SENDER_ID")
             contents = "MESSAGE USERNAME SENDER_ID\n"
 
-        open(filename_github, 'w').write(contents)
+        if exists(filename_github) == False:
+            open(filename_github, 'w').write(contents)
+        else:
+            pass
+
         if exists("Database {}-{}-{}.txt".format(
                 datee.day - 1, datee.month, datee.year)):
             remove("Database {}-{}-{}.txt".format(
