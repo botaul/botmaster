@@ -1,7 +1,7 @@
 # twitter_autobase
 A Twitter bot that can read your DMs, then tweets like Twitter autobase. This project is a re-code of [autodm_base](https://github.com/ydhnwb/autodm_base) by [Prieyudha Akadita S.](https://github.com/ydhnwb) with many improvements and fixed bugs. I know this bot is not perfect yet, issues and pull requests are welcome.
 
-**[Twitter rules](https://help.twitter.com/en/rules-and-policies/twitter-search-policies)**
+**Read [Twitter rules](https://help.twitter.com/en/rules-and-policies/twitter-search-policies)** <br>
 **USING THIS BOT FOR 'ADULT' BASE IS STRICTLY PROHIBITED** <br>
 
 ## Notes
