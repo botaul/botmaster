@@ -80,7 +80,6 @@ def start():
                 try:
                     message = dms[i]['message']
                     sender_id = dms[i]['sender_id']
-                    id = dms[i]['id']
                     screen_name = tw.get_user_screen_name(sender_id)
                     open(filename_github, 'a').write(
                         f'''\n"""{html.unescape(message)}""" {screen_name} {sender_id}\n''')
@@ -105,7 +104,6 @@ def start():
                             else:
                                 sent = api.send_direct_message(
                                     recipient_id=sender_id, text="[BOT]\nMaaf ada kesalahan pada sistem :(\ntolong screenshot & laporkan kepada admin").id
-                            tw.delete_dm(id)
                             tw.delete_dm(sent)
                         else:
                             print("DM will be posted with media.")
@@ -126,7 +124,6 @@ def start():
                             else:
                                 sent = api.send_direct_message(
                                     recipient_id=sender_id, text="[BOT]\nMaaf ada kesalahan pada sistem :(\ntolong screenshot & laporkan kepada admin").id
-                            tw.delete_dm(id)
                             tw.delete_dm(sent)
 
                     # elif constants.Second_Keyword in message and "https://" not in message and "http://" not in message and "twitter.com" not in message and len(message) <= 500:
@@ -146,7 +143,6 @@ def start():
                     #         else:
                     #             sent = api.send_direct_message(
                     #                 recipient_id=sender_id, text="[BOT]\nMaaf ada kesalahan pada sistem :(\ntolong screenshot & laporkan kepada admin").id
-                    #         tw.delete_dm(id)
                     #         tw.delete_dm(sent)
                     #     else:
                     #         media.download_image()
@@ -159,7 +155,6 @@ def start():
                     #         else:
                     #             sent = api.send_direct_message(
                     #                 recipient_id=sender_id, text="[BOT]\nMaaf ada kesalahan pada sistem :(\ntolong screenshot & laporkan kepada admin").id
-                    #         tw.delete_dm(id)
                     #         tw.delete_dm(sent)
 
                     # elif constants.Third_keyword in message:
@@ -191,13 +186,12 @@ def start():
                     #         recipient_id=sender_id, text="[BOT]\nPesan kamu telah dikirimkan ke admin").id
                     #     tw.delete_dm(sent1)
                     #     tw.delete_dm(sent)
-                    #     tw.delete_dm(id)
+                    
 
                     else:
                         sent = api.send_direct_message(
                             sender_id, "ketentuan keyword menfess kamu tidak sesuai!").id
                         tw.delete_dm(sent)
-                        tw.delete_dm(id)
 
                 except Exception as ex:
                     print(ex)

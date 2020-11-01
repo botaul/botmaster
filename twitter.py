@@ -55,10 +55,7 @@ class Twitter:
                 message_data = dm[x].message_create['message_data']
                 id = dm[x].id
 
-                if sender_id == self.bot_id:
-                    print("deleting bot messages")
-                    self.delete_dm(id)
-                    continue
+                self.delete_dm(id)
 
                 # set from DM
                 if constants.Set_keyword in message:
@@ -101,7 +98,6 @@ class Twitter:
                     finally:
                         sent = api.send_direct_message(
                             recipient_id=sender_id, text=notif).id
-                        self.delete_dm(id)
                         self.delete_dm(sent)
 
                     continue
@@ -113,7 +109,6 @@ class Twitter:
                         notif = "[BOT]\nHmm kayaknya kamu belum follow base ini. Follow dulu ya biar bisa ngirim menfess"
                         sent = api.send_direct_message(
                             recipient_id=sender_id, text=notif).id
-                        self.delete_dm(id)
                         self.delete_dm(sent)
                     except Exception as ex:
                         print(ex)
@@ -129,7 +124,6 @@ class Twitter:
                         notif = "[BOT]\nMenfess kamu mengandung muted words, jangan lupa baca peraturan base yaa!"
                         sent = api.send_direct_message(
                             recipient_id=sender_id, text=notif).id
-                        self.delete_dm(id)
                         self.delete_dm(sent)
                     except Exception as ex:
                         sleep(60)
@@ -199,7 +193,6 @@ class Twitter:
                         notif = "[BOT]\nKeyword yang kamu kirim salah!"
                         sent = api.send_direct_message(
                             recipient_id=sender_id, text=notif).id
-                        self.delete_dm(id)
                         self.delete_dm(sent)
 
                     except Exception as ex:
