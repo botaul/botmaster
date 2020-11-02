@@ -218,7 +218,7 @@ def start():
             print("Direct message is empty...")
             dms = tw.read_dm()
             if len(dms) == 0:
-                sleep(30+randrange(0, 5))
+                sleep(25+randrange(0, 5))
 
 
 def Check_file_github(new=True):

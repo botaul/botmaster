@@ -243,13 +243,16 @@ class Twitter:
             if len(dms) > 1:
                 dms.reverse()
             
+            self.random_time = randrange(0,5)
             x = 0
+            y = 0
             time = datetime.now(timezone.utc) + timedelta(hours=constants.Timezone)
             for i in dms:
+                y += 1
                 x += (len(i['message']) // 270) + 1
                 if i['media'] != None:
-                    x += 0.57
-                sent_time = time + timedelta(minutes=1, seconds= 5 + x*27)
+                    x += 0.2
+                sent_time = time + timedelta(minutes=1, seconds= self.random_time + x*(25+self.random_time))
                 hour = sent_time.hour
                 minute = sent_time.minute
                 if hour < 10:
@@ -257,11 +260,11 @@ class Twitter:
                 if minute < 10:
                     minute = f"0{minute}"
                 sent_time = f"{str(hour)}:{str(minute)}"
-                notif = f"Menfess kamu akan terkirim sekitar pukul {sent_time}"
+                notif = f"Menfess kamu berada pada urutan ke-{str(y)}, akan terkirim sekitar pukul {sent_time}"
                 sent = api.send_direct_message(recipient_id=i['sender_id'], text=notif)
                 self.delete_dm(sent.id)
 
-            sleep(60+randrange(0,10))
+            sleep(60+self.random_time)
             return dms
 
         except Exception as ex:
@@ -352,7 +355,7 @@ class Twitter:
                 complete = self.api.update_status(
                     tweet1, media_ids=media_ids, attachment_url=attachment_url).id
 
-            sleep(25+randrange(0,5))
+            sleep(25+self.random_time)
             postid = str(complete)
             tweet2 = tweet[right-separator:]
             while len(tweet2) > 280:
@@ -365,13 +368,13 @@ class Twitter:
                     tweet[left:right-separator]) + '(cont..)'
                 complete = self.api.update_status(
                     tweet2, in_reply_to_status_id=complete, auto_populate_reply_metadata=True).id
-                sleep(25+randrange(0,5))
+                sleep(25+self.random_time)
                 tweet2 = tweet[right-separator:]
 
             tweet2 = unescape(tweet2)
             self.api.update_status(
                 tweet2, in_reply_to_status_id=complete, auto_populate_reply_metadata=True)
-            sleep(25+randrange(0,5))
+            sleep(25+self.random_time)
             return postid
         except Exception as ex:
             pass
@@ -394,7 +397,7 @@ class Twitter:
     #         postid = self.api.update_with_media(
     #             filename="ready.png", status=tweet).id
     #         remove('ready.png')
-    #         sleep(25+randrange(0,5))
+    #         sleep(25+self.random_time)
     #         return str(postid)
     #     except Exception as ex:
     #         pass
@@ -414,7 +417,7 @@ class Twitter:
             if max_char <= 280:
                 postid = self.api.update_status(
                     unescape(tweet), attachment_url=attachment_url).id
-                sleep(25+randrange(0,5))
+                sleep(25+self.random_time)
             elif max_char > 280:
                 postid = self.Thread(None, "normal", tweet,
                                      None, attachment_url)
@@ -504,12 +507,11 @@ class Twitter:
                         media_ids.append(media_id)
                         postid = self.api.update_status(
                             unescape(tweet), media_ids=media_ids, attachment_url=attachment_url).id
-                        sleep(25+randrange(0,5))
+                        sleep(25+self.random_time)
                     elif max_char > 280:
                         postid = self.Thread(
                             filename, file_type, tweet, None, attachment_url)
                     remove(filename)
-                    sleep(10)
                     return postid
 
                 except Exception as ex:
@@ -526,13 +528,12 @@ class Twitter:
                     media_ids.append(media_id)
                     postid = self.api.update_status(
                         unescape(tweet), media_ids=media_ids, attachment_url=attachment_url).id
-                    sleep(25+randrange(0,5))
+                    sleep(25+self.random_time)
                 elif max_char > 280:
                     file_type = 'video'
                     postid = self.Thread(
                         filename, file_type, tweet, None, attachment_url)
                 remove(filename)
-                sleep(10)
                 return postid
 
             print("Upload with media success!")
