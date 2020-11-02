@@ -145,6 +145,10 @@ class Twitter:
                 # Based on Twitter rules https://help.twitter.com/en/rules-and-policies/twitter-search-policies
                 # Similiarity checker
                 notif_temp = 0
+                if (datetime.now(timezone.utc) + timedelta(hours=7)).day != self.day:
+                    self.day = (datetime.now(timezone.utc) + timedelta(hours=7)).day
+                    self.message_db = tuple()
+
                 for i in self.message_db:
                     similiarity = self.similiar(message, i)
                     if similiarity == 1:
@@ -161,14 +165,9 @@ class Twitter:
                         notif_temp = 1
                         break
 
-                if (datetime.now(timezone.utc) + timedelta(hours=7)).day != self.day:
-                    self.day = (datetime.now(timezone.utc) + timedelta(hours=7)).day
-                    self.message_db = (message,)
+                if notif_temp == 0:
+                    self.message_db += (message,)
                 else:
-                    if notif_temp == 0:
-                        self.message_db += (message,)
-
-                if notif_temp == 1:
                     continue
 
                 # primary keywords
