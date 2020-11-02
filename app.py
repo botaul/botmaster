@@ -9,16 +9,12 @@ from os.path import exists
 from os import remove
 from html import unescape
 from random import randrange
-from difflib import SequenceMatcher
 
 
 tw = Twitter()
 # media = Media()
 github = Github(constants.Github_token)
 
-
-def similiar(a, b):
-    return SequenceMatcher(None, a, b).ratio()
 
 def start():
     print("Starting program...")
@@ -27,7 +23,6 @@ def start():
     constants.api = api
     me = api.me()
     tw.bot_id = me.id
-    message_db = tuple()
     open('follower_data.txt', 'w').truncate()
     first = open('follower_data.txt').read()
     # sent = api.send_direct_message(recipient_id=constants.Admin_id, text="Twitter autobase is starting...!").id
@@ -96,29 +91,6 @@ def start():
                             "MESSAGE USERNAME SENDER_ID\n" +
                             f'''\n"""{unescape(message)}""" {screen_name} {sender_id}\n''')
                     print("Heroku Database saved")
-
-                    # Message filter
-                    # Based on Twitter rules https://help.twitter.com/en/rules-and-policies/twitter-search-policies
-
-                    # Similiarity checker
-                    notif_temp = 0
-                    for i in message_db:
-                        if similiar(message, i) > 0.85:
-                            print("Message similiarity is more than 0.85")
-                            sent = api.send_direct_message(recipient_id=sender_id, text="Menfess kamu mirip dengan menfess lain (hari ini). Coba gunakan pilihan kata yang lain!")
-                            tw.delete_dm(sent.id)
-                            notif_temp = 1
-                            break
-
-                    if (datetime.now(timezone.utc) + timedelta(hours=7)).day != day:
-                        globals()['day'] = (datetime.now(timezone.utc) + timedelta(hours=7)).day
-                        message_db = (message,)
-                    else:
-                        if notif_temp != 1:
-                            message_db += (message,)
-
-                    if notif_temp == 1:
-                        continue
 
                     notif = f"Yeay, Menfess kamu telah terkirim! https://twitter.com/{me.screen_name}/status/"
                     if constants.First_Keyword in message:
@@ -318,12 +290,11 @@ def database():
 
 if __name__ == "__main__":
     datee = datetime.now(timezone.utc) + timedelta(hours=constants.Timezone)
-    global filename_github, repo, ACTION, day
+    global filename_github, repo, ACTION
     filename_github = "Database {}-{}-{}.txt".format(
         datee.day, datee.month, datee.year)
     repo = github.get_repo(constants.Github_repo)
     ACTION = 0
-    day = datee.day
 
     constants.repo = repo
     constants.filename_github = filename_github

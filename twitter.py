@@ -9,6 +9,7 @@ from async_upload import MediaUpload
 from html import unescape
 from datetime import datetime, timezone, timedelta
 from random import randrange
+from difflib import SequenceMatcher
 
 
 class Twitter:
@@ -30,6 +31,11 @@ class Twitter:
             self.auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
         self.follower = list()
         self.bot_id = int()
+        self.message_db = tuple()
+        self.day = (datetime.now(timezone.utc) + timedelta(hours=7)).day
+
+    def similiar(self, a, b):
+        return SequenceMatcher(None, a, b).ratio()
 
     def read_dm(self):
         '''
@@ -38,6 +44,7 @@ class Twitter:
             - set from DM
             - check follower (exception for admin)
             - muted words (exception for admin)
+            - similiarity checker
             - primary keywords
                 - attachment
                     - attachment_url
@@ -134,6 +141,36 @@ class Twitter:
 
                     continue
 
+                # Message filter
+                # Based on Twitter rules https://help.twitter.com/en/rules-and-policies/twitter-search-policies
+                # Similiarity checker
+                notif_temp = 0
+                for i in self.message_db:
+                    similiarity = self.similiar(message, i)
+                    if similiarity == 1:
+                        print("Message similiarity is duplicate")
+                        sent = api.send_direct_message(recipient_id=sender_id, text="Menfess kamu sama dengan menfess lain (hari ini). Coba gunakan pilihan kata yang lain!\nNote: Abaikan jika mendapat pesan ini setelah menfess terkirim.")
+                        self.delete_dm(sent.id)
+                        notif_temp = 1
+                        break
+
+                    elif similiarity > 0.85:
+                        print("Message similiarity is more than 0.85")
+                        sent = api.send_direct_message(recipient_id=sender_id, text="Menfess kamu mirip dengan menfess lain (hari ini). Coba gunakan pilihan kata yang lain!")
+                        self.delete_dm(sent.id)
+                        notif_temp = 1
+                        break
+
+                if (datetime.now(timezone.utc) + timedelta(hours=7)).day != self.day:
+                    self.day = (datetime.now(timezone.utc) + timedelta(hours=7)).day
+                    self.message_db = (message,)
+                else:
+                    if notif_temp == 0:
+                        self.message_db += (message,)
+
+                if notif_temp == 1:
+                    continue
+
                 # primary keywords
                 keywords = [constants.First_Keyword]
                 # keywords = [constants.First_Keyword, constants.Second_Keyword,
@@ -211,8 +248,8 @@ class Twitter:
             for i in dms:
                 x += (len(i['message']) // 270) + 1
                 if i['media'] != None:
-                    x += 0.2
-                sent_time = time + timedelta(minutes=1, seconds= x*26)
+                    x += 0.57
+                sent_time = time + timedelta(minutes=1, seconds= 5 + x*27)
                 hour = sent_time.hour
                 minute = sent_time.minute
                 if hour < 10:
@@ -315,7 +352,7 @@ class Twitter:
                 complete = self.api.update_status(
                     tweet1, media_ids=media_ids, attachment_url=attachment_url).id
 
-            sleep(25+randrange(0,10))
+            sleep(25+randrange(0,5))
             postid = str(complete)
             tweet2 = tweet[right-separator:]
             while len(tweet2) > 280:
@@ -328,13 +365,13 @@ class Twitter:
                     tweet[left:right-separator]) + '(cont..)'
                 complete = self.api.update_status(
                     tweet2, in_reply_to_status_id=complete, auto_populate_reply_metadata=True).id
-                sleep(25+randrange(0,10))
+                sleep(25+randrange(0,5))
                 tweet2 = tweet[right-separator:]
 
             tweet2 = unescape(tweet2)
             self.api.update_status(
                 tweet2, in_reply_to_status_id=complete, auto_populate_reply_metadata=True)
-            sleep(25+randrange(0,10))
+            sleep(25+randrange(0,5))
             return postid
         except Exception as ex:
             pass
@@ -357,7 +394,7 @@ class Twitter:
     #         postid = self.api.update_with_media(
     #             filename="ready.png", status=tweet).id
     #         remove('ready.png')
-    #         sleep(25+randrange(0,10))
+    #         sleep(25+randrange(0,5))
     #         return str(postid)
     #     except Exception as ex:
     #         pass
@@ -377,7 +414,7 @@ class Twitter:
             if max_char <= 280:
                 postid = self.api.update_status(
                     unescape(tweet), attachment_url=attachment_url).id
-                sleep(25+randrange(0,10))
+                sleep(25+randrange(0,5))
             elif max_char > 280:
                 postid = self.Thread(None, "normal", tweet,
                                      None, attachment_url)
@@ -467,11 +504,12 @@ class Twitter:
                         media_ids.append(media_id)
                         postid = self.api.update_status(
                             unescape(tweet), media_ids=media_ids, attachment_url=attachment_url).id
-                        sleep(25+randrange(0,10))
+                        sleep(25+randrange(0,5))
                     elif max_char > 280:
                         postid = self.Thread(
                             filename, file_type, tweet, None, attachment_url)
                     remove(filename)
+                    sleep(10)
                     return postid
 
                 except Exception as ex:
@@ -488,12 +526,13 @@ class Twitter:
                     media_ids.append(media_id)
                     postid = self.api.update_status(
                         unescape(tweet), media_ids=media_ids, attachment_url=attachment_url).id
-                    sleep(25+randrange(0,10))
+                    sleep(25+randrange(0,5))
                 elif max_char > 280:
                     file_type = 'video'
                     postid = self.Thread(
                         filename, file_type, tweet, None, attachment_url)
                 remove(filename)
+                sleep(10)
                 return postid
 
             print("Upload with media success!")
