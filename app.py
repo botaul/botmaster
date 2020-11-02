@@ -114,7 +114,8 @@ def start():
                         globals()['day'] = (datetime.now(timezone.utc) + timedelta(hours=7)).day
                         message_db = (message,)
                     else:
-                        message_db += (message,)
+                        if notif_temp != 1:
+                            message_db += (message,)
 
                     if notif_temp == 1:
                         continue
