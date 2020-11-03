@@ -5,7 +5,6 @@ A Twitter bot that can read your DMs, then tweets like Twitter autobase. This pr
 - **USING THIS BOT FOR 'ADULT' BASE IS STRICTLY PROHIBITED** <br>
 
 ## Notes
-- If you want to use Official Consumer Key, open [this link](https://gist.github.com/shobotch/5160017). Then run [this](https://pastebin.com/JBksJvEG) on python to get Access key & secret.
 - Admin can send menfess although admin doesn't follow the bot
 - Admin pass muted word filters
 - If your followers are **less than 5K**, follower filter may work properly. Uncomment line 114-127 on twitter.py (deactivated)
