@@ -1,10 +1,11 @@
 # twitter_autobase
 A Twitter bot that can read your DMs, then tweets like Twitter autobase. This project is a re-code of [autodm_base](https://github.com/ydhnwb/autodm_base) by [Prieyudha Akadita S.](https://github.com/ydhnwb) with many improvements and fixed bugs. I know this bot is not perfect yet, issues and pull requests are welcome.
 
-**Read [Twitter rules](https://help.twitter.com/en/rules-and-policies/twitter-search-policies)** <br>
-**USING THIS BOT FOR 'ADULT' BASE IS STRICTLY PROHIBITED** <br>
+- **Read [Twitter rules](https://help.twitter.com/en/rules-and-policies/twitter-search-policies)** <br>
+- **USING THIS BOT FOR 'ADULT' BASE IS STRICTLY PROHIBITED** <br>
 
 ## Notes
+- If you want to use Official Consumer Key, open [this link](https://gist.github.com/shobotch/5160017). Then run [this](https://pastebin.com/JBksJvEG) on python to get Access key & secret.
 - Admin can send menfess although admin doesn't follow the bot
 - Admin pass muted word filters
 - If your followers are more than 5K, follower filter may not work properly. Comment or delete line 114-127 on twitter.py
