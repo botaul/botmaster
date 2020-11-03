@@ -112,19 +112,19 @@ class Twitter:
                     continue
 
                 # check follower
-                elif int(sender_id) not in self.follower and sender_id != constants.Admin_id:
-                    print("sender not in follower")
-                    try:
-                        notif = "Hmm kayaknya kamu belum follow base ini. Follow dulu ya biar bisa ngirim menfess"
-                        sent = api.send_direct_message(
-                            recipient_id=sender_id, text=notif).id
-                        self.delete_dm(sent)
-                    except Exception as ex:
-                        print(ex)
-                        sleep(30)
-                        pass
+                #elif int(sender_id) not in self.follower and sender_id != constants.Admin_id:
+                #    print("sender not in follower")
+                #    try:
+                #        notif = "Hmm kayaknya kamu belum follow base ini. Follow dulu ya biar bisa ngirim menfess"
+                #        sent = api.send_direct_message(
+                #            recipient_id=sender_id, text=notif).id
+                #        self.delete_dm(sent)
+                #    except Exception as ex:
+                #        print(ex)
+                #        sleep(30)
+                #        pass
 
-                    continue
+                #    continue
 
                 # muted words
                 elif any(i in message for i in constants.Muted_words) and sender_id != constants.Admin_id:
