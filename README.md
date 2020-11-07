@@ -42,9 +42,9 @@ If your followers didn't receive a message from the bot. Unfollow this bot for s
 
 ## How to run this bot?
 - Install pip3, virtualenv, git, heroku
-- Do Installation
-- Edit contents in constants.py
-- Deploy to Heroku
+- Do [Installation](https://github.com/fakhrirofi/twitter_autobase#installation-on-linux)
+- Edit [contents](https://github.com/fakhrirofi/twitter_autobase#constants) in constants.py
+- [Deploy to Heroku](https://github.com/fakhrirofi/twitter_autobase#deploy-to-heroku)
 
 ## [Constants](https://github.com/fakhrirofi/twitter_autobase/blob/master/constants.py)
 - Github_token; a token to access your github. Get it from [here](https://github.com/settings/tokens) and set allow for editing repository.
