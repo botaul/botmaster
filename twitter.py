@@ -34,9 +34,6 @@ class Twitter:
         self.message_db = tuple()
         self.day = (datetime.now(timezone.utc) + timedelta(hours=7)).day
 
-    def similiar(self, a, b):
-        return SequenceMatcher(None, a, b).ratio()
-
     def read_dm(self):
         '''
         read and filter DMs
@@ -150,7 +147,7 @@ class Twitter:
                     self.message_db = tuple()
 
                 for i in self.message_db:
-                    similiarity = self.similiar(message, i)
+                    similiarity = SequenceMatcher(None, message, i).ratio()
                     if similiarity == 1:
                         print("Message similiarity is duplicate")
                         sent = api.send_direct_message(recipient_id=sender_id, text="Menfess kamu sama dengan menfess lain (hari ini). Coba gunakan pilihan kata yang lain!\nNote: Abaikan jika mendapat pesan ini setelah menfess terkirim.")
@@ -158,8 +155,8 @@ class Twitter:
                         notif_temp = 1
                         break
 
-                    elif similiarity > 0.85:
-                        print("Message similiarity is more than 0.85")
+                    elif similiarity > 0.9:
+                        print("Message similiarity is more than 0.9")
                         sent = api.send_direct_message(recipient_id=sender_id, text="Menfess kamu mirip dengan menfess lain (hari ini). Coba gunakan pilihan kata yang lain!")
                         self.delete_dm(sent.id)
                         notif_temp = 1
@@ -336,9 +333,11 @@ class Twitter:
         try:
             left = 0
             right = 270
-            leftcheck = 240
+            leftcheck = 230
             check = tweet[leftcheck:right].split()
             separator = len(check[-1])
+            if tweet[right-1] == " ":
+                separator += 1
             tweet1 = unescape(tweet[left:right-separator]) + '(cont..)'
 
             if file_type == 'photo' or file_type == 'animated_gif' or file_type == 'video':
@@ -363,6 +362,8 @@ class Twitter:
                 right += 270 - separator
                 check = tweet[leftcheck:right].split()
                 separator = len(check[-1])
+                if tweet[right-1] == " ":
+                    separator += 1
                 tweet2 = unescape(
                     tweet[left:right-separator]) + '(cont..)'
                 complete = self.api.update_status(
