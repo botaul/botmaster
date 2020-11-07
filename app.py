@@ -30,7 +30,7 @@ def start():
 
     while True:
         print("Updating followers...")
-        # Auto accept messages
+        # Auto accept message requests
         follower = api.followers_ids(user_id=me.id)
         if len(follower) != 0:
             tw.follower = follower
@@ -221,10 +221,10 @@ def start():
 
 
 def Check_file_github(new=True):
-	'''
-	True when bot was just started, download & save file from github
-	False when bot is running. if file exists, doesn't save the file from github
-	'''
+    '''
+    True when bot was just started, download & save file from github
+    False when bot is running. if file exists, doesn't save the file from github
+    '''
     print("checking github file...")
     try:
         datee = datetime.now(timezone.utc) + \
@@ -271,9 +271,9 @@ def Check_file_github(new=True):
 def database():
     while True:
         try:
-        	# update every midnight, u can update directly from DM with 'db_update'
-        	# check on constants.py
-        	datee = datetime.now(timezone.utc) + timedelta(hours=constants.Timezone)
+            # update every midnight, u can update directly from DM with 'db_update'
+            # check on constants.py
+            datee = datetime.now(timezone.utc) + timedelta(hours=constants.Timezone)
             if filename_github != f"Database {datee.day}-{datee.month}-{datee.year}.txt":
                 print("Github threading active...")
                 contents = repo.get_contents(filename_github)
