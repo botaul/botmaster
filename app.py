@@ -33,50 +33,55 @@ def start():
         # Auto accept message requests
         follower = api.followers_ids(user_id=me.id)
         if len(follower) != 0:
-            tw.follower = follower
+            try:
+                if len(first) <= 3:
+                    str_follower = [str(i) for i in follower]
+                    data = " ".join(str_follower)
+                    open("follower_data.txt", "w").write(data)
+                    first = "checked"
+                    del str_follower
 
-            if len(first) <= 3:
-                str_follower = [str(i) for i in follower]
-                data = " ".join(str_follower)
-                open("follower_data.txt", "w").write(data)
-                first = "checked"
-                del str_follower
+                data = open('follower_data.txt').read()
+                data = data.split()
+                data1 = str()
+                data2 = data.copy()
 
-            data = open('follower_data.txt').read()
-            data = data.split()
-            data1 = str()
-            data2 = data.copy()
+                for i in follower:
+                    if str(i) not in data:
+                        data1 += " " + str(i)
+                        notif = "YEAY! Sekarang kamu bisa mengirim menfess, jangan lupa baca peraturan base yaa!"
+                        # I don't know, sometimes error happen here, so, I update tw.follower after this loop
+                        sent = api.send_direct_message(
+                            recipient_id=i, text=notif).id
+                        tw.delete_dm(sent)
+                        
+                tw.follower = follower
+                for i in data2:
+                    if int(i) not in follower:
+                        data.remove(i)
 
-            for i in follower:
-                if str(i) not in data:
-                    data1 += " " + str(i)
-                    notif = "YEAY! Sekarang kamu bisa mengirim menfess, jangan lupa baca peraturan base yaa!"
-                    sent = api.send_direct_message(
-                        recipient_id=i, text=notif).id
-                    tw.delete_dm(sent)
+                if data != data2:
+                    data = " ".join(data)
+                    data = data + data1
+                    new = open("follower_data.txt", "w")
+                    new.write(data)
+                    new.close()
+                elif data == data2 and len(data1) != 0:
+                    new = open("follower_data.txt", "a")
+                    new.write(data1)
+                    new.close()
 
-            for i in data2:
-                if int(i) not in follower:
-                    data.remove(i)
-
-            if data != data2:
-                data = " ".join(data)
-                data = data + data1
-                new = open("follower_data.txt", "w")
-                new.write(data)
-                new.close()
-            elif data == data2 and len(data1) != 0:
-                new = open("follower_data.txt", "a")
-                new.write(data1)
-                new.close()
-
-            del data
-            del data1
-            del data2
+                del data
+                del data1
+                del data2
+                
+            except Exception as ex:
+                print("error when send DM to follower")
+                print("error when get follower from API")
+                pass
 
         else:
             print("error when get follower from API")
-            pass
 
         if len(dms) != 0:
             for i in range(len(dms)):
