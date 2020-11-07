@@ -30,6 +30,7 @@ def start():
 
     while True:
         print("Updating followers...")
+        # Auto accept messages
         follower = api.followers_ids(user_id=me.id)
         if len(follower) != 0:
             tw.follower = follower
@@ -211,8 +212,6 @@ def start():
                     pass
 
             dms = list()
-            globals()['ACTION'] = 1
-            print("waiting Github threading...")
 
         else:
             print("Direct message is empty...")
@@ -222,6 +221,10 @@ def start():
 
 
 def Check_file_github(new=True):
+	'''
+	True when bot was just started, download & save file from github
+	False when bot is running. if file exists, doesn't save the file from github
+	'''
     print("checking github file...")
     try:
         datee = datetime.now(timezone.utc) + \
@@ -268,18 +271,20 @@ def Check_file_github(new=True):
 def database():
     while True:
         try:
-            if ACTION == 1:
-                globals()['ACTION'] = 0
+        	# update every midnight, u can update directly from DM with 'db_update'
+        	# check on constants.py
+        	datee = datetime.now(timezone.utc) + timedelta(hours=constants.Timezone)
+            if filename_github != f"Database {datee.day}-{datee.month}-{datee.year}.txt":
                 print("Github threading active...")
                 contents = repo.get_contents(filename_github)
                 repo.update_file(contents.path, "updating database", open(
                     filename_github).read(), contents.sha)
                 Check_file_github(new=False)
                 print("Github Database updated")
-                sleep(3600)
+                sleep(60)
 
             else:
-                sleep(10)
+                sleep(60)
 
         except Exception as ex:
             print(ex)
@@ -290,11 +295,10 @@ def database():
 
 if __name__ == "__main__":
     datee = datetime.now(timezone.utc) + timedelta(hours=constants.Timezone)
-    global filename_github, repo, ACTION
+    global filename_github, repo
     filename_github = "Database {}-{}-{}.txt".format(
         datee.day, datee.month, datee.year)
     repo = github.get_repo(constants.Github_repo)
-    ACTION = 0
 
     constants.repo = repo
     constants.filename_github = filename_github
@@ -302,3 +306,4 @@ if __name__ == "__main__":
     Check_file_github(new=True)
     Thread(target=start).start()
     Thread(target=database).start()
+
