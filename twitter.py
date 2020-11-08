@@ -62,6 +62,9 @@ class Twitter:
                 id = dm[x].id
 
                 self.delete_dm(id)
+                # Avoid keyword error by skipping bot messages
+                if int(sender_id) == self.bot_id:
+                    continue
 
                 # set from DM
                 if constants.Set_keyword in message:
