@@ -92,7 +92,7 @@ Limited to 500 characters <br>
 ### Set
 `set! add_muted word1 word2 word3 word-n` (media are not allowed) <br>
 `set! rm_muted word1 word2 word3 word-n` (media are not allowed) <br>
-`set! db_update`
+`set! db_update` <br>
 `set! display_muted`
 
 
