@@ -13,6 +13,8 @@ from difflib import SequenceMatcher
 
 
 class Twitter:
+
+
     def __init__(self):
         '''
         initialize tweepy
@@ -32,7 +34,8 @@ class Twitter:
         self.follower = list()
         self.bot_id = int()
         self.message_db = tuple()
-        self.day = (datetime.now(timezone.utc) + timedelta(hours=7)).day
+        self.day = (datetime.now(timezone.utc) + timedelta(hours=constants.Timezone)).day
+
 
     def read_dm(self):
         '''
@@ -48,7 +51,7 @@ class Twitter:
                     - photo
                     - video
                     - animated_gif
-        return list of filtered DMs
+        :returns: list of filtered DMs
         '''
         print("Get direct messages...")
         dms = list()
@@ -111,7 +114,7 @@ class Twitter:
 
                     continue
 
-                # check follower
+                # check follower (Disable it when your followers are more than 5K)
                 #elif int(sender_id) not in self.follower and sender_id != constants.Admin_id:
                 #    print("sender not in follower")
                 #    try:
@@ -127,7 +130,8 @@ class Twitter:
                 #    continue
 
                 # muted words
-                elif any(i in message for i in constants.Muted_words) and sender_id != constants.Admin_id:
+                list_muted = [i.lower() for i in constants.Muted_words]
+                if any(i in message.lower() for i in list_muted) and sender_id != constants.Admin_id:
                     try:
                         print("deleting muted menfess")
                         notif = "Menfess kamu mengandung muted words, jangan lupa baca peraturan base yaa!"
@@ -145,8 +149,9 @@ class Twitter:
                 # Based on Twitter rules https://help.twitter.com/en/rules-and-policies/twitter-search-policies
                 # Similiarity checker
                 notif_temp = 0
-                if (datetime.now(timezone.utc) + timedelta(hours=7)).day != self.day:
-                    self.day = (datetime.now(timezone.utc) + timedelta(hours=7)).day
+                date_now = (datetime.now(timezone.utc) + timedelta(hours=constants.Timezone)).day
+                if date_now != self.day:
+                    self.day = date_now
                     self.message_db = tuple()
 
                 for i in self.message_db:
@@ -171,10 +176,7 @@ class Twitter:
                     continue
 
                 # primary keywords
-                keywords = [constants.First_Keyword]
-                # keywords = [constants.First_Keyword, constants.Second_Keyword,
-                #             constants.Third_keyword]
-                if any(i in message for i in keywords):
+                if constants.First_Keyword.lower() in message.lower():
                     print("Getting message -> by sender id " + str(sender_id))
                     # attachment_url (retweet)
                     url = None
@@ -248,7 +250,7 @@ class Twitter:
             time = datetime.now(timezone.utc) + timedelta(hours=constants.Timezone)
             for i in dms:
                 y += 1
-                x += (len(i['message']) // 270) + 1
+                x += (len(i['message']) // 272) + 1
                 if i['media'] != None:
                     x += 0.2
                 sent_time = time + timedelta(minutes=1, seconds= self.random_time + x*(25+self.random_time))
@@ -272,10 +274,11 @@ class Twitter:
             sleep(60)
             return dms
 
+
     def delete_dm(self, id):
         '''
         delete a DM
-        id: message id -> int or str
+        :param id: message id -> int or str
         '''
         print("Deleting dm with id = " + str(id))
         try:
@@ -285,30 +288,12 @@ class Twitter:
             sleep(60)
             pass
 
-    # def ASK(self, message, screen_name):
-    #     '''
-    #     Send DMs to admin
-    #     message: message -> str
-    #     screen_name: sender username -> str
-    #     return message id -> str
-    #     '''
-    #     print("ASKING")
-    #     try:
-    #         message = message + " @" + screen_name
-    #         sent = self.api.send_direct_message(
-    #             recipient_id=constants.Admin_id, text=message).id
-    #         return sent
-
-    #     except Exception as ex:
-    #         print(ex)
-    #         sleep(60)
-    #         pass
 
     def get_user_screen_name(self, id):
         '''
         get username
-        id: account id -> int
-        return username -> str
+        :param id: account id -> int
+        :returns: username -> str
         '''
         try:
             print("Getting username")
@@ -322,26 +307,26 @@ class Twitter:
             sleep(60)
             return user
 
+
     def Thread(self, name, file_type, tweet, media_ids=None, attachment_url=None):
         '''
         tweet a thread
-        name: filename of the file -> str
-        file_type: ('photo', 'video', 'animated_gif', 'normal' or 'retweet') -> str
-        tweet: -> str
-        media_ids: media id -> list
-        attachment_url: url -> str
-        return tweet id -> str
+        :param name: filename of the file -> str
+        :param file_type: ('photo', 'video', 'animated_gif', 'normal' or 'retweet') -> str
+        :param tweet: -> str
+        :param media_ids: media id -> list
+        :param attachment_url: url -> str
+        :returns: tweet id -> str
         '''
         print("Tweeting a Thread")
         try:
             left = 0
-            right = 270
-            leftcheck = 230
-            check = tweet[leftcheck:right].split()
+            right = 272
+            check = tweet[:right].split()
             separator = len(check[-1])
             if tweet[right-1] == " ":
                 separator += 1
-            tweet1 = unescape(tweet[left:right-separator]) + '(cont..)'
+            tweet1 = unescape(tweet[left:right-separator]) + '(cont)'
 
             if file_type == 'photo' or file_type == 'animated_gif' or file_type == 'video':
                 media_id = self.media_upload_chunk(name)
@@ -360,15 +345,14 @@ class Twitter:
             postid = str(complete)
             tweet2 = tweet[right-separator:]
             while len(tweet2) > 280:
-                leftcheck += 270 - separator
-                left += 270 - separator
-                right += 270 - separator
-                check = tweet[leftcheck:right].split()
+                left += 272 - separator
+                right += 272 - separator
+                check = tweet[:right].split()
                 separator = len(check[-1])
                 if tweet[right-1] == " ":
                     separator += 1
                 tweet2 = unescape(
-                    tweet[left:right-separator]) + '(cont..)'
+                    tweet[left:right-separator]) + '(cont)'
                 complete = self.api.update_status(
                     tweet2, in_reply_to_status_id=complete, auto_populate_reply_metadata=True).id
                 sleep(25+self.random_time)
@@ -385,35 +369,13 @@ class Twitter:
             sleep(30)
             return None
 
-    # def post_tweet_quote(self, name):
-    #     '''
-    #     tweet a quote image (ready.png)
-    #     name: username -> string
-    #     return tweet id -> str
-    #     '''
-    #     print("Uploading..")
-    #     try:
-    #         if name is None:
-    #             tweet = constants.Second_Keyword
-    #         elif name != None:
-    #             tweet = f"{constants.Second_Keyword} by @{name}"
-    #         postid = self.api.update_with_media(
-    #             filename="ready.png", status=tweet).id
-    #         remove('ready.png')
-    #         sleep(25+self.random_time)
-    #         return str(postid)
-    #     except Exception as ex:
-    #         pass
-    #         print(ex)
-    #         sleep(60)
-    #         return None
 
     def post_tweet(self, tweet, attachment_url=None):
         '''
         tweet a normal tweet
-        tweet: -> str
-        attachment_url: url -> str
-        return tweet id -> str
+        :param tweet: -> str
+        :param attachment_url: url -> str
+        :returns: tweet id -> str
         '''
         try:
             max_char = len(tweet)
@@ -431,12 +393,13 @@ class Twitter:
             print(ex)
             return None
 
+
     def download_media(self, media_url, filename=None):
         '''
         download media from url save the filename
-        media_url: url -> string
-        filename: None (default) or filename --> str
-        return file name (when filename=None) -> str
+        :param media_url: url -> string
+        :param filename: None (default) or filename --> str
+        :returns: file name (when filename=None) -> str
         '''
         try:
             print("Downloading media...")
@@ -470,12 +433,13 @@ class Twitter:
             print(ex)
             pass
 
+
     def media_upload_chunk(self, filename, media_category=True):
         '''
         upload media with chunk
-        filename: -> str
-        media_category: True for tweet, False for DM
-        return media id -> str
+        :param filename: -> str
+        :param media_category: True for tweet, False for DM
+        :returns: media id -> str
         '''
         try:
             mediaupload = MediaUpload(filename, media_category)
@@ -488,58 +452,35 @@ class Twitter:
             print(ex)
             pass
 
+
     def post_tweet_with_media(self, tweet, media_url, file_type, attachment_url=None):
         '''
         tweet a tweet with media
-        tweet: -> str
-        media_url: url -> str
-        file_type: ('photo', 'video', or 'animated_gif') -> str
-        return tweet id -> str
+        :param tweet: -> str
+        :param media_url: url -> str
+        :param file_type: ('photo', 'video', or 'animated_gif') -> str
+        :returns: tweet id -> str
         '''
         try:
             tweet = tweet.split()
             tweet = " ".join(tweet[:-1])
             max_char = len(tweet)
 
-            if file_type == 'photo':
-                try:
-                    filename = self.download_media(media_url)
-                    if max_char <= 280:
-                        media_id = self.media_upload_chunk(filename)
-                        media_ids = list()
-                        media_ids.append(media_id)
-                        postid = self.api.update_status(
-                            unescape(tweet), media_ids=media_ids, attachment_url=attachment_url).id
-                        sleep(25+self.random_time)
-                    elif max_char > 280:
-                        postid = self.Thread(
-                            filename, file_type, tweet, None, attachment_url)
-                    remove(filename)
-                    return postid
-
-                except Exception as ex:
-                    pass
-                    print(ex)
-                    sleep(30)
-                    return None
-
-            elif file_type == 'video' or file_type == 'animated_gif':
+            if max_char <= 280:
                 filename = self.download_media(media_url)
-                if max_char <= 280:
-                    media_id = self.media_upload_chunk(filename)
-                    media_ids = list()
-                    media_ids.append(media_id)
-                    postid = self.api.update_status(
-                        unescape(tweet), media_ids=media_ids, attachment_url=attachment_url).id
-                    sleep(25+self.random_time)
-                elif max_char > 280:
-                    file_type = 'video'
-                    postid = self.Thread(
-                        filename, file_type, tweet, None, attachment_url)
-                remove(filename)
-                return postid
-
+                media_id = self.media_upload_chunk(filename)
+                media_ids = [media_id]
+                postid = self.api.update_status(
+                    unescape(tweet), media_ids=media_ids, attachment_url=attachment_url).id
+                sleep(25+self.random_time)
+            elif max_char > 280:
+                postid = self.Thread(
+                    filename, file_type, tweet, None, attachment_url)
+                    
+            remove(filename)
             print("Upload with media success!")
+            return postid
+
         except Exception as ex:
             pass
             sleep(60)

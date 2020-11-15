@@ -1,7 +1,7 @@
-import os
-import time
+from os.path import getsize
+from time import sleep
 import json
-import requests
+from requests import get, post
 from requests_oauthlib import OAuth1
 import constants
 
@@ -21,8 +21,8 @@ class MediaUpload:
     def __init__(self, file_name, media_category=True):
         '''
         Upload file to twitter
-        file_name: -> str
-        media_category: True for tweet, False for DM
+        :param file_name: -> str
+        :param media_category: True for tweet, False for DM
         objects from this:
             - video_filename
             - total_bytes
@@ -32,7 +32,7 @@ class MediaUpload:
             - media_category
         '''
         self.video_filename = file_name
-        self.total_bytes = os.path.getsize(self.video_filename)
+        self.total_bytes = getsize(self.video_filename)
         self.media_id = None
         self.processing_info = None
         data_media = {
@@ -58,7 +58,7 @@ class MediaUpload:
     def upload_init(self):
         '''
         init section
-        return media id -> int
+        :returns: media id -> int
         '''
         print('INIT')
         request_data = {
@@ -70,7 +70,7 @@ class MediaUpload:
         if self.media_category == None:
             del request_data['media_category']
 
-        req = requests.post(url=MEDIA_ENDPOINT_URL,
+        req = post(url=MEDIA_ENDPOINT_URL,
                             data=request_data, auth=oauth)
         media_id = req.json()['media_id']
 
@@ -104,7 +104,7 @@ class MediaUpload:
                 'media': chunk
             }
 
-            req = requests.post(url=MEDIA_ENDPOINT_URL,
+            req = post(url=MEDIA_ENDPOINT_URL,
                                 data=request_data, files=files, auth=oauth)
 
             if req.status_code < 200 or req.status_code > 299:
@@ -129,7 +129,7 @@ class MediaUpload:
             'media_id': self.media_id
         }
 
-        req = requests.post(url=MEDIA_ENDPOINT_URL,
+        req = post(url=MEDIA_ENDPOINT_URL,
                             data=request_data, auth=oauth)
 
         self.processing_info = req.json().get('processing_info', None)
@@ -138,15 +138,15 @@ class MediaUpload:
     def Tweet(self, tweet):
         '''
         tweet a tweet with media_id
-        tweet: -> str
-        return tweet id -> int
+        :param tweet: -> str
+        :returns: tweet id -> int
         '''
         request_data = {
             'status': tweet,
             'media_ids': self.media_id
         }
 
-        req = requests.post(url=POST_TWEET_URL, data=request_data, auth=oauth)
+        req = post(url=POST_TWEET_URL, data=request_data, auth=oauth)
         complete = req.json()['id']
         return complete
 
@@ -171,7 +171,7 @@ class MediaUpload:
             check_after_secs = self.processing_info['check_after_secs']
 
             print('Checking after %s seconds' % str(check_after_secs))
-            time.sleep(check_after_secs)
+            sleep(check_after_secs)
 
             print('STATUS')
 
@@ -180,7 +180,7 @@ class MediaUpload:
                 'media_id': self.media_id
             }
 
-            req = requests.get(url=MEDIA_ENDPOINT_URL,
+            req = get(url=MEDIA_ENDPOINT_URL,
                                params=request_params, auth=oauth)
 
             self.processing_info = req.json().get('processing_info', None)

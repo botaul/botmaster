@@ -1,5 +1,5 @@
 # twitter_autobase
-A Twitter bot that can read your DMs, then tweets like Twitter autobase. This project is a re-code of [autodm_base](https://github.com/ydhnwb/autodm_base) by [Prieyudha Akadita S.](https://github.com/ydhnwb) with many improvements and fixed bugs. I know this bot is not perfect yet, issues and pull requests are welcome.
+A Twitter bot that can read your DMs, then tweets like Twitter autobase. This project is a re-code of [autodm_base](https://github.com/ydhnwb/autodm_base) by [Prieyudha Akadita S.](https://github.com/ydhnwb) with many improvements and fixed bugs. I know this bot is not perfect yet, so, issues and pull requests are welcome.
 
 - **Read [Twitter rules](https://help.twitter.com/en/rules-and-policies/twitter-search-policies)** <br>
 - **USING THIS BOT FOR 'ADULT' BASE IS STRICTLY PROHIBITED** <br>
@@ -7,8 +7,8 @@ A Twitter bot that can read your DMs, then tweets like Twitter autobase. This pr
 ## Notes
 - Admin can send menfess although admin doesn't follow the bot
 - Admin pass muted word filters
-- If your followers are **less than 5K**, follower filter may work properly. Uncomment line 114-127 on twitter.py (deactivated)
-- I have 'commented' (deactivated) some nonessential features for autobase. If you want to make it active, just delete the comments in the script code
+- If your followers are **less than 5K**, follower filter may work properly. Uncomment line 117-130 on twitter.py (deactivated)
+- I have deleted non-essential features, see [first release](https://github.com/fakhrirofi/twitter_autobase/releases/tag/v1.0) if you want to use those features.
 - If you use github repository to deploy to heroku, make sure to set the repository to private. Github automatically will delete your github token if your repository is public
 
 ### Auto Accept message 
@@ -22,16 +22,12 @@ If your followers didn't receive a message from the bot. Unfollow this bot for s
 - Added muted words
 - Only follower can sends menfess and message to admin (deactivated)
 - Auto accepts message requests (for open DM) by interacting sending a DM to new follower
-- Send DM to admin account (deactivated)
 - Notify sender when the menfess sent or not
 - Tweet GIF and video
-- Edit media for Twitter API requirements
-- Make (tweets) a Thread when characters > 280
-- Tweet a quote image (deactivated)
-- Sync simple database (text) on github repository
+- Post a Thread when characters > 280
+- Sync simple database (text) on github repository (optional)
 - Set muted_words & update database from DM
 - Upload more than one media
-- fix attachment url 
 
 ## Requirements
 - Good at basic python programming
@@ -42,17 +38,15 @@ If your followers didn't receive a message from the bot. Unfollow this bot for s
 
 ## How to run this bot?
 - Install pip3, virtualenv, git, heroku
-- Do [Installation](https://github.com/fakhrirofi/twitter_autobase#installation-on-linux)
-- Edit [contents](https://github.com/fakhrirofi/twitter_autobase#constants) in constants.py
+- [Do Installation](https://github.com/fakhrirofi/twitter_autobase#installation-on-linux)
+- [Edit contents in constants.py](https://github.com/fakhrirofi/twitter_autobase#constants)
 - [Deploy to Heroku](https://github.com/fakhrirofi/twitter_autobase#deploy-to-heroku)
 
 ## [Constants](https://github.com/fakhrirofi/twitter_autobase/blob/master/constants.py)
-- Github_token; a token to access your github. Get it from [here](https://github.com/settings/tokens) and set allow for editing repository.
-- Github_repo; a repo that will be simple database.
+- Github_token; a token to access your github. Get it from [here](https://github.com/settings/tokens) and set allow for editing repository. (optional)
+- Github_repo; a repo that will be simple database. (optional)
 - First_keyword; keyword for video, photo, and GIF.
-- Second_keyword; keyword to make quote. (deactivated)
-- Sub2_keyword; when menfess contains Second keyword and Sub2 keyword, the sender username will be added to quote. (deactivated)
-- Third_keyword; when DMs contains this keyword, the DMs will be sent to admin id. (deactivated)
+- database; bool. True = on, False = off (optional)
 - Muted_words; when muted words in DMs. The DMs will be deleted.
 - Set_keyword; when Set keywords in DMs, it will edit Muted_words.
 - Dict_set_keyword; command that will be executed with exec.
@@ -98,6 +92,7 @@ Limited to 500 characters <br>
 `set! add_muted word1 word2 word3 word-n` (media are not allowed) <br>
 `set! rm_muted word1 word2 word3 word-n` (media are not allowed) <br>
 `set! db_update`
+`set! display_muted`
 
 
 ## Deploy to Heroku

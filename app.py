@@ -1,8 +1,6 @@
 from twitter import Twitter
-# from media import Media
 from time import sleep
 from threading import Thread
-from github import Github
 from datetime import datetime, timezone, timedelta
 import constants
 from os.path import exists
@@ -10,15 +8,15 @@ from os import remove
 from html import unescape
 from random import randrange
 
-
-tw = Twitter()
-# media = Media()
-github = Github(constants.Github_token)
+if constants.database == True:
+    from github import Github
+    github = Github(constants.Github_token)
 
 
 def start():
     print("Starting program...")
     dms = list()
+    tw = Twitter()
     api = tw.api
     constants.api = api
     me = api.me()
@@ -31,6 +29,7 @@ def start():
     while True:
         print("Updating followers...")
         # Auto accept message requests
+        # Comment these if you want close your DM
         follower = api.followers_ids(user_id=me.id)
         if len(follower) != 0:
             try:
@@ -89,20 +88,25 @@ def start():
                     message = dms[i]['message']
                     sender_id = dms[i]['sender_id']
                     screen_name = tw.get_user_screen_name(sender_id)
-                    if exists(filename_github):
-                        open(filename_github, 'a').write(
-                            f'''\n"""{unescape(message)}""" {screen_name} {sender_id}\n''')
-                    else:
-                        open(filename_github, 'w').write(
-                            "MESSAGE USERNAME SENDER_ID\n" +
-                            f'''\n"""{unescape(message)}""" {screen_name} {sender_id}\n''')
-                    print("Heroku Database saved")
+
+                    if constants.database == True:
+                        if exists(filename_github):
+                            open(filename_github, 'a').write(
+                                f'''\n"""{unescape(message)}""" {screen_name} {sender_id}\n''')
+                        else:
+                            open(filename_github, 'w').write(
+                                "MESSAGE USERNAME SENDER_ID\n" +
+                                f'''\n"""{unescape(message)}""" {screen_name} {sender_id}\n''')
+                        print("Heroku Database saved")
 
                     notif = f"Yeay, Menfess kamu telah terkirim! https://twitter.com/{me.screen_name}/status/"
-                    if constants.First_Keyword in message:
-                        # Keyword deleter
+                    
+                    if constants.First_Keyword.lower() in message.lower():
+                        # Keyword Deleter
                         message = message.split()
-                        message.remove(constants.First_Keyword)
+                        list_keyword = [constants.First_Keyword.lower(), constants.First_Keyword.upper(),
+                                        constants.First_Keyword.capitalize()]
+                        [message.remove(i) for i in list_keyword if i in message]
                         message = " ".join(message)
 
                         if dms[i]['media'] == None:
@@ -124,6 +128,7 @@ def start():
                                 sent = api.send_direct_message(
                                     recipient_id=sender_id, text="Maaf ada kesalahan pada sistem :(\ntolong screenshot & laporkan kepada admin").id
                             tw.delete_dm(sent)
+
                         else:
                             print("DM will be posted with media.")
                             if dms[i]['url'] == None:
@@ -144,67 +149,6 @@ def start():
                                 sent = api.send_direct_message(
                                     recipient_id=sender_id, text="Maaf ada kesalahan pada sistem :(\ntolong screenshot & laporkan kepada admin").id
                             tw.delete_dm(sent)
-
-                    # elif constants.Second_Keyword in message and "https://" not in message and "http://" not in message and "twitter.com" not in message and len(message) <= 500:
-                    #     message = unescape(message)
-                    #     message = message.replace(
-                    #         constants.Second_Keyword, "")
-                    #     if constants.Sub2_Keyword in message:
-                    #         message = message.replace(
-                    #             constants.Sub2_Keyword, "")
-                    #         media.download_image()
-                    #         media.process_image(message, screen_name)
-                    #         postid = tw.post_tweet_quote(screen_name)
-                    #         if postid != None:
-                    #             text = notif + str(postid)
-                    #             sent = api.send_direct_message(
-                    #                 recipient_id=sender_id, text=text).id
-                    #         else:
-                    #             sent = api.send_direct_message(
-                    #                 recipient_id=sender_id, text="Maaf ada kesalahan pada sistem :(\ntolong screenshot & laporkan kepada admin").id
-                    #         tw.delete_dm(sent)
-                    #     else:
-                    #         media.download_image()
-                    #         media.process_image(message, None)
-                    #         postid = tw.post_tweet_quote(name=None)
-                    #         if postid != None:
-                    #             text = notif + str(postid)
-                    #             sent = api.send_direct_message(
-                    #                 recipient_id=sender_id, text=text).id
-                    #         else:
-                    #             sent = api.send_direct_message(
-                    #                 recipient_id=sender_id, text="Maaf ada kesalahan pada sistem :(\ntolong screenshot & laporkan kepada admin").id
-                    #         tw.delete_dm(sent)
-
-                    # elif constants.Third_keyword in message:
-                    #     message = unescape(message)
-                    #     message = message.replace(constants.Third_keyword, "")
-                    #     if dms[i]['media'] is None:
-                    #         sent1 = tw.ASK(message, screen_name)
-                    #     elif dms[i]['type'] != 'photo':
-                    #         print("asking with video")
-                    #         message = message.split()
-                    #         message = " ".join(message[:-1])
-                    #         tw.download_media(dms[i]['media'], "video.mp4")
-                    #         media_id = tw.media_upload_chunk(
-                    #             "video.mp4", False)
-                    #         remove("video.mp4")
-                    #         sent1 = api.send_direct_message(sender_id, str(message + " @" + screen_name),
-                    #                                         None, 'media', media_id).id
-                    #     else:
-                    #         print("asking with photo")
-                    #         message = message.split()
-                    #         message = " ".join(message[:-1])
-                    #         tw.download_media(dms[i]['media'], "photo.jpg")
-                    #         media_id = api.media_upload("photo.jpg")
-                    #         remove("photo.jpg")
-                    #         sent1 = api.send_direct_message(sender_id, str(message + " @" + screen_name),
-                    #                                         None, 'media', media_id.media_id_string).id
-
-                    #     sent = api.send_direct_message(
-                    #         recipient_id=sender_id, text="Pesan kamu telah dikirimkan ke admin").id
-                    #     tw.delete_dm(sent1)
-                    #     tw.delete_dm(sent)
 
                     else:
                         sent = api.send_direct_message(
@@ -299,16 +243,19 @@ def database():
 
 
 if __name__ == "__main__":
-    datee = datetime.now(timezone.utc) + timedelta(hours=constants.Timezone)
-    global filename_github, repo
-    filename_github = "Database {}-{}-{}.txt".format(
-        datee.day, datee.month, datee.year)
-    repo = github.get_repo(constants.Github_repo)
+    if constants.database == True:
+        # True = on, False = off
+        datee = datetime.now(timezone.utc) + timedelta(hours=constants.Timezone)
+        global filename_github, repo
+        filename_github = "Database {}-{}-{}.txt".format(
+            datee.day, datee.month, datee.year)
+        repo = github.get_repo(constants.Github_repo)
 
-    constants.repo = repo
-    constants.filename_github = filename_github
+        constants.repo = repo
+        constants.filename_github = filename_github
 
-    Check_file_github(new=True)
+        Check_file_github(new=True)
+        Thread(target=database).start()
+
     Thread(target=start).start()
-    Thread(target=database).start()
 

@@ -127,3 +127,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+constants--.py
+follower_data.txt
+pyvenv.cfg
+bin/
