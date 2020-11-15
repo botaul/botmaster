@@ -28,6 +28,7 @@ If your followers didn't receive a message from the bot. Unfollow this bot for s
 - Sync simple database (text) on github repository (optional)
 - Set muted_words & update database from DM
 - Upload more than one media
+- Keywords and Muted words are not case-sensitive
 
 ## Requirements
 - Good at basic python programming
