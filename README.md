@@ -8,14 +8,14 @@ A Twitter bot that can read your DMs, then tweets like Twitter autobase. This pr
 - Admin can send menfess although admin doesn't follow the bot
 - Admin pass muted word filters
 - If your followers are **less than 5K**, follower filter may work properly. Uncomment line 117-130 on twitter.py (deactivated)
-- I have deleted non-essential features, see [first release](https://github.com/fakhrirofi/twitter_autobase/releases/tag/v1.0) if you want to use those features.
+- I have deleted non-essential features, see [first release](https://github.com/fakhrirofi/twitter_autobase/releases/tag/1.0.0) if you want to use those features.
 - If you use github repository to deploy to heroku, make sure to set the repository to private. Github automatically will delete your github token if your repository is public
 
 ### Auto Accept message 
 In the beginning, this bot will automatically fill all followers to follower_data. So it can't track new followers when the bot was just started. The algorithms of auto accept message is:
 1. Truncate (delete contents) follower_data.txt, fill all followers to follower_data.txt
 2. Follower not in follower_data.txt, send message to new follower
-3. Follower stop following, remove follower from follower_data.txt <br>
+3. Follower stop following, remove follower from follower_data.txt 
 If your followers didn't receive a message from the bot. Unfollow this bot for some minutes then follow it again.
 
 ## New Features & Fixed Bugs
@@ -77,21 +77,15 @@ Run app.py by using syntax: python3 app.py
 ## DMs examples (based on constants)
 You can tweet more than one media with media link on tweet. Open your twitter app then tap (hold) the tweet. media link will automatically copied. then send the link to this bot from DM.
 ### Quote-retweet
-`fess! your message https://twitter.com/username/41890813214140?=19` (by attaching tweet url)
+`fess! your message https://twitter.com/username/41890813214140?=19` (by attaching media, url, or not)
 ### Make a thread
 All menfess keywords are supported with 'making a Thread' when more than 280 characters are given. <br>
 `fess! Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.` (by attaching media, tweet url, url, or not)
 ### Normal tweet
 `fess! your message` (by attaching media, url, or not)
-### Make quote image (deactivated)
-Limited to 500 characters <br>
-`[quote] your quote` (media and url are not allowed) <br>
-`[quote] -s your quote` (media and url are not allowed)
-### Ask to admin (deactivated)
-`[ask] your message` (by attaching media, url, or not)
-### Set
-`set! add_muted word1 word2 word3 word-n` (media are not allowed) <br>
-`set! rm_muted word1 word2 word3 word-n` (media are not allowed) <br>
+### Admin command
+`set! add_muted word1 word2 word3 word-n` <br>
+`set! rm_muted word1 word2 word3 word-n` <br>
 `set! db_update` <br>
 `set! display_muted`
 
@@ -120,7 +114,7 @@ Then deploy github repository to Heroku, search it on Google. <br>
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. Please make sure to update tests as appropriate.
 
-## [MIT License](https://github.com/fakhrirofi/twitter_autobase/blob/master/LICENSE)
+## [License](https://github.com/fakhrirofi/twitter_autobase/blob/master/LICENSE)
 
 Copyright (c) 2020 Fakhri Catur Rofi
 
