@@ -8,7 +8,7 @@ A Twitter bot that can read your DMs, then tweets like Twitter autobase. This pr
 - Admin can send menfess although admin doesn't follow the bot
 - Admin pass muted word filters
 - If your followers are **less than 5K**, follower filter may work properly. Uncomment line 117-130 on twitter.py (deactivated)
-- I have deleted non-essential features, see [first release](https://github.com/fakhrirofi/twitter_autobase/releases/tag/1.0.0) if you want to use those features.
+- I have deleted non-essential features, see [older commit](https://github.com/fakhrirofi/twitter_autobase/tree/e63b33ebe62094f23c73e3ef2db455e5dfd62076) if you want to use those features.
 - If you use github repository to deploy to heroku, make sure to set the repository to private. Github automatically will delete your github token if your repository is public
 
 ### Auto Accept message 
