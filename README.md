@@ -10,6 +10,7 @@ A Twitter bot that can read your DMs, then tweets like Twitter autobase. This pr
 - If your followers are **less than 5K**, follower filter may work properly. Uncomment line 117-130 on twitter.py (deactivated)
 - I have deleted non-essential features, see [first release](https://github.com/fakhrirofi/twitter_autobase/releases/tag/v1.0) if you want to use those features.
 - If you use github repository to deploy to heroku, make sure to set the repository to private. Github automatically will delete your github token if your repository is public
+- Keywords are not case-sensitive
 
 ### Auto Accept message 
 In the beginning, this bot will automatically fill all followers to follower_data. So it can't track new followers when the bot was just started. The algorithms of auto accept message is:
@@ -91,7 +92,7 @@ Limited to 500 characters <br>
 ### Set
 `set! add_muted word1 word2 word3 word-n` (media are not allowed) <br>
 `set! rm_muted word1 word2 word3 word-n` (media are not allowed) <br>
-`set! db_update`
+`set! db_update` <br>
 `set! display_muted`
 
 
