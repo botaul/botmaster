@@ -31,6 +31,6 @@ temp.repo.update_file(contents.path, "updating Database", open(
 } # db_update is not available when Database set to False
 
 
-Admin_id = ""
+Admin_id = "***************"
 # Admin id is like sender id. To check it, send a menfess from your admin account
 Timezone = 7
