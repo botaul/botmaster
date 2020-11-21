@@ -7,21 +7,21 @@ A Twitter bot that can read your DMs, then tweets like Twitter autobase. This pr
 ## Notes
 - Admin can send menfess although admin doesn't follow the bot
 - Admin pass muted word filters
-- If your followers are **less than 5K**, follower filter may work properly. Uncomment line 117-130 on twitter.py (deactivated)
+- If your followers are **less than 5K**, follower filter may work properly. Uncomment line 128-141 on twitter.py (deactivated, optional)
 - I have deleted non-essential features, see [older commit](https://github.com/fakhrirofi/twitter_autobase/tree/e63b33ebe62094f23c73e3ef2db455e5dfd62076) if you want to use those features.
 - If you use github repository to deploy to heroku, make sure to set the repository to private. Github automatically will delete your github token if your repository is public
-- Keywords are not case-sensitive
+- Keywords are not case-sensitive (upper, lower, capitalize)
+- See changelogs on [releases's description](https://github.com/fakhrirofi/twitter_autobase/releases)
 
 ### Auto Accept message 
-In the beginning, this bot will automatically fill all followers to follower_data. So it can't track new followers when the bot was just started. The algorithms of auto accept message is:
-1. Truncate (delete contents) follower_data.txt, fill all followers to follower_data.txt
+In the beginning, this bot will automatically fill all followers to follower_data. So it can't track new followers when the bot was just started. If your followers didn't receive a message from the bot. Unfollow this bot for some minutes then follow it again. The algorithms of auto accept message is:
+1. Make follower_data.txt, fill (limited to 5000) followers to follower_data.txt
 2. Follower not in follower_data.txt, send message to new follower
-3. Follower stop following, remove follower from follower_data.txt 
-If your followers didn't receive a message from the bot. Unfollow this bot for some minutes then follow it again.
+
 
 ## New Features & Fixed Bugs
 - Added muted words
-- Only follower can sends menfess and message to admin (deactivated)
+- Only follower can sends menfess and message to admin (deactivated, optional)
 - Auto accepts message requests (for open DM) by interacting sending a DM to new follower
 - Notify sender when the menfess sent or not
 - Tweet GIF and video
@@ -29,7 +29,8 @@ If your followers didn't receive a message from the bot. Unfollow this bot for s
 - Sync simple database (text) on github repository (optional)
 - Set muted_words & update database from DM
 - Upload more than one media
-- Keywords and Muted words are not case-sensitive
+- Trigger words, Muted words, and Set word are not case-sensitive
+- Trigger words are list
 
 ## Requirements
 - Good at basic python programming
@@ -41,18 +42,18 @@ If your followers didn't receive a message from the bot. Unfollow this bot for s
 ## How to run this bot?
 - Install pip3, virtualenv, git, heroku
 - [Do Installation](https://github.com/fakhrirofi/twitter_autobase#installation-on-linux)
-- [Edit contents in constants.py](https://github.com/fakhrirofi/twitter_autobase#constants)
+- [Edit contents on administrator_data.py](https://github.com/fakhrirofi/twitter_autobase#administrator_data)
 - [Deploy to Heroku](https://github.com/fakhrirofi/twitter_autobase#deploy-to-heroku)
 
-## [Constants](https://github.com/fakhrirofi/twitter_autobase/blob/master/constants.py)
+## [administrator_data](https://github.com/fakhrirofi/twitter_autobase/blob/master/administrator_data.py)
 - Github_token; a token to access your github. Get it from [here](https://github.com/settings/tokens) and set allow for editing repository. (optional)
 - Github_repo; a repo that will be simple database. (optional)
-- First_keyword; keyword for video, photo, and GIF.
-- database; bool. True = on, False = off (optional)
-- Muted_words; when muted words in DMs. The DMs will be deleted.
-- Set_keyword; when Set keywords in DMs, it will edit Muted_words.
-- Dict_set_keyword; command that will be executed with exec.
-- Admin_id; used when DMs contains Third_keyword. You can find the admin id when your admin account send message (when bot active) to autobase account. The sender id is an Admin id.
+- Trigger_word; triggerword to post menfess.
+- Database; bool. True = on, False = off (optional)
+- Muted_words; when muted words in DMs. The Menfess will be ignored.
+- Set_word; when Set word in DMs, it will exec a command.
+- Dict_set; command that will be executed with exec.
+- Admin_id; used to filter message. You can find the admin id when your admin account send message (when bot active) to autobase account. The sender id is an Admin id.
 
 ## Installation on Linux
 Note: You can run this bot from Windows as well. Search it on Google. <br>
@@ -75,20 +76,22 @@ Run app.py by using syntax: python3 app.py
 
 
 
-## DMs examples (based on constants)
+## DMs examples (based on administrator_data)
 You can tweet more than one media with media link on tweet. Open your twitter app then tap (hold) the tweet. media link will automatically copied. then send the link to this bot from DM.
 ### Quote-retweet
 `fess! your message https://twitter.com/username/41890813214140?=19` (by attaching media, url, or not)
 ### Make a thread
-All menfess keywords are supported with 'making a Thread' when more than 280 characters are given. <br>
-`fess! Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.` (by attaching media, tweet url, url, or not)
+`fess! Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.` (by attaching media, url, or not)
 ### Normal tweet
 `fess! your message` (by attaching media, url, or not)
 ### Admin command
 `set! add_muted word1 word2 word3 word-n` <br>
 `set! rm_muted word1 word2 word3 word-n` <br>
 `set! db_update` <br>
-`set! display_muted`
+`set! display_muted` <br>
+For add_muted and rm_muted, you can add space into your words by giving "_". Example:
+`set! add_muted _word1_ word2_word3 word-n` <br>
+This command will append " word1 ", "word2 word3", and "word-n" to Muted words list.
 
 
 ## Deploy to Heroku
@@ -101,7 +104,7 @@ heroku git:remote -a ((your heroku app name))
 git push heroku master
 ```
 ### Push to Github (If you deploy to Heroku with Github repo) or Fork this repository
-- Use a private repo, because data in constants.py is important
+Use a private repo, because data in administrator_data.py is important
 ```bash
 git init
 git remote add origin ((your repo))
@@ -113,7 +116,7 @@ Then deploy github repository to Heroku, search it on Google. <br>
 
 
 ## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. Please make sure to update tests as appropriate.
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. Please make sure to update tests as appropriate. To make a pull request, see the GitHub documentation on [creating a pull request](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request).
 
 ## [License](https://github.com/fakhrirofi/twitter_autobase/blob/master/LICENSE)
 

@@ -1,28 +1,50 @@
+# The MIT License (MIT)
+# Copyright (c) 2016- @TwitterDev
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# Source: https://github.com/twitterdev/large-video-upload-python
+
+# Re-code by Fakhri Catur Rofi under MIT License
+#     Source: https://github.com/fakhrirofi/twitter_autobase
+
 from os.path import getsize
 from time import sleep
 import json
 from requests import get, post
 from requests_oauthlib import OAuth1
-import constants
+import administrator_data
 
 
 MEDIA_ENDPOINT_URL = 'https://upload.twitter.com/1.1/media/upload.json'
 POST_TWEET_URL = 'https://api.twitter.com/1.1/statuses/update.json'
 
 
-oauth = OAuth1(constants.CONSUMER_KEY,
-               client_secret=constants.CONSUMER_SECRET,
-               resource_owner_key=constants.ACCESS_KEY,
-               resource_owner_secret=constants.ACCESS_SECRET)
+oauth = OAuth1(administrator_data.CONSUMER_KEY,
+               client_secret=administrator_data.CONSUMER_SECRET,
+               resource_owner_key=administrator_data.ACCESS_KEY,
+               resource_owner_secret=administrator_data.ACCESS_SECRET)
 
 
 class MediaUpload:
 
-    def __init__(self, file_name, media_category=True):
+    def __init__(self, file_name, media_category='tweet'):
         '''
         Upload file to twitter
         :param file_name: -> str
-        :param media_category: True for tweet, False for DM
+        :param media_category: 'tweet' or 'dm'
         objects from this:
             - video_filename
             - total_bytes
@@ -52,7 +74,7 @@ class MediaUpload:
             self.media_category = data_media[self.media_type]
         else:
             raise Exception("sorry, the file format is not supported")
-        if media_category == False:
+        if media_category == 'dm':
             self.media_category = None
 
     def upload_init(self):
@@ -170,7 +192,7 @@ class MediaUpload:
 
             check_after_secs = self.processing_info['check_after_secs']
 
-            print('Checking after %s seconds' % str(check_after_secs))
+            # print('Checking after %s seconds' % str(check_after_secs))
             sleep(check_after_secs)
 
             print('STATUS')
