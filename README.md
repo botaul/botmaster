@@ -59,6 +59,7 @@ In the beginning, this bot will automatically fill all followers to follower_dat
 Note: You can run this bot from Windows as well. Search it on Google. <br>
 Open your Linux terminal on the specified folder <br>
 ```bash
+# Clone this repository or download released version on https://github.com/fakhrirofi/twitter_autobase/releases
 git clone https://github.com/fakhrirofi/twitter_autobase.git
 virtualenv twitter_autobase
 cd twitter_autobase
