@@ -5,15 +5,8 @@
 #     Source: https://github.com/fakhrirofi/twitter_autobase
 
 import administrator_data
-import temp
 from twitter import Twitter
 from time import sleep
-from threading import Thread
-from datetime import datetime, timezone, timedelta
-from os.path import exists
-from os import remove
-from html import unescape
-from random import randrange
 
 
 def Start():
@@ -21,57 +14,72 @@ def Start():
     dms = list()
     tw = Twitter()
     api = tw.api
-    temp.api = api
     me = api.me()
     tw.bot_id = me.id
-    open('follower_data.txt', 'w').write("")
-    first = 1
-    # sent = api.send_direct_message(recipient_id=administrator_data.Admin_id, text="Twitter autobase is starting...!").id
-    # tw.delete_dm(sent)
+    first = 1 # indicator for accept message
+    first1 = 1 # indicator for followed
+    # sent = tw.send_dm(recipient_id=administrator_data.Admin_id, text="Twitter autobase is starting...!")
 
     while True:
-        print("Updating followers...")
-        # Auto accept message requests
-        # Comment these if you want close your DM
-        follower = api.followers_ids(user_id=me.id)
-        if len(follower) != 0:
+        # AUTO ACCEPT MESSAGE REQUESTS
+        if administrator_data.Accept_message is True:
+            print("Accepting message requests...")
             try:
-                if first == 1:
-                    first = 0
-                    data = [str(i) for i in follower]
-                    data = " ".join(data)
-                    open("follower_data.txt", "w").write(data)
+                follower = api.followers_ids(user_id=me.id)
+                if len(follower) != 0:
+                    if first == 1:
+                        first = 0
+                        tw.follower = follower.copy()
 
-                data = open('follower_data.txt').read()
-
-                for i in follower:
-                    if str(i) not in data:
-                        data += " " + str(i)
-                        notif = "YEAY! Sekarang kamu bisa mengirim menfess, jangan lupa baca peraturan base yaa!"
-                        # I don't know, sometimes error happen here, so, I update tw.follower after this loop
-                        sent = api.send_direct_message(recipient_id=i, text=notif).id
-                        tw.delete_dm(sent)
-                        
-                tw.follower = follower
-                open('follower_data.txt', 'w').write(data)
-                del data
-                
+                    for i in follower:
+                        if i not in tw.follower:
+                            notif = administrator_data.Notify_acceptMessage
+                            # I don't know, sometimes error happen here, so, I update tw.follower after send_dm
+                            tw.send_dm(recipient_id=i, text=notif)
+                            tw.follower.insert(0, i)
+                            if len(tw.follower) > 5000: tw.follower.pop()
+                    
             except Exception as ex:
-                print("error when send DM to follower, error when get follower from API")
+                print(ex)
                 pass
 
-        else:
-            print("error when get follower from API")
+        # GETTING LIST OF FOLLOWED
+        if administrator_data.Only_followed is True:
+            try:
+                if first1 == 1:
+                    first1 = 0
+                    followed = tw.get_all_followed(me.id, first_delay=False)
+                    tw.followed = followed.copy()
+                else:
+                    print("Updating friends ids...")
+                    followed = api.friends_ids(user_id=me.id)
+                
+                for i in followed:
+                    if i not in tw.followed:
+                        notif = administrator_data.Notify_followed
+                        tw.send_dm(recipient_id=i, text=notif)
+                        tw.followed.append(i)
+
+            except Exception as ex:
+                print(ex)
+                pass
+
 
         if len(dms) != 0:
+
+            if administrator_data.Notify_queue is True:
+                # Notify the menfess queue to sender
+                tw.notify_queue(dms)
+
             for i in range(len(dms)):
                 try:
                     message = dms[i]['message']
                     sender_id = dms[i]['sender_id']
                     media_url = dms[i]['media_url']
-                    attachment_urls = dms[i]['attachment_urls']
+                    attachment_urls = dms[i]['attachment_urls']['tweet']
+                    list_attchmentUrlsMedia = dms[i]['attachment_urls']['media']
 
-                    if administrator_data.Database == True:
+                    if administrator_data.Database is True:
                         screen_name = tw.get_user_screen_name(sender_id)
                         if exists(filename_github):
                             open(filename_github, 'a').write(
@@ -82,40 +90,63 @@ def Start():
                                 f'''\n"""{unescape(message)}""" {screen_name} {sender_id}\n''')
                         print("Heroku Database saved")
 
-                    notif = f"Yeay, Menfess kamu telah terkirim! https://twitter.com/{me.screen_name}/status/"
+                    # Message that will be sent when menfess is posted
+                    notif = administrator_data.Notify_sentMessage.format(me.screen_name)
                     
                     if any(j.lower() in message.lower() for j in administrator_data.Trigger_word):
                         # Keyword Deleter
-                        message = message.split()
-                        list_keyword = [j.lower() for j in administrator_data.Trigger_word] + \
-                                       [j.upper() for j in administrator_data.Trigger_word] + \
-                                       [j.capitalize() for j in administrator_data.Trigger_word]
+                        if administrator_data.Keyword_deleter is True:
+                            message = message.split()
+                            list_keyword = [j.lower() for j in administrator_data.Trigger_word] + \
+                                        [j.upper() for j in administrator_data.Trigger_word] + \
+                                        [j.capitalize() for j in administrator_data.Trigger_word]
 
-                        [message.remove(j) for j in list_keyword if j in message]
-                        message = " ".join(message)
+                            [message.remove(j) for j in list_keyword if j in message]
+                            message = " ".join(message)
 
-                        # post tweet
+                        # POST TWEET
                         if attachment_urls != (None, None):
                             message = message.split()
                             message.remove(attachment_urls[0])
                             message = " ".join(message)
                         
-                        print("DM will be posted")
-                        postid = tw.post_tweet(message, media_url=media_url, attachment_url=attachment_urls[1])
-
-                        # notify sender
-                        if postid != None:
-                            text = notif + str(postid)
-                        else:
-                            text = "Maaf ada kesalahan pada sistem :(\ntolong screenshot & laporkan kepada admin"
+                        # Private_mediaTweet
+                        media_idsAndTypes = list() # e.g [(media_id, media_type), (media_id, media_type), ]
+                        # Pay attention to append and extend!
+                        if administrator_data.Private_mediaTweet is True:
+                            for media_tweet_url in list_attchmentUrlsMedia:
+                                list_mediaIdsAndTypes = tw.upload_media_tweet(media_tweet_url[1])
+                                if len(list_mediaIdsAndTypes) != 0:
+                                    media_idsAndTypes.extend(list_mediaIdsAndTypes)
+                                    message = message.split()
+                                    message.remove(media_tweet_url[0])
+                                    message = " ".join(message)
                         
-                        sent = api.send_direct_message(recipient_id=sender_id, text=text).id
-                        tw.delete_dm(sent)
+                        # Menfess contains sensitive contents
+                        possibly_sensitive = False
+                        if administrator_data.Sensitive_word.lower() in message.lower():
+                            possibly_sensitive = True
+
+                        print("Posting menfess...")
+                        postid = tw.post_tweet(message, media_url=media_url, attachment_url=attachment_urls[1],
+                                        media_idsAndTypes=media_idsAndTypes, possibly_sensitive=possibly_sensitive)
+
+                        # notify sender (menfess sent or not)
+                        if administrator_data.Notify_sent is True:
+                            if postid != None:
+                                text = notif + str(postid)
+                            else:
+                                text = administrator_data.Notify_sentFail1
+                            
+                            tw.send_dm(recipient_id=sender_id, text=text)
+                            
+                        elif postid == None:
+                            text = administrator_data.Notify_sentFail1
+                            tw.send_dm(recipient_id=sender_id, text=text)
 
                     else:
-                        sent = api.send_direct_message(
-                            sender_id, "ketentuan keyword menfess kamu tidak sesuai!").id
-                        tw.delete_dm(sent)
+                        # Notify sender (fail)
+                        tw.send_dm(sender_id, administrator_data.Notify_sentFail2)
 
                 except Exception as ex:
                     print(ex)
@@ -125,16 +156,17 @@ def Start():
             dms = list()
 
         else:
-            print("Direct message is empty...")
             dms = tw.read_dm()
             if len(dms) == 0:
-                sleep(25+randrange(0, 5))
+                print("Direct message is empty, sleeping 30s...")
+                sleep(30)
 
 
 def Check_file_github(new=True):
     '''
     True when bot was just started, download & save file from github
-    False when bot is running. if file exists, doesn't save the file from github
+    False when bot is running. If file exists, doesn't save the file from github.
+    New parameter used if you update database not every midnight on Database method
     '''
     print("checking github file...")
     try:
@@ -142,11 +174,13 @@ def Check_file_github(new=True):
             timedelta(hours=administrator_data.Timezone)
         globals()['filename_github'] = "Database {}-{}-{}.txt".format(
             datee.day, datee.month, datee.year)
-        temp.filename_github = filename_github
+        tmp.filename_github = filename_github
         contents = repo.get_contents("")
 
         if any(filename_github == content.name for content in contents):
-            print(f"filename_github detected, set: {str(new)}")
+            # If filename exists in github. But, when midnight,
+            # filename automatically changed.
+            print(f"filename_github detected, new: {str(new)}")
             if new == False:
                 return
             for content in contents:
@@ -157,9 +191,9 @@ def Check_file_github(new=True):
                     break
         else:
             print("filename_github not detected")
-            repo.create_file(filename_github, "first commit",
-                             "MESSAGE USERNAME SENDER_ID")
             contents = "MESSAGE USERNAME SENDER_ID\n"
+            repo.create_file(filename_github, "first commit",
+                             contents)
 
         if exists(filename_github) == False:
             open(filename_github, 'w').write(contents)
@@ -182,7 +216,7 @@ def Check_file_github(new=True):
 def Database():
     while True:
         try:
-            # update every midnight, u can update directly from DM with 'db_update'
+            # update every midnight, you can update directly from DM with 'db_update'
             # check on administrator_data.py
             datee = datetime.now(timezone.utc) + timedelta(hours=administrator_data.Timezone)
             if filename_github != f"Database {datee.day}-{datee.month}-{datee.year}.txt":
@@ -205,9 +239,16 @@ def Database():
 
 
 if __name__ == "__main__":
-    if administrator_data.Database == True:
+    if administrator_data.Database is True:
         # True = on, False = off
+        from threading import Thread
+        from datetime import datetime, timezone, timedelta
+        from os.path import exists
+        from os import remove
+        from html import unescape
         from github import Github
+        import tmp
+
         github = Github(administrator_data.Github_token)
 
         datee = datetime.now(timezone.utc) + timedelta(hours=administrator_data.Timezone)
@@ -216,8 +257,8 @@ if __name__ == "__main__":
             datee.day, datee.month, datee.year)
         repo = github.get_repo(administrator_data.Github_repo)
 
-        temp.repo = repo
-        temp.filename_github = filename_github
+        tmp.repo = repo
+        tmp.filename_github = filename_github
 
         Check_file_github(new=True)
         Thread(target=Database).start()

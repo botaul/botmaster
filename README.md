@@ -1,36 +1,34 @@
 # twitter_autobase
-A Twitter bot that can read your DMs, then tweets like Twitter autobase. This project is a re-code of [autodm_base](https://github.com/ydhnwb/autodm_base) by [Prieyudha Akadita S.](https://github.com/ydhnwb) with many improvements and fixed bugs. I know this bot is not perfect yet, so, issues and pull requests are welcome.
+A Twitter bot that can read your DMs, then tweets like Twitter autobase. This project is a re-code of [autodm_base](https://github.com/ydhnwb/autodm_base) by [Prieyudha Akadita S.](https://github.com/ydhnwb) with many improvements and fixed bugs. This project is under MIT License.
 
 - **Read [Twitter rules](https://help.twitter.com/en/rules-and-policies/twitter-search-policies)** <br>
 - **USING THIS BOT FOR 'ADULT' BASE IS STRICTLY PROHIBITED** <br>
 
-## Notes
-- Admin can send menfess although admin doesn't follow the bot
-- Admin pass muted word filters
-- If your followers are **less than 5K**, follower filter may work properly. Uncomment line 128-141 on twitter.py (deactivated, optional)
-- I have deleted non-essential features, see [older commit](https://github.com/fakhrirofi/twitter_autobase/tree/e63b33ebe62094f23c73e3ef2db455e5dfd62076) if you want to use those features.
-- If you use github repository to deploy to heroku, make sure to set the repository to private. Github automatically will delete your github token if your repository is public
-- Keywords are not case-sensitive (upper, lower, capitalize)
-- See changelogs on [releases's description](https://github.com/fakhrirofi/twitter_autobase/releases)
 
-### Auto Accept message 
-In the beginning, this bot will automatically fill all followers to follower_data. So it can't track new followers when the bot was just started. If your followers didn't receive a message from the bot. Unfollow this bot for some minutes then follow it again. The algorithms of auto accept message is:
-1. Make follower_data.txt, fill (limited to 5000) followers to follower_data.txt
-2. Follower not in follower_data.txt, send message to new follower
+## Table of Contents
+- [New Features](#new-features)
+- [Requirements](#requirements)
+- [How to run this bot?](#how-to-run-this-bot)
+- [DMs examples (based on administrator_data)](#dms-examples-based-on-administrator_data)
+- [Notes](#notes)
+- [Contributing](#contributing)
+- [License](#mit-license)
 
 
-## New Features & Fixed Bugs
-- Added muted words
-- Only follower can sends menfess and message to admin (deactivated, optional)
-- Auto accepts message requests (for open DM) by interacting sending a DM to new follower
+## New Features
+- Added blacklist words
+- Only followed by account that can send menfess
+- Auto accepts message requests
 - Notify sender when the menfess sent or not
 - Tweet GIF and video
 - Post a Thread when characters > 280
-- Sync simple database (text) on github repository (optional)
-- Set muted_words & update database from DM
-- Upload more than one media
-- Trigger words, Muted words, and Set word are not case-sensitive
+- Sync simple database (text) on github repository
+- Setting account from DM
+- Upload more than 4 media
+- Trigger words are not case-sensitive
 - Trigger words are list
+- etc.
+
 
 ## Requirements
 - Good at basic python programming
@@ -39,23 +37,15 @@ In the beginning, this bot will automatically fill all followers to follower_dat
 - Github Account
 - Heroku Account
 
+
 ## How to run this bot?
 - Install pip3, virtualenv, git, heroku
-- [Do Installation](https://github.com/fakhrirofi/twitter_autobase#installation-on-linux)
-- [Edit contents on administrator_data.py](https://github.com/fakhrirofi/twitter_autobase#administrator_data)
-- [Deploy to Heroku](https://github.com/fakhrirofi/twitter_autobase#deploy-to-heroku)
+- [Do Installation](#installation)
+- Edit contents on administrator_data.py
+- [Deploy to Heroku](#deploy-to-heroku)
 
-## [administrator_data](https://github.com/fakhrirofi/twitter_autobase/blob/master/administrator_data.py)
-- Github_token; a token to access your github. Get it from [here](https://github.com/settings/tokens) and set allow for editing repository. (optional)
-- Github_repo; a repo that will be simple database. (optional)
-- Trigger_word; triggerword to post menfess.
-- Database; bool. True = on, False = off (optional)
-- Muted_words; when muted words in DMs. The Menfess will be ignored.
-- Set_word; when Set word in DMs, it will exec a command.
-- Dict_set; command that will be executed with exec.
-- Admin_id; used to filter message. You can find the admin id when your admin account send message (when bot active) to autobase account. The sender id is an Admin id.
 
-## Installation on Linux
+## Installation
 Note: You can run this bot from Windows as well. Search it on Google. <br>
 Open your Linux terminal on the specified folder <br>
 ```bash
@@ -72,13 +62,34 @@ lib/
 bin/
 __pycache__/
 pyvenv.cfg
+# add another, up to you
 ```
 Run app.py by using syntax: python3 app.py
 
 
+## Deploy to Heroku
+### Deploy with Heroku CLI
+Make sure you have deleted the local Database if you previously ran the bot on local.
+```bash
+git add .
+git commit -m "first commit"
+heroku git:remote -a your_heroku_app_name
+git push heroku master
+```
+### Push to Github (If you deploy to Heroku with Github repo) or Fork this repository
+Use a private repo, because data in administrator_data.py is important
+```bash
+git init
+git remote add origin your_repo
+git add .
+git commit -m "first commit"
+git push origin master
+```
+Then deploy github repository to Heroku, search it on Google. <br>
+
 
 ## DMs examples (based on administrator_data)
-You can tweet more than one media with media link on tweet. Open your twitter app then tap (hold) the tweet. media link will automatically copied. then send the link to this bot from DM.
+You can tweet more than one media with media link on tweet. Open your twitter app then tap (hold) the tweet. Media link automatically will be copied, then send the link to this bot from DM.
 ### Quote-retweet
 `fess! your message https://twitter.com/username/41890813214140?=19` (by attaching media, url, or not)
 ### Make a thread
@@ -92,36 +103,28 @@ You can tweet more than one media with media link on tweet. Open your twitter ap
 `set! display_muted` <br>
 For add_muted and rm_muted, you can add space into your words by giving "_". Example:
 `set! add_muted _word1_ word2_word3 word-n` <br>
-This command will append " word1 ", "word2 word3", and "word-n" to Muted words list.
+This command will append " word1 ", "word2 word3", and "word-n" to Muted words list. <br>
+`set! rm_followed username1 username2 username-n`
 
 
-## Deploy to Heroku
-### Deploy with Heroku CLI
-Make sure you have deleted the local Database if you previously ran the bot on local.
-```bash
-git add .
-git commit -m "first commit"
-heroku git:remote -a ((your heroku app name))
-git push heroku master
-```
-### Push to Github (If you deploy to Heroku with Github repo) or Fork this repository
-Use a private repo, because data in administrator_data.py is important
-```bash
-git init
-git remote add origin ((your repo))
-git add .
-git commit -m "first commit"
-git push origin master
-```
-Then deploy github repository to Heroku, search it on Google. <br>
+## Notes
+- Admin pass all filters
+- Only admin can setting account with 'set!' command
+- I have deleted non-essential features, see [older commit](https://github.com/fakhrirofi/twitter_autobase/tree/e63b33ebe62094f23c73e3ef2db455e5dfd62076) if you want to use those features.
+- If you use github repository to deploy to heroku, make sure to set the repository to private. Github automatically will delete your github token if your repository is public
+- Keywords are not case-sensitive (upper, lower, capitalize)
+- See changelogs on [releases's notes](https://github.com/fakhrirofi/twitter_autobase/releases)
+### Auto accept message requests
+In the beginning, this bot will automatically fill all followers to tw.follower . So it can't track new followers when the bot was just started. If your followers didn't receive a message from the bot. Unfollow this bot for some minutes then follow it again.
 
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. Please make sure to update tests as appropriate. To make a pull request, see the GitHub documentation on [creating a pull request](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request).
 
-## [License](https://github.com/fakhrirofi/twitter_autobase/blob/master/LICENSE)
 
-Copyright (c) 2020 Fakhri Catur Rofi
+## [MIT License](https://github.com/fakhrirofi/twitter_autobase/blob/master/LICENSE)
+
+Copyright (c) 2020- Fakhri Catur Rofi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

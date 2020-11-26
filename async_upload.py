@@ -45,11 +45,12 @@ class MediaUpload:
         Upload file to twitter
         :param file_name: -> str
         :param media_category: 'tweet' or 'dm'
-        objects from this:
+        Attributes:
             - video_filename
             - total_bytes
             - media_id
             - processing_info
+            - file_format
             - media_type
             - media_category
         '''
@@ -69,20 +70,21 @@ class MediaUpload:
             'image/webp': 'tweet_image',
             'image/png'	: 'tweet_image'
         }
-        if file_name.split('.')[-1] in data_media.keys():
+        self.file_format = file_name.split('.')[-1]
+        if self.file_format in data_media.keys():
             self.media_type = data_media[file_name.split('.')[-1]]
             self.media_category = data_media[self.media_type]
         else:
-            raise Exception("sorry, the file format is not supported")
+            raise Exception(f"sorry, the .{self.file_format} format is not supported")
         if media_category == 'dm':
             self.media_category = None
 
     def upload_init(self):
         '''
         init section
-        :returns: media id -> int
+        :returns: media id, media_type -> tuple
         '''
-        print('INIT')
+        # print('INIT')
         request_data = {
             'command': 'INIT',
             'media_type': self.media_type,
@@ -97,10 +99,17 @@ class MediaUpload:
         media_id = req.json()['media_id']
 
         self.media_id = media_id
-
         print('Media ID: %s' % str(media_id))
 
-        return media_id
+        dict_format = {
+                'gif':'animated_gif',
+                'mp4':'video',
+                'png':'photo',
+                'jpg':'photo',
+                'webp':'photo'
+            }
+        media_type = dict_format[self.file_format]
+        return str(media_id), media_type
 
     def upload_append(self):
         '''
@@ -112,9 +121,7 @@ class MediaUpload:
 
         while bytes_sent < self.total_bytes:
             chunk = file.read(1024*1024)
-
-            print('APPEND')
-
+            # print('APPEND')
             request_data = {
                 'command': 'APPEND',
                 'media_id': self.media_id,
@@ -138,14 +145,13 @@ class MediaUpload:
                 bytes_sent = file.tell()
                 print('%s of %s bytes uploaded' %
                       (str(bytes_sent), str(self.total_bytes)))
-                print('Upload chunks complete.')
+        # print('Upload chunks complete.')
 
     def upload_finalize(self):
         '''
         Finalizes uploads and starts video processing
         '''
-        print('FINALIZE')
-
+        # print('FINALIZE')
         request_data = {
             'command': 'FINALIZE',
             'media_id': self.media_id
@@ -194,9 +200,7 @@ class MediaUpload:
 
             # print('Checking after %s seconds' % str(check_after_secs))
             sleep(check_after_secs)
-
-            print('STATUS')
-
+            # print('STATUS')
             request_params = {
                 'command': 'STATUS',
                 'media_id': self.media_id
