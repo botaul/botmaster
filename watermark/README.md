@@ -1,12 +1,12 @@
 ## Run on main (top-level code execute)
 `python3 app.py text position watermark_image ratio text_color text_stroke_color output` <br>
 text: str <br>
-position: x,y -> tuple, x:'left', 'center', 'right' y: 'top', 'center', 'bottom' <br>
+position: x,y -> tuple, x:left, center, right. y:top, center, bottom <br>
 watermark_image: filename(str) or False <br>
 ratio: float number under 1 <br>
 text_color: r,g,b,a -> tuple of RGBA color <br>
 text_stroke_color: r,g,b,a -> tuple of RGBA color <br>
-output: output filename -> str
+output: output filename -> str <br>
 example: `python3 app.py 'autobase_reborn' right,bottom photo.png 0.103 100,0,0,1 0,225,225,1 watermarked.jpg`
 
 ## Change watermark photo or font:
