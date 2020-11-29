@@ -1,10 +1,10 @@
-CONSUMER_KEY = "0uUBrW6eS70TCG6ARbc5CGTAm"
-CONSUMER_SECRET = "x1Rj5WEyNIjFMUiV4pEC97B1LuLslb9WLFT3EcYIBOTxGJ27VX"
-ACCESS_KEY = "1251147003897118721-ODhZ1ooTAZQNcAiYZ5cNX2W8tljmDe"
-ACCESS_SECRET = "TiIi94r044O189z6Ct94MkCJlwDAQOkYE8AxMRUOnV42m"
+CONSUMER_KEY = "****"
+CONSUMER_SECRET = "****"
+ACCESS_KEY = "****"
+ACCESS_SECRET = "****"
 
 
-Admin_id = ["1607653778"] # list of str 
+Admin_id = ["*****"] # list of str 
 # Admin id is like sender id. To check it, send a menfess from your admin account.
 # or you can use api.get_user(screen_name="usernameoftheaccount")
 # This is used to giving access to pass some message filters
