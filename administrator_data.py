@@ -4,7 +4,7 @@ ACCESS_KEY = "****"
 ACCESS_SECRET = "****"
 
 
-Admin_id = ["*****"] # list of str 
+Admin_id = ["****"] # list of str
 # Admin id is like sender id. To check it, send a menfess from your admin account.
 # or you can use api.get_user(screen_name="usernameoftheaccount")
 # This is used to giving access to pass some message filters
@@ -133,11 +133,20 @@ for i in urls:
     for req_senderId in self.db_sent.keys():
         if found == 1:
             break
+        if req_senderId == 'deleted':
+            # 'deleted': (postid, message, req_senderId)
+            if self.db_sent['deleted'][0] == postid:
+                found, req_senderId = 1, self.db_sent['deleted'][2]
+                username = self.get_user_screen_name(req_senderId)
+                text = "username: @" + username + "\\nid: " + req_senderId + "\\nstatus: deleted\\nurl: " + url
+                self.send_dm(sender_id, text)
+                break
+            continue
         for j in self.db_sent[req_senderId]:
             if j == postid:
                 found = 1
                 username = self.get_user_screen_name(req_senderId)
-                text = "username: @" + username + "\\nid: " + req_senderId + " " + url
+                text = "username: @" + username + "\\nid: " + req_senderId + "\\nstatus: exists\\nurl:" + url
                 self.send_dm(sender_id, text)
                 break
     if found == 0:
@@ -164,15 +173,31 @@ urls = message_data["entities"]["urls"]
 if len(urls) == 0:
     raise Exception("Tweet link is not mentioned")
 for i in urls:
-    url = i["expanded_url"]
-    postid = sub("[/.=?]", " ", url).split()[-3]
-    if postid not in self.db_sent[sender_id] and sender_id not in administrator_data.Admin_id:
+    postid = sub("[/.=?]", " ", i["expanded_url"]).split()[-3]
+    found = 0
+    if sender_id in self.db_sent: # user has sent menfess
+        if postid in self.db_sent[sender_id]: # normal succes
+            self.db_sent_updater('add', 'deleted', (postid, message, sender_id))
+            found = 1
+        elif sender_id not in administrator_data.Admin_id: # normal trying other menfess
+            raise Exception("sender doesn't have access to delete postid")
+    elif sender_id not in administrator_data.Admin_id: # user hasn't sent menfess
         raise Exception("sender doesn't have access to delete postid")
-    elif postid in self.db_sent[sender_id]:
-        self.db_sent_updater('delete', sender_id, postid)
-    api.destroy_status(postid)
-    '''
+    if found == 0: # administrator mode
+        for req_senderId in self.db_sent.keys():
+            if found != 0:
+                break
+            for j in self.db_sent[req_senderId]:
+                if j == postid:
+                    found = req_senderId
+                    break
+        if found != 0:
+            self.db_sent_updater('add', 'deleted', (postid, message, found))
+        else:
+            print("admin mode: directly destroy_status")
+    api.destroy_status(postid) # It doesn't matter when error happen here'''
 }
 # delete is not available for user when bot was just started and user id not in db_sent
 Notify_userCmdDelete = "Yeay! Menfess kamu sudah berhasil dihapus"
 Notify_userCmdDeleteFail = "Duh! Menfess ini ngga bisa kamu hapus :("
+# Notify above are only for user

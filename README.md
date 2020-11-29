@@ -97,10 +97,10 @@ You can tweet more than one media with media link on tweet. Open your twitter ap
 ### Normal tweet
 `fess! your message` (by attaching media, url, or not)
 ### Admin command
-Only admin can access these commands. If user try to access this commands, the user will be notified that the keyword is wrong.
+Only admin can access these commands. If user try to access this commands, the user will be notified that the keyword is wrong. <br>
 `set! add_blacklist word1 word2 word-n` <br>
 `set! rm_blacklist word1 word2 word-n` <br>
-`set! db_update` not available when Github_database = False <br>
+`set! db_update` not available when Database = False <br>
 `set! display_blacklist` <br>
 `set! rm_followed username1 username2 username-n` <br>
 `set! add_admin username1 username2 username-n` <br>

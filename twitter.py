@@ -96,28 +96,33 @@ class Twitter:
             return list()
     
 
-    def db_sent_updater(self, action, sender_id=str(), postid=str()):
+    def db_sent_updater(self, action, sender_id=None, postid=None):
         '''Update self.db_sent
         :param action: 'update','add',or 'delete' -> str
         :param sender_id: sender id who has sent the menfess -> str
-        :param postid: tweet id -> str
+        :param postid: tweet id or (sender_id, tweet id) -> str or tuple
         '''
         # db_sent e.g {str():[str(),str(),str()],}
-        if action == 'update':
-            day = (datetime.now(timezone.utc) + timedelta(hours=administrator_data.Timezone)).day
-            if day != self.day:
-                self.day = day
-                self.db_sent.clear()
-        
-        elif action == 'add':
-            if sender_id not in self.db_sent:
-                self.db_sent[sender_id] = [postid]
-            else: self.db_sent[sender_id] += [postid]
-        
-        elif action == 'delete':
-            self.db_sent[sender_id].remove(postid)
-            if len(self.db_sent[sender_id]) == 0:
-                del self.db_sent[sender_id]
+        try:
+            if action == 'update':
+                day = (datetime.now(timezone.utc) + timedelta(hours=administrator_data.Timezone)).day
+                if day != self.day:
+                    self.day = day
+                    self.db_sent.clear()
+            
+            elif action == 'add':
+                if sender_id not in self.db_sent:
+                    self.db_sent[sender_id] = [postid]
+                else: self.db_sent[sender_id] += [postid]
+            
+            elif action == 'delete':
+                self.db_sent[sender_id].remove(postid)
+                if len(self.db_sent[sender_id]) == 0:
+                    del self.db_sent[sender_id]
+
+        except Exception as ex:
+            pass
+            print(ex)
 
 
     def read_dm(self):
@@ -147,8 +152,8 @@ class Twitter:
             dm = list(reversed(api.list_direct_messages()))
             for x in range(len(dm)):
                 sender_id = dm[x].message_create['sender_id'] # str
-                message = dm[x].message_create['message_data']['text']
                 message_data = dm[x].message_create['message_data']
+                message = message_data['text']
                 id = dm[x].id
 
                 self.delete_dm(id)
@@ -164,7 +169,8 @@ class Twitter:
                         trigger, command, *content = message
                         notif = str()
 
-                        def COMMAND(dict_command, notif=notif, message_data=message_data, api=api, self=self, sender_id=sender_id):
+                        def COMMAND(dict_command, notif=notif, message_data=message_data, api=api,
+                                self=self, sender_id=sender_id, message=unescape(message)):
                             if command.lower() in dict_command.keys():
                                 command1 = dict_command[command.lower()]
                                 if len(content) != 0:
@@ -197,10 +203,11 @@ class Twitter:
                             notif = COMMAND(administrator_data.Dict_adminCmd)
                         elif trigger.lower() == administrator_data.User_cmd.lower():
                             notif = COMMAND(administrator_data.Dict_userCmd)
-                            if "except" not in notif:
-                                notif = administrator_data.Notify_userCmdDelete
-                            else:
-                                notif = administrator_data.Notify_userCmdDeleteFail
+                            if sender_id not in administrator_data.Admin_id:
+                                if "Exception" not in notif:
+                                    notif = administrator_data.Notify_userCmdDelete
+                                else:
+                                    notif = administrator_data.Notify_userCmdDeleteFail
                         else:
                             notif = administrator_data.Notify_wrongTrigger
 
