@@ -1,6 +1,6 @@
 from PIL import Image, ImageFont, ImageDraw
 
-def watermark_text_image(filename, watermark='watermark/photo.png', font='watermark/font/ethnocentric rg.ttf',
+def watermark_text_image(filename, watermark='watermark/photo.png', font='Pillow/Tests/fonts/FreeMono.ttf',
         text=str(), ratio=0.1, pos=('right', 'bottom'), output='watermarked.jpg', color=(0,0,0,0),
         stroke_color=(225,225,225,1)):
         
@@ -89,5 +89,5 @@ if __name__ == "__main__":
 
     color = tuple([int(i) for i in [float(i) for i in color.split(",")]])
     stroke_color = tuple(int(i) for i in [float(i) for i in stroke_color.split(",")])
-    watermark_text_image("filename.jpg", watermark, 'font/ethnocentric rg.ttf', text=text,
+    watermark_text_image("filename.jpg", watermark, text=text,
             color=color, stroke_color=stroke_color, ratio=ratio, pos=pos, output=output)

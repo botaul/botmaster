@@ -16,5 +16,6 @@ example: `python3 app.py 'autobase_reborn' right,bottom photo.png 0.103 100,0,0,
 3. or edit `watermark_image` function's parameter on app.py, filename="watermark/yourphoto.png"
 
 ### Font
-1. put in the font folder
-2. edit `watermark_image` function's parameter on app.py, font="watermark/font/yourfont.ttf"
+1. put in the this folder
+2. edit `watermark_image` function's parameter on app.py, font="watermark/yourfont.ttf"
+3. you can setting the size & color of the font on `font` object, `draw.textsize` and `draw.text` function
