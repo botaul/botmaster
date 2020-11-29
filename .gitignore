@@ -129,6 +129,7 @@ dmypy.json
 .pyre/
 
 administrator_data--.py
-*.txt
 pyvenv.cfg
 bin/
+*/__pycache__
+watermark/filename.jpg

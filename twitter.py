@@ -14,6 +14,7 @@ from async_upload import MediaUpload
 from html import unescape
 from datetime import datetime, timezone, timedelta
 from re import sub, search
+from watermark import app as wm
 
 
 class Twitter:
@@ -24,8 +25,11 @@ class Twitter:
         Attributes:
             - api
             - follower
+            - followed
             - bot_id
             - random_time
+            - db_sent
+            - day
         '''
         print("Initializing twitter...")
         self.auth = OAuthHandler(
@@ -38,13 +42,15 @@ class Twitter:
         self.followed = list() # list of integer
         self.bot_id = int() 
         self.random_time = administrator_data.Delay_time
+        self.db_sent = dict() # dict of sender and his postid, update every midnight with self.day
+        self.day = (datetime.now(timezone.utc) + timedelta(hours=administrator_data.Timezone)).day
     
 
     def get_all_followers(self, user_id, first_delay=True):
         '''Return all followers ids
         Twitter API limiting to get 5000 followers/minute
-        :param screen_name: User id -> int or str
-        :param first_delay: False: delete delay for first get -> bool
+        :param user_id: User id -> int or str
+        :param first_delay: False: delete delay for first operation -> bool
         :returns: list of followers ids integer
         '''
         try:
@@ -68,8 +74,8 @@ class Twitter:
     def get_all_followed(self, user_id, first_delay=True):
         '''Get all account ids that followed by screen_name
         Twitter api limiting to get 5000 followed/minute
-        :param screen_name: user id -> str or int
-        :param first_delay: False: delete delay for first get -> bool
+        :param user_id: user id -> str or int
+        :param first_delay: False: delete delay for first operation -> bool
         :returns: list of followers ids integer
         '''
         try:
@@ -88,24 +94,52 @@ class Twitter:
             print(ex)
             sleep(60)
             return list()
+    
+
+    def db_sent_updater(self, action, sender_id=str(), postid=str()):
+        '''Update self.db_sent
+        :param action: 'update','add',or 'delete' -> str
+        :param sender_id: sender id who has sent the menfess -> str
+        :param postid: tweet id -> str
+        '''
+        # db_sent e.g {str():[str(),str(),str()],}
+        if action == 'update':
+            day = (datetime.now(timezone.utc) + timedelta(hours=administrator_data.Timezone)).day
+            if day != self.day:
+                self.day = day
+                self.db_sent.clear()
+        
+        elif action == 'add':
+            if sender_id not in self.db_sent:
+                self.db_sent[sender_id] = [postid]
+            else: self.db_sent[sender_id] += [postid]
+        
+        elif action == 'delete':
+            self.db_sent[sender_id].remove(postid)
+            if len(self.db_sent[sender_id]) == 0:
+                del self.db_sent[sender_id]
 
 
     def read_dm(self):
         '''Read and filter DMs
         Delay +- 60 seconds because of Twitter API limit.
-        This method contains Set word that can do exec.
+        This method contains Command_word that can do exec and
+        self.db_sent updater.
         Filters:
-            - set from DM
+            - admin & user command
             - blacklist words
             - only followed
             - sender requirements
-            - primary keywords
+            - menfess trigger
                 - attachment_url
                 - photo
                 - video
                 - animated_gif
-        :returns: list of filtered DMs
+        :returns: list of dict filtered DMs
         '''
+        # Update db_sent
+        self.db_sent_updater('update')
+
         print("Getting direct messages...")
         dms = list()
         try:
@@ -122,34 +156,53 @@ class Twitter:
                 if sender_id == self.bot_id:
                     continue
 
-                # set from DM
-                if administrator_data.Set_word.lower() in message.lower() and sender_id == administrator_data.Admin_id:
+                # ADMIN & USER COMMAND
+                if any(i.lower() in message.lower() for i in [administrator_data.Admin_cmd, administrator_data.User_cmd]):
                     print("command in progress...")
                     try:
                         message = message.split()
-                        command, *content = message[1:]
-                        notif = "commands:"
-                        if command.lower() in administrator_data.Dict_set.keys():
-                            command1 = administrator_data.Dict_set[command.lower()]
-                            if len(content) != 0:
-                                for word in content:
+                        trigger, command, *content = message
+                        notif = str()
+
+                        def COMMAND(dict_command, notif=notif, message_data=message_data, api=api, self=self, sender_id=sender_id):
+                            if command.lower() in dict_command.keys():
+                                command1 = dict_command[command.lower()]
+                                if len(content) != 0:
+                                    for word in content:
+                                        try:
+                                            # Don't escape the word that will be Added to muted list
+                                            if any(command.lower() == i for i in ['add_blacklist', 'rm_blacklist']):
+                                                word = word.replace("_", " ")
+                                            command2 = command1.format(f"{word}")
+                                            notif += f"\nprocessed: {command} '{unescape(word)}'"
+                                            exec(command2)
+                                        except Exception as ex:
+                                            notif += f"\nException: {ex}"
+                                            print(ex)
+                                            pass
+                                else:
                                     try:
-                                        # Don't escape the word that will be Added to muted list
-                                        if any(command.lower() == i for i in ['add_muted', 'rm_muted']):
-                                            word = word.replace("_", " ")
-                                        command2 = command1.format(f"{word}")
-                                        notif += f"\nprocessing {command} {unescape(word)}"
-                                        exec(command2)
+                                        notif += f"\nprocessed: {command}"
+                                        exec(command1)
                                     except Exception as ex:
-                                        notif += f"\nexcept: {ex}"
+                                        notif += f"\nException: {ex}"
+                                        print(ex)
                                         pass
                             else:
-                                try:
-                                    notif += f"\nprocessing {command}"
-                                    exec(command1)
-                                except Exception as ex:
-                                    notif += f"\nexcept: {ex}"
-                                    pass
+                                notif = "Command is not found!"
+
+                            return notif
+
+                        if trigger.lower() == administrator_data.Admin_cmd.lower() and sender_id in administrator_data.Admin_id:
+                            notif = COMMAND(administrator_data.Dict_adminCmd)
+                        elif trigger.lower() == administrator_data.User_cmd.lower():
+                            notif = COMMAND(administrator_data.Dict_userCmd)
+                            if "except" not in notif:
+                                notif = administrator_data.Notify_userCmdDelete
+                            else:
+                                notif = administrator_data.Notify_userCmdDeleteFail
+                        else:
+                            notif = administrator_data.Notify_wrongTrigger
 
                     except Exception as ex:
                         notif = "some commands failed" + \
@@ -162,14 +215,14 @@ class Twitter:
 
                     continue
 
-                # only followed
-                if administrator_data.Only_followed is True and sender_id != administrator_data.Admin_id:
+                # ONLY FOLLOWED
+                if administrator_data.Only_followed is True and sender_id not in administrator_data.Admin_id:
                     if int(sender_id) not in self.followed:
                         self.send_dm(sender_id, administrator_data.Notify_notFollowed)
                         continue
 
-                # sender requirements
-                if administrator_data.Sender_requirements is True and sender_id != administrator_data.Admin_id:
+                # SENDER REQUIREMENTS
+                if administrator_data.Sender_requirements is True and sender_id not in administrator_data.Admin_id:
                     indicator = 0
                     user = (api.get_user(sender_id))._json
                     # len menfess
@@ -191,9 +244,9 @@ class Twitter:
                         self.send_dm(sender_id, administrator_data.Notify_senderRequirements)
                         continue
 
-                # blacklist words
+                # BLACKLIST WORDS
                 list_blacklist = [i.lower() for i in administrator_data.Blacklist_words]
-                if any(i in message.lower() for i in list_blacklist) and sender_id != administrator_data.Admin_id:
+                if any(i in message.lower() for i in list_blacklist) and sender_id not in administrator_data.Admin_id:
                     try:
                         print("Deleting muted menfess")
                         notif = "Menfess kamu mengandung muted words, jangan lupa baca peraturan base yaa!"
@@ -205,7 +258,7 @@ class Twitter:
 
                     continue
 
-                # primary keywords
+                # MENFESS TRIGGER
                 if any(j.lower() in message.lower() for j in administrator_data.Trigger_word):
 
                     print("Getting message -> sender_id: " + str(sender_id))
@@ -226,7 +279,7 @@ class Twitter:
                             # Tweet
                             elif not any(j in i['expanded_url'] for j in ['/video/', '/photo/', '/media/']):
                                 dict_dms['attachment_urls']['tweet'] = (i['url'], i['expanded_url'])
-                                #i['expanded_url'] e.g https://twitter.com/username/status/123
+                                #i['expanded_url'] e.g https://twitter.com/username/status/123?s=19
 
                     # attachment media
                     if 'attachment' in message_data:
@@ -360,7 +413,7 @@ class Twitter:
 
             if filename == None:
                 for i in sub("[/?=]", " ", media_url).split():
-                    if search(r"\.mp4$|\.gif$|\.jpg$|\.png$|\.webp$", i):
+                    if search(r"\.mp4$|\.gif$|\.jpg$|\.jpeg$|\.png$|\.webp$", i):
                         filename = i
                         break
                 if filename == None:
@@ -378,14 +431,36 @@ class Twitter:
             pass
     
 
+    def add_watermark(self, filename, output=None):
+        '''Add watermark to photo, then save as output
+        Only support photo, if other, nothing will happen
+        :param filename: file name -> str
+        :param output: output name -> str
+        :returns: output name -> str
+        '''
+        if output == None:
+            output = filename
+
+        file_type = filename.split('.')[-1]
+        if file_type in "jpg jpeg png webp":
+            print("Adding watermark...")
+            adm = administrator_data
+            wm.watermark_text_image(filename, text=adm.Watermark_text,
+            ratio=adm.Watermark_ratio, pos=adm.Watermark_position,
+            output=output, color=adm.Watermark_textColor,
+            stroke_color=adm.Watermark_textStroke, watermark=adm.Watermark_image)
+        
+        return output
+
+
     def upload_media_tweet(self, media_tweet_url):
         '''Upload media with (from) media tweet url
         Usually when sender want to post more than one media, he will attachs media tweet url.
         But the sender's username is mentioned on the bottom of the media.
         This method intended to make sender anonym. This return list of media_ids, then
-        you can add media_ids to other method.
+        you can add media_ids to other method. Contains watermark module
         :param media_tweet_url: media tweet url e.g https://twitter.com/username/status/123/photo/1 -> str
-        :returns: list of (media_id, media_type) a.k.a media_idsAndTypes -> list
+        :returns: [(media_id, media_type),] a.k.a media_idsAndTypes -> list
         '''
         try:
             postid = sub(r"[/\.:]", " ", media_tweet_url).split()[-3]
@@ -416,6 +491,11 @@ class Twitter:
                     media_url = media['video_info']['variants'][0]['url']
 
                 filename = self.download_media(media_url)
+
+                # Add watermark
+                if administrator_data.Watermark is True:
+                    self.add_watermark(filename)
+
                 media_id, media_type = self.upload_media(filename)
                 remove(filename)
                 media_idsAndTypes.append((media_id, media_type))
@@ -450,13 +530,14 @@ class Twitter:
             sleep(60)
 
 
-    def post_tweet(self, tweet, media_url=None, attachment_url=None,
+    def post_tweet(self, tweet, sender_id, media_url=None, attachment_url=None,
                 media_idsAndTypes=list(), possibly_sensitive=False):
-        '''Post a tweet
+        '''Post a tweet, contains watermark module and self.db_sent updater
         :param tweet: -> str
-        :param attachment_url: url -> str
+        :param sender_id: -> str or int
         :param media_url: media url that will be posted -> str
-        :param media_idsAndTypes: list of (media_ids, media_type) -> list
+        :param attachment_url: url -> str
+        :param media_idsAndTypes: [(media_ids, media_type),] -> list
         :param possibly_sensitive: True when menfess contains sensitive contents -> bool
         :returns: tweet id -> str
         '''
@@ -467,6 +548,11 @@ class Twitter:
                 tweet = tweet.split()
                 tweet = " ".join(tweet[:-1])
                 filename = self.download_media(media_url)
+
+                # Add watermark
+                if administrator_data.Watermark is True:
+                    self.add_watermark(filename)
+
                 media_id, media_type = self.upload_media(filename)
                 # Add attachment media from DM to the first order
                 media_idsAndTypes.insert(0, (media_id, media_type))
@@ -542,14 +628,17 @@ class Twitter:
             while len(list_media_ids[0]) != 0: # Pay attention to the list format, [[]]
                 print("Posting the rest of media...")
                 postid1 = self.api.update_status(
-                    f"Rest of media: {str(len(list_media_ids))}", in_reply_to_status_id=postid1,
+                    in_reply_to_status_id=postid1,
                     auto_populate_reply_metadata=True, media_ids=list_media_ids[:1][0],
                     possibly_sensitive=possibly_sensitive).id
 
                 list_media_ids = list_media_ids[1:] + [[]]
                 sleep(30+self.random_time)
 
-            print('Menfess\'s posted -> postid: ', str(postid))
+            # ADD TO DB SENT
+            self.db_sent_updater('add', sender_id, str(postid))
+
+            print('Menfess\'s posted -> postid:', str(postid))
             return postid
 
         except Exception as ex:

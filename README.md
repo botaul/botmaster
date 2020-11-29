@@ -27,7 +27,7 @@ A Twitter bot that can read your DMs, then tweets like Twitter autobase. This pr
 - Upload more than 4 media
 - Trigger words are not case-sensitive
 - Trigger words are list
-- etc.
+- etc. see on administrator_data
 
 
 ## Requirements
@@ -91,29 +91,37 @@ Then deploy github repository to Heroku, search it on Google. <br>
 ## DMs examples (based on administrator_data)
 You can tweet more than one media with media link on tweet. Open your twitter app then tap (hold) the tweet. Media link automatically will be copied, then send the link to this bot from DM.
 ### Quote-retweet
-`fess! your message https://twitter.com/username/41890813214140?=19` (by attaching media, url, or not)
+`fess! your message https://twitter.com/username/1234567890?s=19` (by attaching media, url, or not)
 ### Make a thread
 `fess! Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.` (by attaching media, url, or not)
 ### Normal tweet
 `fess! your message` (by attaching media, url, or not)
 ### Admin command
-`set! add_muted word1 word2 word3 word-n` <br>
-`set! rm_muted word1 word2 word3 word-n` <br>
-`set! db_update` <br>
-`set! display_muted` <br>
-For add_muted and rm_muted, you can add space into your words by giving "_". Example:
-`set! add_muted _word1_ word2_word3 word-n` <br>
-This command will append " word1 ", "word2 word3", and "word-n" to Muted words list. <br>
-`set! rm_followed username1 username2 username-n`
+Only admin can access these commands. If user try to access this commands, the user will be notified that the keyword is wrong.
+`set! add_blacklist word1 word2 word-n` <br>
+`set! rm_blacklist word1 word2 word-n` <br>
+`set! db_update` not available when Github_database = False <br>
+`set! display_blacklist` <br>
+`set! rm_followed username1 username2 username-n` <br>
+`set! add_admin username1 username2 username-n` <br>
+`set! rm_admin username1 username2 username-n` <br>
+`set! who https://twitter.com/username/status/1234567890?s=19` check who was sent the menfess <br> <br>
+For add_blacklist and rm_blacklist, you can add space into your words by giving underscore "_". Example: <br>
+`set! add_blacklist _word1_ word2_word3 word-n` <br>
+This command will append " word1 ", "word2 word3", and "word-n" to Blacklist words list.
+### User command
+`user! delete https://twitter.com/username/status/1234567890?s=19` <br>
+Only sender who has sent the menfess that can delete the mentioned tweet link, admin pass this filter.
 
 
 ## Notes
 - Admin pass all filters
-- Only admin can setting account with 'set!' command
+- Only admin that can setting account with 'set!' command
 - I have deleted non-essential features, see [older commit](https://github.com/fakhrirofi/twitter_autobase/tree/e63b33ebe62094f23c73e3ef2db455e5dfd62076) if you want to use those features.
 - If you use github repository to deploy to heroku, make sure to set the repository to private. Github automatically will delete your github token if your repository is public
 - Keywords are not case-sensitive (upper, lower, capitalize)
 - See changelogs on [releases's notes](https://github.com/fakhrirofi/twitter_autobase/releases)
+- I have wrote documentation in administrator_data
 ### Auto accept message requests
 In the beginning, this bot will automatically fill all followers to tw.follower . So it can't track new followers when the bot was just started. If your followers didn't receive a message from the bot. Unfollow this bot for some minutes then follow it again.
 

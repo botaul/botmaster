@@ -18,14 +18,15 @@ def Start():
     tw.bot_id = me.id
     first = 1 # indicator for accept message
     first1 = 1 # indicator for followed
-    # sent = tw.send_dm(recipient_id=administrator_data.Admin_id, text="Twitter autobase is starting...!")
+    # for i in administartor_data.Admin_id:
+    #     sent = tw.send_dm(recipient_id=i, text="Twitter autobase is starting...!")
 
     while True:
         # AUTO ACCEPT MESSAGE REQUESTS
         if administrator_data.Accept_message is True:
             print("Accepting message requests...")
             try:
-                follower = api.followers_ids(user_id=me.id)
+                follower = api.followers_ids(user_id=me.id, count=50)
                 if len(follower) != 0:
                     if first == 1:
                         first = 0
@@ -35,10 +36,14 @@ def Start():
                         if i not in tw.follower:
                             notif = administrator_data.Notify_acceptMessage
                             # I don't know, sometimes error happen here, so, I update tw.follower after send_dm
-                            tw.send_dm(recipient_id=i, text=notif)
-                            tw.follower.insert(0, i)
-                            if len(tw.follower) > 5000: tw.follower.pop()
-                    
+                            try:
+                                tw.send_dm(recipient_id=i, text=notif)
+                                tw.follower.insert(0, i)
+                                if len(tw.follower) > 55: tw.follower.pop()
+                            except Exception as ex:
+                                print(ex)
+                                pass
+                            
             except Exception as ex:
                 print(ex)
                 pass
@@ -128,7 +133,7 @@ def Start():
                             possibly_sensitive = True
 
                         print("Posting menfess...")
-                        postid = tw.post_tweet(message, media_url=media_url, attachment_url=attachment_urls[1],
+                        postid = tw.post_tweet(message, sender_id, media_url=media_url, attachment_url=attachment_urls[1],
                                         media_idsAndTypes=media_idsAndTypes, possibly_sensitive=possibly_sensitive)
 
                         # notify sender (menfess sent or not)
@@ -158,7 +163,7 @@ def Start():
         else:
             dms = tw.read_dm()
             if len(dms) == 0:
-                print("Direct message is empty, sleeping 30s...")
+                print("Direct message is empty, sleeping for 30s...")
                 sleep(30)
 
 

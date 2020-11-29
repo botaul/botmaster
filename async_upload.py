@@ -64,6 +64,7 @@ class MediaUpload:
             'jpg'		: 'image/jpeg',
             'webp'		: 'image/webp',
             'png'		: 'image/png',
+            'jpeg'      : 'image/jpeg',
             'image/gif'	: 'tweet_gif',
             'video/mp4'	: 'tweet_video',
             'image/jpeg': 'tweet_image',
