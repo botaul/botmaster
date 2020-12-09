@@ -1,5 +1,5 @@
 ## Run on main (top-level code execute)
-- filename.jpg must be exists on this folder. It's image that will be watermarked.
+- filename.jpg must be exists on this folder. It's image that will be watermarked. <br> 
 `python3 app.py text position watermark_image ratio text_color text_stroke_color output` <br>
 text: str <br>
 position: x,y -> tuple, x:left, center, right. y:top, center, bottom <br>
