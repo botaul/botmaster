@@ -178,7 +178,7 @@ def Check_file_github(new=True):
         datee = datetime.now(timezone.utc) + \
             timedelta(hours=administrator_data.Timezone)
         globals()['filename_github'] = "Database {}-{}-{}.txt".format(
-            datee.day, datee.month, datee.year)
+            datee.year, datee.month, datee.day)
         tmp.filename_github = filename_github
         contents = repo.get_contents("")
 
@@ -206,9 +206,9 @@ def Check_file_github(new=True):
             pass
 
         if exists("Database {}-{}-{}.txt".format(
-                datee.day - 1, datee.month, datee.year)):
+                datee.year, datee.month, datee.day - 1)):
             remove("Database {}-{}-{}.txt".format(
-                datee.day - 1, datee.month, datee.year))
+                datee.year, datee.month, datee.day - 1))
             print("Heroku yesterday's Database has been deleted")
         else:
             print("Heroku yesterday's Database doesn't exist")
@@ -224,7 +224,7 @@ def Database():
             # update every midnight, you can update directly from DM with 'db_update'
             # check on administrator_data.py
             datee = datetime.now(timezone.utc) + timedelta(hours=administrator_data.Timezone)
-            if filename_github != f"Database {datee.day}-{datee.month}-{datee.year}.txt":
+            if filename_github != f"Database {datee.year}-{datee.month}-{datee.day}.txt":
                 print("Github threading active...")
                 contents = repo.get_contents(filename_github)
                 repo.update_file(contents.path, "updating Database", open(
@@ -259,7 +259,7 @@ if __name__ == "__main__":
         datee = datetime.now(timezone.utc) + timedelta(hours=administrator_data.Timezone)
         global filename_github, repo
         filename_github = "Database {}-{}-{}.txt".format(
-            datee.day, datee.month, datee.year)
+            datee.year, datee.month, datee.day)
         repo = github.get_repo(administrator_data.Github_repo)
 
         tmp.repo = repo

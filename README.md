@@ -124,7 +124,7 @@ Only sender who has sent the menfess that can delete the mentioned tweet link, a
 - See changelogs on [releases's notes](https://github.com/fakhrirofi/twitter_autobase/releases)
 - I have wrote documentation in administrator_data
 ### Auto accept message requests
-In the beginning, this bot will automatically fill all followers to tw.follower . So it can't track new followers when the bot was just started. If your followers didn't receive a message from the bot. Unfollow this bot for some minutes then follow it again.
+In the beginning, this bot will automatically fill 50 followers to tw.follower. So it can't track new followers when the bot was just started. If your followers didn't receive a message from the bot. Unfollow this bot for some minutes then follow it again.
 
 
 ## Contributing

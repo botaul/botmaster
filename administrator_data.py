@@ -4,10 +4,10 @@ ACCESS_KEY = "****"
 ACCESS_SECRET = "****"
 
 
-Admin_id = ["****"] # list of str
+Admin_id = ["****"] # list of str 
 # Admin id is like sender id. To check it, send a menfess from your admin account.
 # or you can use api.get_user(screen_name="usernameoftheaccount")
-# This is used to giving access to pass some message filters
+# This is used to giving access to pass some message filters & admin command
 
 Timezone = 7
 
@@ -36,7 +36,7 @@ Notify_acceptMessage = "Yeay! Sekarang kamu bisa mengirim menfess, jangan lupa b
 Keyword_deleter = True
 # bool, True: Delete keyword from menfess before uploaded
 
-Only_followed = True
+Only_followed = False
 # bool, True: only sender that followed by bot that can sends menfess
 # delay in the beginning will be added, based on your followed accounts
 # get 5000 account/minute, you can count it. Admin pass this filter.
@@ -68,7 +68,7 @@ Watermark = True
 Watermark_image = False 
 # bool, True: Add watermark image
 # You can change image and font in watermark folder
-Watermark_text = "autobase_reborn"
+Watermark_text = "AUTOBASE_REBORN"
 # If you won't to add text, fill str() or "" to Watermark_text.
 # You can add enter "\n", maximum: 2 lines
 Watermark_textColor = (100,0,0,1)
@@ -81,7 +81,8 @@ Watermark_position = ('right', 'bottom') # (x, y)
 # y: 'top', 'center', 'bottom'
 
 Database = False 
-# bool, True: Using database (Push simple txt to github)
+# bool, True: Using database (Push simple txt to github every midnight),
+# You can directly update using 'set! db_update' from DM
 # Github_token and Github_repo are not required when Database is False
 Github_token = "****"
 # get it from https://github.com/settings/tokens , set allow for editing repo
@@ -134,19 +135,20 @@ for i in urls:
         if found == 1:
             break
         if req_senderId == 'deleted':
-            # 'deleted': (postid, message, req_senderId)
-            if self.db_sent['deleted'][0] == postid:
-                found, req_senderId = 1, self.db_sent['deleted'][2]
-                username = self.get_user_screen_name(req_senderId)
-                text = "username: @" + username + "\\nid: " + req_senderId + "\\nstatus: deleted\\nurl: " + url
-                self.send_dm(sender_id, text)
-                break
+            # 'deleted': (req_senderId, postid)
+            for x in self.db_sent['deleted']:
+                if x[1] == postid:
+                    found, req_senderId = 1, x[0]
+                    username = self.get_user_screen_name(req_senderId)
+                    text = "username: @" + username + "\\nid: " + req_senderId + "\\nstatus: deleted\\nurl: " + url
+                    self.send_dm(sender_id, text)
+                    break
             continue
         for j in self.db_sent[req_senderId]:
             if j == postid:
                 found = 1
                 username = self.get_user_screen_name(req_senderId)
-                text = "username: @" + username + "\\nid: " + req_senderId + "\\nstatus: exists\\nurl:" + url
+                text = "username: @" + username + "\\nid: " + req_senderId + "\\nstatus: exists " + url
                 self.send_dm(sender_id, text)
                 break
     if found == 0:
@@ -177,7 +179,8 @@ for i in urls:
     found = 0
     if sender_id in self.db_sent: # user has sent menfess
         if postid in self.db_sent[sender_id]: # normal succes
-            self.db_sent_updater('add', 'deleted', (postid, message, sender_id))
+            self.db_sent_updater('add', 'deleted', (sender_id, postid))
+            self.db_sent_updater('delete', sender_id, postid)
             found = 1
         elif sender_id not in administrator_data.Admin_id: # normal trying other menfess
             raise Exception("sender doesn't have access to delete postid")
@@ -192,7 +195,8 @@ for i in urls:
                     found = req_senderId
                     break
         if found != 0:
-            self.db_sent_updater('add', 'deleted', (postid, message, found))
+            self.db_sent_updater('add', 'deleted', (found, postid))
+            self.db_sent_updater('delete', found, postid)
         else:
             print("admin mode: directly destroy_status")
     api.destroy_status(postid) # It doesn't matter when error happen here'''
