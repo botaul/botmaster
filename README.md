@@ -105,7 +105,9 @@ Only admin can access these commands. If user try to access this commands, the u
 `set! rm_followed username1 username2 username-n` <br>
 `set! add_admin username1 username2 username-n` <br>
 `set! rm_admin username1 username2 username-n` <br>
-`set! who https://twitter.com/username/status/1234567890?s=19` check who was sent the menfess <br> <br>
+`set! who https://twitter.com/username/status/1234567890?s=19` check who was sent the menfess <br>
+`set! switch off` turn off the automenfess <br>
+`set! switch on` turn on the automenfess<br> <br>
 For add_blacklist and rm_blacklist, you can add space into your words by giving underscore "_". Example: <br>
 `set! add_blacklist _word1_ word2_word3 word-n` <br>
 This command will append " word1 ", "word2 word3", and "word-n" to Blacklist words list.

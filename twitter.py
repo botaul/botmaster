@@ -132,6 +132,7 @@ class Twitter:
         self.db_sent updater.
         Filters:
             - admin & user command
+            - account status
             - blacklist words
             - only followed
             - sender requirements
@@ -156,9 +157,9 @@ class Twitter:
                 message = message_data['text']
                 id = dm[x].id
 
-                self.delete_dm(id)
                 # Avoid keyword error by skipping bot messages
                 if sender_id == self.bot_id:
+                    self.delete_dm(id)
                     continue
 
                 # ADMIN & USER COMMAND
@@ -170,7 +171,7 @@ class Twitter:
                         notif = str()
 
                         def COMMAND(dict_command, notif=notif, message_data=message_data, api=api,
-                                self=self, sender_id=sender_id, message=unescape(message)):
+                                self=self, sender_id=sender_id, id=id):
                             if command.lower() in dict_command.keys():
                                 command1 = dict_command[command.lower()]
                                 if len(content) != 0:
@@ -221,6 +222,13 @@ class Twitter:
                         self.send_dm(recipient_id=sender_id, text=notif)
 
                     continue
+                
+                # ACCOUNT STATUS
+                if administrator_data.Account_status is False:
+                    continue
+
+                # Delete message to avoid repeated menfess, or you can use database
+                self.delete_dm(id)
 
                 # ONLY FOLLOWED
                 if administrator_data.Only_followed is True and sender_id not in administrator_data.Admin_id:

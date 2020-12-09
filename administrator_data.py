@@ -82,13 +82,19 @@ Watermark_position = ('right', 'bottom') # (x, y)
 
 Database = False 
 # bool, True: Using database (Push simple txt to github every midnight),
-# You can directly update using 'set! db_update' from DM
+# You can directly update using 'set! db_update' command from DM
 # Github_token and Github_repo are not required when Database is False
 Github_token = "****"
 # get it from https://github.com/settings/tokens , set allow for editing repo
 Github_repo = "username/your_repo"
 # Make a repository first, then fill the Github_repo
 # use another repo instead of primary repo
+
+Account_status = True
+# bool, True: Turn on the automenfess. If it turned into False, this bot won't
+# post menfess. But accept message feature still running
+# You can switch it using 'set! switch on/off' command from DM
+# If there are messages on DM when turned off, those will be posted when this bot switched to on
 
 Trigger_word = ["fess!", "blablabla!"]
 Notify_wrongTrigger = "Keyword yang kamu kirim salah!"
@@ -162,7 +168,19 @@ administrator_data.Admin_id.append(str(user['id']))''',
 
     'rm_admin':'''
 user = (api.get_user(screen_name="{}"))._json
-administrator_data.Admin_id.remove(str(user['id']))'''
+administrator_data.Admin_id.remove(str(user['id']))''',
+
+
+    'switch':'''
+status = "{}"
+if status == "on":
+    administrator_data.Account_status = True
+    self.delete_dm(id)
+elif status == "off":
+    administrator_data.Account_status = False
+    self.delete_dm(id)
+else:
+    raise Exception("available parameters are on or off")'''
 }
 # db_update is not available when Database set to False
 # rm_followed is not available when Only_followed is False
@@ -202,6 +220,7 @@ for i in urls:
     api.destroy_status(postid) # It doesn't matter when error happen here'''
 }
 # delete is not available for user when bot was just started and user id not in db_sent
+# db_sent only available for one day (reset every midnight)
 Notify_userCmdDelete = "Yeay! Menfess kamu sudah berhasil dihapus"
 Notify_userCmdDeleteFail = "Duh! Menfess ini ngga bisa kamu hapus :("
 # Notify above are only for user
