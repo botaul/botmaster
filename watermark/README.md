@@ -1,4 +1,5 @@
 ## Run on main (top-level code execute)
+- filename.jpg must be exists on this folder. It's image that will be watermarked.
 `python3 app.py text position watermark_image ratio text_color text_stroke_color output` <br>
 text: str <br>
 position: x,y -> tuple, x:left, center, right. y:top, center, bottom <br>
@@ -13,7 +14,7 @@ example: `python3 app.py 'autobase_reborn' right,bottom photo.png 0.103 100,0,0,
 ### Watermark
 1. photo's size must be square and placed in this folder
 2. file name of the photo must be 'photo.png'
-3. or edit `watermark_image` function's parameter on app.py, filename="watermark/yourphoto.png"
+3. or edit `watermark_image` function's parameter on app.py, watermark="watermark/yourphoto.png"
 
 ### Font
 1. put in the this folder
