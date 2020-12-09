@@ -117,6 +117,7 @@ Only sender who has sent the menfess that can delete the mentioned tweet link, a
 ## Notes
 - Admin pass all filters
 - Only admin that can setting account with 'set!' command
+- db_sent only available for one day (reset at midnight)
 - I have deleted non-essential features, see [older commit](https://github.com/fakhrirofi/twitter_autobase/tree/e63b33ebe62094f23c73e3ef2db455e5dfd62076) if you want to use those features.
 - If you use github repository to deploy to heroku, make sure to set the repository to private. Github automatically will delete your github token if your repository is public
 - Keywords are not case-sensitive (upper, lower, capitalize)
