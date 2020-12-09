@@ -146,6 +146,8 @@ class MediaUpload:
                 bytes_sent = file.tell()
                 print('%s of %s bytes uploaded' %
                       (str(bytes_sent), str(self.total_bytes)))
+        
+        file.close()
         # print('Upload chunks complete.')
 
     def upload_finalize(self):

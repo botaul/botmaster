@@ -87,12 +87,14 @@ def Start():
                     if administrator_data.Database is True:
                         screen_name = tw.get_user_screen_name(sender_id)
                         if exists(filename_github):
-                            open(filename_github, 'a').write(
-                                f'''\n"""{unescape(message)}""" {screen_name} {sender_id}\n''')
+                            with open(filename_github, 'a') as f:
+                                f.write(f'''\n"""{unescape(message)}""" {screen_name} {sender_id}\n''')
+                                f.close()
                         else:
-                            open(filename_github, 'w').write(
-                                "MESSAGE USERNAME SENDER_ID\n" +
-                                f'''\n"""{unescape(message)}""" {screen_name} {sender_id}\n''')
+                            with open(filename_github, 'w') as f:
+                                f.write("MESSAGE USERNAME SENDER_ID\n" +
+                                    f'''\n"""{unescape(message)}""" {screen_name} {sender_id}\n''')
+                                f.close()
                         print("Heroku Database saved")
 
                     # Message that will be sent when menfess is posted
@@ -201,7 +203,9 @@ def Check_file_github(new=True):
                              contents)
 
         if exists(filename_github) == False:
-            open(filename_github, 'w').write(contents)
+            with open(filename_github, 'w') as f:
+                f.write(contents)
+                f.close()
         else:
             pass
 
@@ -227,8 +231,10 @@ def Database():
             if filename_github != f"Database {datee.year}-{datee.month}-{datee.day}.txt":
                 print("Github threading active...")
                 contents = repo.get_contents(filename_github)
-                repo.update_file(contents.path, "updating Database", open(
-                    filename_github).read(), contents.sha)
+                with open(filename_github) as f:
+                    data = f.read()
+                    f.close()
+                repo.update_file(contents.path, "updating Database", data, contents.sha)
                 Check_file_github(new=False)
                 print("Github Database updated")
                 sleep(60)

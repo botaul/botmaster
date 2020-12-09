@@ -69,6 +69,7 @@ def watermark_text_image(filename, watermark='watermark/photo.png', font='Pillow
     preset = preset.convert('RGB')
     preset.save(output)
     img.close()
+    preset.close()
     if watermark != False:
         watermark.close()
 

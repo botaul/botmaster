@@ -19,7 +19,7 @@ Notify_queueMessage = "Menfess kamu berada pada urutan ke-{}, akan terkirim seki
 Notify_sent = True
 # bool, True: Send menfess tweet link to sender when menfess sent
 Notify_sentMessage = "Yeay! Menfess kamu telah terkirim! https://twitter.com/{}/status/"
-# Please keep the "{}" format -> .format(post id)
+# Please keep the "{}" format -> .format(bot username)
 Notify_sentFail1 = "Maaf ada kesalahan pada sistem :( \ntolong screenshot & laporkan kepada admin"
 # Used when error is happened in system
 Notify_sentFail2 = "ketentuan Triggerword menfess kamu tidak sesuai!"
@@ -119,8 +119,10 @@ Dict_adminCmd = {
 
     'db_update': '''
 contents = tmp.repo.get_contents(tmp.filename_github)
-tmp.repo.update_file(contents.path, "updating Database", open(
-    tmp.filename_github).read(), contents.sha)''',
+with open(tmp.filename_github) as f:
+    data = f.read()
+    f.close()
+tmp.repo.update_file(contents.path, "updating Database", data, contents.sha)''',
 
 
     'rm_followed':'''
