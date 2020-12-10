@@ -177,10 +177,8 @@ administrator_data.Admin_id.remove(str(user['id']))''',
 status = "{}"
 if status == "on":
     administrator_data.Account_status = True
-    self.delete_dm(id)
 elif status == "off":
     administrator_data.Account_status = False
-    self.delete_dm(id)
 else:
     raise Exception("available parameters are on or off")'''
 }
