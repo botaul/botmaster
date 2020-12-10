@@ -171,7 +171,7 @@ class Twitter:
                         notif = str()
 
                         def COMMAND(dict_command, notif=notif, message_data=message_data, api=api,
-                                self=self, sender_id=sender_id, id=id):
+                                self=self, sender_id=sender_id):
                             if command.lower() in dict_command.keys():
                                 command1 = dict_command[command.lower()]
                                 if len(content) != 0:
@@ -219,6 +219,7 @@ class Twitter:
                         pass
 
                     finally:
+                        self.delete_dm(id)
                         self.send_dm(recipient_id=sender_id, text=notif)
 
                     continue
