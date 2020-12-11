@@ -24,26 +24,32 @@ class Twitter:
         initialize twitter with tweepy
         Attributes:
             - api
+            - me
             - follower
             - followed
-            - bot_id
             - random_time
             - db_sent
             - day
+            - db_received
+            - indicator_start
+            - db_intervalTime
         '''
         print("Initializing twitter...")
-        self.auth = OAuthHandler(
+        auth = OAuthHandler(
             administrator_data.CONSUMER_KEY, administrator_data.CONSUMER_SECRET)
-        self.auth.set_access_token(
+        auth.set_access_token(
             administrator_data.ACCESS_KEY, administrator_data.ACCESS_SECRET)
         self.api = API(
-            self.auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+            auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+        self.me = self.api.me()
         self.follower = list() # list of integer
         self.followed = list() # list of integer
-        self.bot_id = int() 
         self.random_time = administrator_data.Delay_time
         self.db_sent = dict() # dict of sender and his postid, update every midnight with self.day
         self.day = (datetime.now(timezone.utc) + timedelta(hours=administrator_data.Timezone)).day
+        self.db_received = list() # list of 55 received menfess's message id
+        self.indicator_start = 0
+        self.db_intervalTime = dict()
     
 
     def get_all_followers(self, user_id, first_delay=True):
@@ -102,7 +108,6 @@ class Twitter:
         :param sender_id: sender id who has sent the menfess -> str
         :param postid: tweet id or (sender_id, tweet id) -> str or tuple
         '''
-        # db_sent e.g {str():[str(),str(),str()],}
         try:
             if action == 'update':
                 day = (datetime.now(timezone.utc) + timedelta(hours=administrator_data.Timezone)).day
@@ -127,11 +132,13 @@ class Twitter:
 
     def read_dm(self):
         '''Read and filter DMs
-        Delay +- 60 seconds because of Twitter API limit.
+        Delay 60 seconds will be added because of Twitter API limit.
         This method contains Command_word that can do exec and
         self.db_sent updater.
         Filters:
+            - received dm
             - admin & user command
+            - interval per sender
             - account status
             - blacklist words
             - only followed
@@ -150,15 +157,31 @@ class Twitter:
         dms = list()
         try:
             api = self.api
-            dm = list(reversed(api.list_direct_messages()))
+            dm = api.list_direct_messages(count=50)[::-1]
+
+            # FILL DB_RECEIVED WHEN BOT WAS JUST STARTED (Keep_DM)
+            if self.indicator_start == 0 and administrator_data.Keep_DM is True:
+                for x in dm:
+                    self.db_received.append(x.id)
+
             for x in range(len(dm)):
                 sender_id = dm[x].message_create['sender_id'] # str
                 message_data = dm[x].message_create['message_data']
                 message = message_data['text']
                 id = dm[x].id
 
+                # Edit indicator_start to ignore messages that received before bot started (Keep_DM)
+                if self.indicator_start == 0:
+                    self.indicator_start = 1
+                    if administrator_data.Keep_DM is True:
+                        break
+
+                # Message id is already stored on db_received, the message will be skipped (Keep_DM)
+                if id in self.db_received:
+                    continue
+
                 # Avoid keyword error by skipping bot messages
-                if sender_id == self.bot_id:
+                if sender_id == self.me.id:
                     self.delete_dm(id)
                     continue
 
@@ -177,11 +200,11 @@ class Twitter:
                                 if len(content) != 0:
                                     for word in content:
                                         try:
-                                            # Don't escape the word that will be Added to muted list
-                                            if any(command.lower() == i for i in ['add_blacklist', 'rm_blacklist']):
+                                            # Don't unescape the word that will be Added to muted list
+                                            if any(command.lower() == i for i in list(administrator_data.Dict_adminCmd)[:2]):
                                                 word = word.replace("_", " ")
                                             command2 = command1.format(f"{word}")
-                                            notif += f"\nprocessed: {command} '{unescape(word)}'"
+                                            notif += f"\nprocessed: {command} {unescape(word)}"
                                             exec(command2)
                                         except Exception as ex:
                                             notif += f"\nException: {ex}"
@@ -196,7 +219,7 @@ class Twitter:
                                         print(ex)
                                         pass
                             else:
-                                notif = "Command is not found!"
+                                notif = "Exception: Command is not found!"
 
                             return notif
 
@@ -204,7 +227,7 @@ class Twitter:
                             notif = COMMAND(administrator_data.Dict_adminCmd)
                         elif trigger.lower() == administrator_data.User_cmd.lower():
                             notif = COMMAND(administrator_data.Dict_userCmd)
-                            if sender_id not in administrator_data.Admin_id:
+                            if sender_id not in administrator_data.Admin_id and command.lower() in administrator_data.Dict_userCmd:
                                 if "Exception" not in notif:
                                     notif = administrator_data.Notify_userCmdDelete
                                 else:
@@ -213,8 +236,7 @@ class Twitter:
                             notif = administrator_data.Notify_wrongTrigger
 
                     except Exception as ex:
-                        notif = "some commands failed" + \
-                            f"\n{ex}" + f"\n{notif}"
+                        notif = f"some commands failed: {ex} \n{notif}"
                         print(ex)
                         pass
 
@@ -228,8 +250,28 @@ class Twitter:
                 if administrator_data.Account_status is False:
                     continue
 
-                # Delete message to avoid repeated menfess, or you can use database
-                self.delete_dm(id)
+                # Interval time per sender
+                if administrator_data.Interval_perSender is True and sender_id not in administrator_data.Admin_id:
+                    date_now = datetime.now(timezone.utc) + timedelta(hours=administrator_data.Timezone)
+                    temp_list = list(self.db_intervalTime)
+                    for i in temp_list:
+                        # cleaning self.db_intervalTime
+                        if self.db_intervalTime[i] < date_now:
+                            del self.db_intervalTime[i]
+
+                    if sender_id in self.db_intervalTime:
+                        continue
+                    else:
+                        self.db_intervalTime[sender_id] = date_now + timedelta(seconds=administrator_data.Interval_time)
+
+                # Delete or store message id to avoid repeated menfess (Keep_DM)
+                if administrator_data.Keep_DM is True:     
+                    if len(self.db_received) > 55:
+                        self.db_received.pop(0)
+                    self.db_received.append(id)
+
+                else:
+                    self.delete_dm(id)
 
                 # ONLY FOLLOWED
                 if administrator_data.Only_followed is True and sender_id not in administrator_data.Admin_id:
@@ -237,23 +279,23 @@ class Twitter:
                         self.send_dm(sender_id, administrator_data.Notify_notFollowed)
                         continue
 
+                # Minimum lenMenfess
+                if len(message) < administrator_data.Minimum_lenMenfess and sender_id not in administrator_data.Admin_id:
+                    self.send_dm(sender_id, administrator_data.Notify_senderRequirements)
+                    continue
+
                 # SENDER REQUIREMENTS
                 if administrator_data.Sender_requirements is True and sender_id not in administrator_data.Admin_id:
                     indicator = 0
                     user = (api.get_user(sender_id))._json
-                    # len menfess
-                    if len(message) < administrator_data.Minimum_lenMenfess:
-                        indicator = 1
                     # minimum followers
                     if user['followers_count'] < administrator_data.Minimum_followers:
                         indicator = 1
                     # minimum age
                     created_at = datetime.strptime(user['created_at'], '%a %b %d %H:%M:%S +0000 %Y')
                     now = (datetime.now(timezone.utc) + timedelta(hours=administrator_data.Timezone)).replace(tzinfo=None)
-                    required_day = (administrator_data.Minimum_year * 365) + \
-                                    (administrator_data.Minimum_month * 30) + \
-                                    (administrator_data.Minimum_day)
-                    if (now-created_at).days < required_day:
+
+                    if (now-created_at).days < administrator_data.Minimum_day:
                         indicator = 1
                     
                     if indicator == 1:
@@ -299,7 +341,6 @@ class Twitter:
 
                     # attachment media
                     if 'attachment' in message_data:
-                        print("DM have an attachment")
                         media = message_data['attachment']['media']
                         media_type = media['type']
 
@@ -325,7 +366,6 @@ class Twitter:
 
                 else:
                     try:
-                        print("deleting message (keyword not in message)")
                         notif = administrator_data.Notify_wrongTrigger
                         self.send_dm(recipient_id=sender_id, text=notif)
 
@@ -351,14 +391,23 @@ class Twitter:
         """
         try:
             print("Notifying the queue to sender")
-            x, y = 0, 0
+            x, y, z = -1, 0, 0
+            # x is primary time (30 sec); y is queue; z is addition time for media
             time = datetime.now(timezone.utc) + timedelta(hours=administrator_data.Timezone)
             for i in dms:
                 y += 1
                 x += (len(i['message']) // 272) + 1
                 if i['media_url'] != None:
-                    x += 0.2
-                sent_time = time + timedelta(seconds= x*(30+self.random_time))
+                    z += 3
+                
+                if administrator_data.Private_mediaTweet is True:
+                    z += len(i['attachment_urls']['media']) * 5
+
+                # Delay for the first sender is very quick, so, it won't be notified
+                if y == 1:
+                    continue
+
+                sent_time = time + timedelta(seconds= x*(30+self.random_time) + z)
                 sent_time = datetime.strftime(sent_time, '%H:%M')
                 notif = administrator_data.Notify_queueMessage.format(str(y), sent_time)
                 self.send_dm(recipient_id=i['sender_id'], text=notif)
@@ -367,6 +416,23 @@ class Twitter:
             pass
             print(ex)
             sleep(60)
+
+
+    def notify_sent(self, sender_id, postid):
+        '''Notify sender, the menfess sent or not
+        :param sender_id: str or int
+        :param postid: str or int
+        '''
+        try:
+            if administrator_data.Notify_sent is True:
+                # Message that will be sent when menfess is posted
+                notif = administrator_data.Notify_sentMessage.format(self.me.screen_name)
+                text = notif + str(postid)                              
+                self.send_dm(recipient_id=sender_id, text=text)
+
+        except Exception as ex:
+            print(ex)
+            pass
 
 
     def delete_dm(self, id):
@@ -638,6 +704,12 @@ class Twitter:
                     media_ids=list_media_ids[:1][0], possibly_sensitive=possibly_sensitive).id
             
             list_media_ids = list_media_ids[1:] + [[]]
+
+            # NOTIFY MENFESS SENT OR NOT
+            if len(list_media_ids[0]) == 0:
+                self.notify_sent(sender_id, postid)
+                print('Menfess is posted -> postid:', str(postid))
+
             sleep(30+self.random_time)
 
             # When media_ids still exists, It will be attached to the subsequent tweets
@@ -649,12 +721,16 @@ class Twitter:
                     possibly_sensitive=possibly_sensitive).id
 
                 list_media_ids = list_media_ids[1:] + [[]]
+
+                # NOTIFY MENFESS SENT OR NOT
+                if len(list_media_ids[0]) == 0:
+                    self.notify_sent(sender_id, postid)
+                    print('Menfess is posted -> postid:', str(postid))
+
                 sleep(30+self.random_time)
 
             # ADD TO DB SENT
             self.db_sent_updater('add', sender_id, str(postid))
-
-            print('Menfess\'s posted -> postid:', str(postid))
             return postid
 
         except Exception as ex:

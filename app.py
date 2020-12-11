@@ -14,8 +14,7 @@ def Start():
     dms = list()
     tw = Twitter()
     api = tw.api
-    me = api.me()
-    tw.bot_id = me.id
+    me = tw.me
     first = 1 # indicator for accept message
     first1 = 1 # indicator for followed
     # for i in administartor_data.Admin_id:
@@ -23,30 +22,29 @@ def Start():
 
     while True:
         # AUTO ACCEPT MESSAGE REQUESTS
-        if administrator_data.Accept_message is True:
-            print("Accepting message requests...")
-            try:
-                follower = api.followers_ids(user_id=me.id, count=50)
-                if len(follower) != 0:
-                    if first == 1:
-                        first = 0
-                        tw.follower = follower.copy()
+        print("Accepting message requests...")
+        try:
+            follower = api.followers_ids(user_id=me.id, count=50)
+            if len(follower) != 0:
+                if first == 1:
+                    first = 0
+                    tw.follower = follower.copy()
 
-                    for i in follower:
-                        if i not in tw.follower:
-                            notif = administrator_data.Notify_acceptMessage
-                            # I don't know, sometimes error happen here, so, I update tw.follower after send_dm
-                            try:
-                                tw.send_dm(recipient_id=i, text=notif)
-                                tw.follower.insert(0, i)
-                                if len(tw.follower) > 55: tw.follower.pop()
-                            except Exception as ex:
-                                print(ex)
-                                pass
+                for i in follower:
+                    if i not in tw.follower:
+                        notif = administrator_data.Notify_acceptMessage
+                        # I don't know, sometimes error happen here, so, I update tw.follower after send_dm
+                        try:
+                            tw.send_dm(recipient_id=i, text=notif)
+                            tw.follower.insert(0, i)
+                            if len(tw.follower) > 55: tw.follower.pop()
+                        except Exception as ex:
+                            print(ex)
+                            pass
                             
-            except Exception as ex:
-                print(ex)
-                pass
+        except Exception as ex:
+            print(ex)
+            pass
 
         # GETTING LIST OF FOLLOWED
         if administrator_data.Only_followed is True:
@@ -96,9 +94,6 @@ def Start():
                                     f'''\n"""{unescape(message)}""" {screen_name} {sender_id}\n''')
                                 f.close()
                         print("Heroku Database saved")
-
-                    # Message that will be sent when menfess is posted
-                    notif = administrator_data.Notify_sentMessage.format(me.screen_name)
                     
                     if any(j.lower() in message.lower() for j in administrator_data.Trigger_word):
                         # Keyword Deleter
@@ -136,23 +131,15 @@ def Start():
 
                         print("Posting menfess...")
                         postid = tw.post_tweet(message, sender_id, media_url=media_url, attachment_url=attachment_urls[1],
-                                        media_idsAndTypes=media_idsAndTypes, possibly_sensitive=possibly_sensitive)
-
-                        # notify sender (menfess sent or not)
-                        if administrator_data.Notify_sent is True:
-                            if postid != None:
-                                text = notif + str(postid)
-                            else:
-                                text = administrator_data.Notify_sentFail1
-                            
-                            tw.send_dm(recipient_id=sender_id, text=text)
-                            
-                        elif postid == None:
+                                media_idsAndTypes=media_idsAndTypes, possibly_sensitive=possibly_sensitive)
+                        
+                        if postid == None:
+                            # Error happen on system
                             text = administrator_data.Notify_sentFail1
                             tw.send_dm(recipient_id=sender_id, text=text)
 
                     else:
-                        # Notify sender (fail)
+                        # Notify sender, message doesn't meet the algorithm's requirement
                         tw.send_dm(sender_id, administrator_data.Notify_sentFail2)
 
                 except Exception as ex:
