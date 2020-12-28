@@ -106,12 +106,16 @@ def Start():
                             [message.remove(j) for j in list_keyword if j in message]
                             message = " ".join(message)
 
-                        # POST TWEET
+                        # Cleaning attachment_url
                         if attachment_urls != (None, None):
                             message = message.split()
                             message.remove(attachment_urls[0])
                             message = " ".join(message)
                         
+                        # Cleaning hashtags and mentions
+                        message = message.replace("#", "#/")
+                        message = message.replace("@", "@/")
+
                         # Private_mediaTweet
                         media_idsAndTypes = list() # e.g [(media_id, media_type), (media_id, media_type), ]
                         # Pay attention to append and extend!
@@ -129,6 +133,7 @@ def Start():
                         if administrator_data.Sensitive_word.lower() in message.lower():
                             possibly_sensitive = True
 
+                        # POST TWEET
                         print("Posting menfess...")
                         postid = tw.post_tweet(message, sender_id, media_url=media_url, attachment_url=attachment_urls[1],
                                 media_idsAndTypes=media_idsAndTypes, possibly_sensitive=possibly_sensitive)
@@ -219,9 +224,8 @@ def Database():
                 print("Github threading active...")
                 contents = repo.get_contents(filename_github)
                 with open(filename_github) as f:
-                    data = f.read()
+                    repo.update_file(contents.path, "updating Database", f.read(), contents.sha)
                     f.close()
-                repo.update_file(contents.path, "updating Database", data, contents.sha)
                 Check_file_github(new=False)
                 print("Github Database updated")
                 sleep(60)

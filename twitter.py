@@ -160,21 +160,20 @@ class Twitter:
             dm = api.list_direct_messages(count=50)[::-1]
 
             # FILL DB_RECEIVED WHEN BOT WAS JUST STARTED (Keep_DM)
-            if self.indicator_start == 0 and administrator_data.Keep_DM is True:
-                for x in dm:
-                    self.db_received.append(x.id)
+            if self.indicator_start == 0:
+                self.indicator_start = 1
+
+                if administrator_data.Keep_DM is True:
+                    for x in dm:
+                        self.db_received.append(x.id)
+                    # Ignore messages that received before bot started
+                    return dms
 
             for x in range(len(dm)):
                 sender_id = dm[x].message_create['sender_id'] # str
                 message_data = dm[x].message_create['message_data']
                 message = message_data['text']
                 id = dm[x].id
-
-                # Edit indicator_start to ignore messages that received before bot started (Keep_DM)
-                if self.indicator_start == 0:
-                    self.indicator_start = 1
-                    if administrator_data.Keep_DM is True:
-                        break
 
                 # Message id is already stored on db_received, the message will be skipped (Keep_DM)
                 if id in self.db_received:
@@ -253,8 +252,7 @@ class Twitter:
                 # Interval time per sender
                 if administrator_data.Interval_perSender is True and sender_id not in administrator_data.Admin_id:
                     date_now = datetime.now(timezone.utc) + timedelta(hours=administrator_data.Timezone)
-                    temp_list = list(self.db_intervalTime)
-                    for i in temp_list:
+                    for i in list(self.db_intervalTime):
                         # cleaning self.db_intervalTime
                         if self.db_intervalTime[i] < date_now:
                             del self.db_intervalTime[i]
@@ -364,15 +362,17 @@ class Twitter:
 
                     dms.append(dict_dms)
 
+                # WRONG TRIGGER
                 else:
-                    try:
-                        notif = administrator_data.Notify_wrongTrigger
-                        self.send_dm(recipient_id=sender_id, text=notif)
+                    notif = administrator_data.Notify_wrongTrigger
+                    self.send_dm(recipient_id=sender_id, text=notif)
 
-                    except Exception as ex:
-                        sleep(60)
-                        print(ex)
-                        pass
+                    # Send wrong menfess to admin
+                    username = self.get_user_screen_name(sender_id)
+                    notif = message + f"\nstatus: wrong trigger\nfrom: @{username}\nid: {sender_id}"
+
+                    for admin in administrator_data.Admin_id:
+                        self.send_dm(recipient_id=admin, text=notif)
             
             print(str(len(dms)) + " messages collected")
             sleep(60)

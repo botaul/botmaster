@@ -37,7 +37,7 @@ Delay_time = 0 # int, seconds
 # Welcome message to new followers
 Notify_acceptMessage = "Makasih yaa udah follow base ini :) \nJangan lupa baca peraturan base!"
 
-Keyword_deleter = True
+Keyword_deleter = False # Trigger word deleter
 # bool, True: Delete keyword from menfess before uploaded
 
 Only_followed = False
@@ -129,7 +129,8 @@ Sensitive_word = "/sensitive"
 # Used when sender send sensitive content, order them to use this word
 # But I advise against sending sensitive content, Twitter may ban your account,
 # And using this bot for 'adult' base is strictly prohibited.
-Blacklist_words = ['covid', 'blablabla']
+Blacklist_words = ['covid', 'blablabla'] 
+# hashtags and mentions will be changed into "#/" and "@/" in app.py to avoid ban
 Admin_cmd = "set!"  # exec command in Dict_adminCmd
 User_cmd = "user!" # exec command in Dict_userCmd
 
@@ -147,9 +148,8 @@ Dict_adminCmd = {
     'db_update': '''
 contents = tmp.repo.get_contents(tmp.filename_github)
 with open(tmp.filename_github) as f:
-    data = f.read()
-    f.close()
-tmp.repo.update_file(contents.path, "updating Database", data, contents.sha)''',
+    tmp.repo.update_file(contents.path, "updating Database", f.read(), contents.sha)
+    f.close()''',
 
 
     'rm_followed':'''
