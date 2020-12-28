@@ -1,6 +1,5 @@
 # twitter_autobase
-A Twitter bot that can read your DMs, then tweets like Twitter autobase. This project is a re-code of [autodm_base](https://github.com/ydhnwb/autodm_base) by [Prieyudha Akadita S.](https://github.com/ydhnwb) with many improvements and fixed bugs. This project is under MIT License.
-
+A Twitter bot that can read your DMs, then tweets like Twitter autobase. This project is a re-code of [autodm_base](https://github.com/ydhnwb/autodm_base) by [Prieyudha Akadita S.](https://github.com/ydhnwb) with many improvements and fixed bugs. This project is under MIT License. You can try on my autobase account [@autobase_reborn](https://twitter.com/autobase_reborn).
 - **Read [Twitter rules](https://help.twitter.com/en/rules-and-policies/twitter-search-policies)** <br>
 - **USING THIS BOT FOR 'ADULT' BASE IS STRICTLY PROHIBITED** <br>
 
@@ -124,7 +123,7 @@ Only sender who has sent the menfess that can delete the mentioned tweet link, a
 - If you use github repository to deploy to heroku, make sure to set the repository to private. Github automatically will delete your github token if your repository is public
 - Keywords are not case-sensitive (upper, lower, capitalize)
 - See changelogs on [releases's notes](https://github.com/fakhrirofi/twitter_autobase/releases)
-- I have wrote documentation in administrator_data
+- I have written documentation in administrator_data
 ### Auto accept message requests
 In the beginning, this bot will automatically fill 50 followers to tw.follower. So it can't track new followers when the bot was just started. If your followers didn't receive a message from the bot. Unfollow this bot for some minutes then follow it again.
 
