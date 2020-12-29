@@ -333,7 +333,7 @@ class Twitter:
                                 #i['expanded_url'] e.g https://twitter.com/username/status/123/photo/1
                             
                             # Tweet
-                            elif not any(j in i['expanded_url'] for j in ['/video/', '/photo/', '/media/']):
+                            else:
                                 dict_dms['attachment_urls']['tweet'] = (i['url'], i['expanded_url'])
                                 #i['expanded_url'] e.g https://twitter.com/username/status/123?s=19
 
@@ -705,15 +705,10 @@ class Twitter:
             
             list_media_ids = list_media_ids[1:] + [[]]
 
-            # NOTIFY MENFESS SENT OR NOT
-            if len(list_media_ids[0]) == 0:
-                self.notify_sent(sender_id, postid)
-                print('Menfess is posted -> postid:', str(postid))
-
-            sleep(30+self.random_time)
-
             # When media_ids still exists, It will be attached to the subsequent tweets
             while len(list_media_ids[0]) != 0: # Pay attention to the list format, [[]]
+                sleep(30+self.random_time)
+
                 print("Posting the rest of media...")
                 postid1 = self.api.update_status(
                     in_reply_to_status_id=postid1,
@@ -722,12 +717,11 @@ class Twitter:
 
                 list_media_ids = list_media_ids[1:] + [[]]
 
-                # NOTIFY MENFESS SENT OR NOT
-                if len(list_media_ids[0]) == 0:
-                    self.notify_sent(sender_id, postid)
-                    print('Menfess is posted -> postid:', str(postid))
+            # NOTIFY MENFESS SENT OR NOT
+            self.notify_sent(sender_id, postid)
+            print('Menfess is posted -> postid:', str(postid))
 
-                sleep(30+self.random_time)
+            sleep(30+self.random_time)
 
             # ADD TO DB SENT
             self.db_sent_updater('add', sender_id, str(postid))

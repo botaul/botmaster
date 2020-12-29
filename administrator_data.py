@@ -221,7 +221,11 @@ urls = message_data["entities"]["urls"]
 if len(urls) == 0:
     raise Exception("Tweet link is not mentioned")
 for i in urls:
-    postid = sub("[/.=?]", " ", i["expanded_url"]).split()[-3]
+    postid = str()
+    if "?" in i["expanded_url"]:
+        postid = sub("[/?]", " ", i["expanded_url"]).split()[-2]
+    else:
+        postid = i["expanded_url"].split("/")[-1]
     found = 0
     if sender_id in self.db_sent: # user has sent menfess
         if postid in self.db_sent[sender_id]: # normal succes
@@ -245,7 +249,7 @@ for i in urls:
             self.db_sent_updater('delete', found, postid)
         else:
             print("admin mode: directly destroy_status")
-    api.destroy_status(postid) # It doesn't matter when error happen here'''
+    api.destroy_status(id=postid) # It doesn't matter when error happen here'''
 }
 # delete is not available for user when bot was just started and user id not in db_sent
 # delete & db_sent are only available for one day (reset every midnight)
