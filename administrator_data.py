@@ -13,7 +13,7 @@ Timezone = 7
 
 Notify_queue = True
 # bool, True: Send the menfess queue to sender
-# The first sender in queue won't be notified. Because the delay is very quick.
+# The first tweet in queue won't be notified to sender (the delay is very quick).
 Notify_queueMessage = "Menfess kamu berada pada urutan ke-{}, akan terkirim sekitar pukul {}"
 # Please keep the "{}" format -> .format(queue, time)
 

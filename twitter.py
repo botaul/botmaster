@@ -404,7 +404,7 @@ class Twitter:
                     z += len(i['attachment_urls']['media']) * 5
 
                 # Delay for the first sender is very quick, so, it won't be notified
-                if y == 1:
+                if x == 0:
                     continue
 
                 sent_time = time + timedelta(seconds= x*(30+self.random_time) + z)
