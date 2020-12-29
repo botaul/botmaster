@@ -164,7 +164,11 @@ if len(urls) == 0:
     raise Exception("Tweet link is not mentioned")
 for i in urls:
     url = i["expanded_url"]
-    postid = sub("[/.=?]", " ", url).split()[-3]
+    postid = str()
+    if "?" in url:
+        postid = sub("[/?]", " ", url).split()[-2]
+    else:
+        postid = url.split("/")[-1]
     found = 0
     for req_senderId in self.db_sent.keys():
         if found == 1:
