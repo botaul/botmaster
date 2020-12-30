@@ -132,3 +132,4 @@ administrator_data--.py
 pyvenv.cfg
 bin/
 */__pycache__
+lab/

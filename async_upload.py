@@ -25,26 +25,22 @@ from time import sleep
 import json
 from requests import get, post
 from requests_oauthlib import OAuth1
-import administrator_data
 
 
 MEDIA_ENDPOINT_URL = 'https://upload.twitter.com/1.1/media/upload.json'
 POST_TWEET_URL = 'https://api.twitter.com/1.1/statuses/update.json'
 
 
-oauth = OAuth1(administrator_data.CONSUMER_KEY,
-               client_secret=administrator_data.CONSUMER_SECRET,
-               resource_owner_key=administrator_data.ACCESS_KEY,
-               resource_owner_secret=administrator_data.ACCESS_SECRET)
-
-
 class MediaUpload:
+    '''Upload media using twitter api v.1.1
 
-    def __init__(self, file_name, media_category='tweet'):
+    :param credential: class contains following objects: CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET -> object
+    :param file_name: filename of the media -> str
+    :param media_category: 'tweet' or 'dm'
+    '''
+
+    def __init__(self, credential, file_name, media_category='tweet'):
         '''
-        Upload file to twitter
-        :param file_name: -> str
-        :param media_category: 'tweet' or 'dm'
         Attributes:
             - video_filename
             - total_bytes
@@ -53,7 +49,16 @@ class MediaUpload:
             - file_format
             - media_type
             - media_category
+
+        :param credential: class contains following objects: CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET -> class
+        :param file_name: filename of the media -> str
+        :param media_category: 'tweet' or 'dm'
         '''
+        self.oauth = OAuth1(credential.CONSUMER_KEY,
+               client_secret=credential.CONSUMER_SECRET,
+               resource_owner_key=credential.ACCESS_KEY,
+               resource_owner_secret=credential.ACCESS_SECRET)
+
         self.video_filename = file_name
         self.total_bytes = getsize(self.video_filename)
         self.media_id = None
@@ -96,7 +101,7 @@ class MediaUpload:
             del request_data['media_category']
 
         req = post(url=MEDIA_ENDPOINT_URL,
-                            data=request_data, auth=oauth)
+                            data=request_data, auth=self.oauth)
         media_id = req.json()['media_id']
 
         self.media_id = media_id
@@ -135,7 +140,7 @@ class MediaUpload:
             }
 
             req = post(url=MEDIA_ENDPOINT_URL,
-                                data=request_data, files=files, auth=oauth)
+                                data=request_data, files=files, auth=self.oauth)
 
             if req.status_code < 200 or req.status_code > 299:
                 print(req.status_code)
@@ -161,7 +166,7 @@ class MediaUpload:
         }
 
         req = post(url=MEDIA_ENDPOINT_URL,
-                            data=request_data, auth=oauth)
+                            data=request_data, auth=self.oauth)
 
         self.processing_info = req.json().get('processing_info', None)
         self.check_status()
@@ -177,7 +182,7 @@ class MediaUpload:
             'media_ids': self.media_id
         }
 
-        req = post(url=POST_TWEET_URL, data=request_data, auth=oauth)
+        req = post(url=POST_TWEET_URL, data=request_data, auth=self.oauth)
         complete = req.json()['id']
         return complete
 
@@ -210,7 +215,7 @@ class MediaUpload:
             }
 
             req = get(url=MEDIA_ENDPOINT_URL,
-                               params=request_params, auth=oauth)
+                               params=request_params, auth=self.oauth)
 
             self.processing_info = req.json().get('processing_info', None)
             self.check_status()

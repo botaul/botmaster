@@ -67,6 +67,7 @@ Run app.py by using syntax: python3 app.py
 
 
 ## Deploy to Heroku
+
 ### Deploy with Heroku CLI
 Make sure you have deleted the local Database if you previously ran the bot on local.
 ```bash
@@ -75,6 +76,7 @@ git commit -m "first commit"
 heroku git:remote -a your_heroku_app_name
 git push heroku master
 ```
+
 ### Push to Github (If you deploy to Heroku with Github repo) or Fork this repository
 Use a private repo, because data in administrator_data.py is important
 ```bash
@@ -86,53 +88,64 @@ git push origin master
 ```
 Then deploy github repository to Heroku, search it on Google. <br>
 
+### Heroku limitations
+- 550 free dyno hours, you can upgrade to 1000 hours by adding credit card to your account.
+- Dyno cycling (restart) at least once per day, so, `add_admin`, `rm_admin`, `add_blacklist`, `rm_blacklist`, `switch on/off`, and all db (including Github database) won't work perfectly.
+ It would be better if you use Heroku database services e.g. Postgres. Please setting `Blacklist_words`, `Admin_id`, and etc. before deploying to Heroku. Database will be changed to Postgres
+ in future update.
+
 
 ## DMs examples (based on administrator_data)
 You can tweet more than one media with media link on tweet. Open your twitter app then tap (hold) the tweet. Media link automatically will be copied, then send the link to this bot from DM.
+
 ### Quote-retweet
 `fess! your message https://twitter.com/username/1234567890?s=19` (by attaching media, url, or not)
+
 ### Make a thread
 `fess! Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.` (by attaching media, url, or not)
+
 ### Normal tweet
 `fess! your message` (by attaching media, url, or not)
+
 ### Admin command
 Only admin can access these commands. If user try to access this commands, the user will be notified that the keyword is wrong. <br>
-`set! add_blacklist word1 word2 word-n` <br>
-`set! rm_blacklist word1 word2 word-n` <br>
-`set! db_update` not available when Database = False <br>
-`set! display_blacklist` <br>
-`set! rm_followed username1 username2 username-n` <br>
-`set! add_admin username1 username2 username-n` <br>
-`set! rm_admin username1 username2 username-n` <br>
-`set! who https://twitter.com/username/status/1234567890?s=19` check who was sent the menfess <br>
-`set! switch off` turn off the automenfess <br>
-`set! switch on` turn on the automenfess<br> <br>
+`#add_blacklist word1 word2 word-n` <br>
+`#rm_blacklist word1 word2 word-n` <br>
+`#db_update` not available when Database = False <br>
+`#display_blacklist` <br>
+`#rm_followed username1 username2 username-n` <br>
+`#add_admin username1 username2 username-n` <br>
+`#rm_admin username1 username2 username-n` <br>
+`#who https://twitter.com/username/status/1234567890?s=19` check who was sent the menfess <br>
+`#switch off` turn off the automenfess <br>
+`#switch on` turn on the automenfess<br> <br>
 For add_blacklist and rm_blacklist, you can add space into your words by giving underscore "_". Example: <br>
-`set! add_blacklist _word1_ word2_word3 word-n` <br>
+`#add_blacklist _word1_ word2_word3 word-n` <br>
 This command will append " word1 ", "word2 word3", and "word-n" to Blacklist words list.
+
 ### User command
-`user! delete https://twitter.com/username/status/1234567890?s=19` <br>
+`#delete https://twitter.com/username/status/1234567890?s=19` <br>
 Only sender who has sent the menfess that can delete the mentioned tweet link, admin pass this filter.
 
 
 ## Notes
 - Admin pass all filters
 - Only admin that can setting account with 'set!' command
-- db_sent only available for one day (reset at midnight)
-- I have deleted non-essential features, see [older commit](https://github.com/fakhrirofi/twitter_autobase/tree/e63b33ebe62094f23c73e3ef2db455e5dfd62076) if you want to use those features.
+- db_sent only available for one day (reset at midnight and heroku dyno cycling)
 - If you use github repository to deploy to heroku, make sure to set the repository to private. Github automatically will delete your github token if your repository is public
 - Keywords are not case-sensitive (upper, lower, capitalize)
 - See changelogs on [releases's notes](https://github.com/fakhrirofi/twitter_autobase/releases)
 - I have written documentation in administrator_data
+
 ### Auto accept message requests
 In the beginning, this bot will automatically fill 50 followers to tw.follower. So it can't track new followers when the bot was just started. If your followers didn't receive a message from the bot. Unfollow this bot for some minutes then follow it again.
 
 
 ## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. Please make sure to update tests as appropriate. To make a pull request, see the GitHub documentation on [creating a pull request](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request).
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. To make a pull request, see the GitHub documentation on [creating a pull request](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request).
 
 
-## [MIT License](https://github.com/fakhrirofi/twitter_autobase/blob/master/LICENSE)
+## MIT License
 
 Copyright (c) 2020- Fakhri Catur Rofi
 

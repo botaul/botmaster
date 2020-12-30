@@ -3,8 +3,7 @@
 # Re-code by Fakhri Catur Rofi under MIT License
 #     Source: https://github.com/fakhrirofi/twitter_autobase
 
-import administrator_data
-import tmp
+from command import AdminCommand, UserCommand
 from tweepy import OAuthHandler, API, Cursor
 from time import sleep
 from os import remove
@@ -18,12 +17,18 @@ from watermark import app as wm
 
 
 class Twitter:
+    '''
+    :param credential: class that contains object class like administrator_data -> object
+    '''
 
-    def __init__(self):
+    def __init__(self, credential):
         '''
         initialize twitter with tweepy
         Attributes:
+            - credential
             - api
+            - AdminCmd
+            - UserCmd
             - me
             - follower
             - followed
@@ -33,20 +38,28 @@ class Twitter:
             - db_received
             - indicator_start
             - db_intervalTime
+        
+        :param credential: class that contains object class like administrator_data -> object
         '''
+        self.credential = credential
+
         print("Initializing twitter...")
         auth = OAuthHandler(
-            administrator_data.CONSUMER_KEY, administrator_data.CONSUMER_SECRET)
+            credential.CONSUMER_KEY, credential.CONSUMER_SECRET)
         auth.set_access_token(
-            administrator_data.ACCESS_KEY, administrator_data.ACCESS_SECRET)
+            credential.ACCESS_KEY, credential.ACCESS_SECRET)
         self.api = API(
             auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+        
+        self.AdminCmd = AdminCommand(self.api, credential)
+        self.UserCmd = UserCommand(self.api, credential)
+
         self.me = self.api.me()
         self.follower = list() # list of integer
         self.followed = list() # list of integer
-        self.random_time = administrator_data.Delay_time
+        self.random_time = credential.Delay_time
         self.db_sent = dict() # dict of sender and his postid, update every midnight with self.day
-        self.day = (datetime.now(timezone.utc) + timedelta(hours=administrator_data.Timezone)).day
+        self.day = (datetime.now(timezone.utc) + timedelta(hours=credential.Timezone)).day
         self.db_received = list() # list of 55 received menfess's message id
         self.indicator_start = 0
         self.db_intervalTime = dict()
@@ -104,13 +117,13 @@ class Twitter:
 
     def db_sent_updater(self, action, sender_id=None, postid=None):
         '''Update self.db_sent
-        :param action: 'update','add',or 'delete' -> str
+        :param action: 'update','add' or 'delete' -> str
         :param sender_id: sender id who has sent the menfess -> str
         :param postid: tweet id or (sender_id, tweet id) -> str or tuple
         '''
         try:
             if action == 'update':
-                day = (datetime.now(timezone.utc) + timedelta(hours=administrator_data.Timezone)).day
+                day = (datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)).day
                 if day != self.day:
                     self.day = day
                     self.db_sent.clear()
@@ -157,16 +170,35 @@ class Twitter:
         dms = list()
         try:
             api = self.api
-            dm = api.list_direct_messages(count=50)[::-1]
+            dm = api.list_direct_messages(count=50)
 
             # FILL DB_RECEIVED WHEN BOT WAS JUST STARTED (Keep_DM)
             if self.indicator_start == 0:
                 self.indicator_start = 1
 
-                if administrator_data.Keep_DM is True:
+                if self.credential.Keep_DM is True:
                     for x in dm:
                         self.db_received.append(x.id)
                     # Ignore messages that received before bot started
+                    sleep(60)
+                    return dms
+            
+            # Check Account_status to make process (after Turned off) faster
+            if self.credential.Account_status is True:
+                dm.reverse()
+            else:
+                for x in range(len(dm)):
+                    message = dm[x].message_create['message_data']['text']
+                    if "#switch on" in message.lower():
+                        self.credential.Account_status = True
+                        self.delete_dm(dm[x].id)
+                        self.send_dm(dm[x].message_create['sender_id'],"processed: #switch on")
+                        del dm[x]
+                        dm.reverse()
+                        break
+                else:
+                    print("Account_status is False")
+                    sleep(60)
                     return dms
 
             for x in range(len(dm)):
@@ -185,73 +217,78 @@ class Twitter:
                     continue
 
                 # ADMIN & USER COMMAND
-                if any(i.lower() in message.lower() for i in [administrator_data.Admin_cmd, administrator_data.User_cmd]):
-                    print("command in progress...")
-                    try:
-                        message = message.split()
-                        trigger, command, *content = message
-                        notif = str()
+                list_command = list(self.credential.Admin_cmd) + list(self.credential.User_cmd)
+                command = message.split()[0].lower()
+                if any(i == command for i in list_command):
+                    # delete DM to avoid repeated command
+                    self.delete_dm(id)
 
-                        def COMMAND(dict_command, notif=notif, message_data=message_data, api=api,
-                                self=self, sender_id=sender_id):
-                            if command.lower() in dict_command.keys():
-                                command1 = dict_command[command.lower()]
-                                if len(content) != 0:
-                                    for word in content:
-                                        try:
-                                            # Don't unescape the word that will be Added to muted list
-                                            if any(command.lower() == i for i in list(administrator_data.Dict_adminCmd)[:2]):
-                                                word = word.replace("_", " ")
-                                            command2 = command1.format(f"{word}")
-                                            notif += f"\nprocessed: {command} {unescape(word)}"
-                                            exec(command2)
-                                        except Exception as ex:
-                                            notif += f"\nException: {ex}"
-                                            print(ex)
-                                            pass
-                                else:
-                                    try:
-                                        notif += f"\nprocessed: {command}"
-                                        exec(command1)
-                                    except Exception as ex:
-                                        notif += f"\nException: {ex}"
-                                        print(ex)
-                                        pass
-                            else:
-                                notif = "Exception: Command is not found!"
-
-                            return notif
-
-                        if trigger.lower() == administrator_data.Admin_cmd.lower() and sender_id in administrator_data.Admin_id:
-                            notif = COMMAND(administrator_data.Dict_adminCmd)
-                        elif trigger.lower() == administrator_data.User_cmd.lower():
-                            notif = COMMAND(administrator_data.Dict_userCmd)
-                            if sender_id not in administrator_data.Admin_id and command.lower() in administrator_data.Dict_userCmd:
-                                if "Exception" not in notif:
-                                    notif = administrator_data.Notify_userCmdDelete
-                                else:
-                                    notif = administrator_data.Notify_userCmdDeleteFail
+                    AdminCmd = self.AdminCmd #pylint: disable=unused-variable
+                    UserCmd = self.UserCmd #pylint: disable=unused-variable
+                    command, *contents = message.split()
+                    notif = str()
+                    
+                    if command.lower() in self.credential.Admin_cmd:
+                        # Manage admin access
+                        if sender_id not in self.credential.Admin_id:
+                            notif = self.credential.Notify_wrongTrigger
+                            self.send_dm(recipient_id=sender_id, text=notif)
+                            continue
                         else:
-                            notif = administrator_data.Notify_wrongTrigger
+                            pass
+                    print(f"command {command} {str(contents)} in progress...")
 
-                    except Exception as ex:
-                        notif = f"some commands failed: {ex} \n{notif}"
-                        print(ex)
-                        pass
+                    dict_command = self.credential.Admin_cmd.copy()
+                    dict_command.update(self.credential.User_cmd)
 
-                    finally:
-                        self.delete_dm(id)
-                        self.send_dm(recipient_id=sender_id, text=notif)
+                    if len(contents) != 0:
+                        urls = message_data["entities"]["urls"]
+                        for arg in contents:
+                            try:
+                                notif += f"\nprocessed: {command} {arg}"
+                                fix_command = dict_command[command.lower()]
+                                if command.lower() in list(self.credential.Admin_cmd)[:2]:
+                                    arg = arg.replace("_", " ")
 
+                                exec(dict_command[command.lower()])
+                                if "urls" in fix_command:
+                                    break
+
+                            except Exception as ex:
+                                pass
+                                print(ex)
+                                notif += f"\nException: {ex}"
+                    else:
+                        try:
+                            notif += f"\nprocessed: {command}"
+                            exec(dict_command[command.lower()])
+                        except Exception as ex:
+                            pass
+                            print(ex)
+                            notif += f"\nException: {ex}"
+                    
+                    # Skip notif if '#no_notif' in command's comment
+                    if "#no_notif" in dict_command[command.lower()]:
+                        if "Exception" not in notif:
+                            continue
+                    
+                    # Manage notification for user
+                    if sender_id not in self.credential.Admin_id:
+                        if "Exception" not in notif:
+                            notif = self.credential.Notify_userCmdDelete
+                        else:
+                            notif = self.credential.Notify_userCmdDeleteFail
+                    
+                    self.send_dm(sender_id, notif)
                     continue
                 
                 # ACCOUNT STATUS
-                if administrator_data.Account_status is False:
+                if self.credential.Account_status is False:
                     continue
 
                 # Interval time per sender
-                if administrator_data.Interval_perSender is True and sender_id not in administrator_data.Admin_id:
-                    date_now = datetime.now(timezone.utc) + timedelta(hours=administrator_data.Timezone)
+                if self.credential.Interval_perSender is True and sender_id not in self.credential.Admin_id:
+                    date_now = datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)
                     for i in list(self.db_intervalTime):
                         # cleaning self.db_intervalTime
                         if self.db_intervalTime[i] < date_now:
@@ -260,10 +297,10 @@ class Twitter:
                     if sender_id in self.db_intervalTime:
                         continue
                     else:
-                        self.db_intervalTime[sender_id] = date_now + timedelta(seconds=administrator_data.Interval_time)
+                        self.db_intervalTime[sender_id] = date_now + timedelta(seconds=self.credential.Interval_time)
 
                 # Delete or store message id to avoid repeated menfess (Keep_DM)
-                if administrator_data.Keep_DM is True:     
+                if self.credential.Keep_DM is True:     
                     if len(self.db_received) > 55:
                         self.db_received.pop(0)
                     self.db_received.append(id)
@@ -272,37 +309,37 @@ class Twitter:
                     self.delete_dm(id)
 
                 # ONLY FOLLOWED
-                if administrator_data.Only_followed is True and sender_id not in administrator_data.Admin_id:
+                if self.credential.Only_followed is True and sender_id not in self.credential.Admin_id:
                     if int(sender_id) not in self.followed:
-                        self.send_dm(sender_id, administrator_data.Notify_notFollowed)
+                        self.send_dm(sender_id, self.credential.Notify_notFollowed)
                         continue
 
                 # Minimum lenMenfess
-                if len(message) < administrator_data.Minimum_lenMenfess and sender_id not in administrator_data.Admin_id:
-                    self.send_dm(sender_id, administrator_data.Notify_senderRequirements)
+                if len(message) < self.credential.Minimum_lenMenfess and sender_id not in self.credential.Admin_id:
+                    self.send_dm(sender_id, self.credential.Notify_senderRequirements)
                     continue
 
                 # SENDER REQUIREMENTS
-                if administrator_data.Sender_requirements is True and sender_id not in administrator_data.Admin_id:
+                if self.credential.Sender_requirements is True and sender_id not in self.credential.Admin_id:
                     indicator = 0
                     user = (api.get_user(sender_id))._json
                     # minimum followers
-                    if user['followers_count'] < administrator_data.Minimum_followers:
+                    if user['followers_count'] < self.credential.Minimum_followers:
                         indicator = 1
                     # minimum age
                     created_at = datetime.strptime(user['created_at'], '%a %b %d %H:%M:%S +0000 %Y')
-                    now = (datetime.now(timezone.utc) + timedelta(hours=administrator_data.Timezone)).replace(tzinfo=None)
+                    now = (datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)).replace(tzinfo=None)
 
-                    if (now-created_at).days < administrator_data.Minimum_day:
+                    if (now-created_at).days < self.credential.Minimum_day:
                         indicator = 1
                     
                     if indicator == 1:
-                        self.send_dm(sender_id, administrator_data.Notify_senderRequirements)
+                        self.send_dm(sender_id, self.credential.Notify_senderRequirements)
                         continue
 
                 # BLACKLIST WORDS
-                list_blacklist = [i.lower() for i in administrator_data.Blacklist_words]
-                if any(i in message.lower() for i in list_blacklist) and sender_id not in administrator_data.Admin_id:
+                list_blacklist = [i.lower() for i in self.credential.Blacklist_words]
+                if any(i in message.lower() for i in list_blacklist) and sender_id not in self.credential.Admin_id:
                     try:
                         print("Deleting muted menfess")
                         notif = "Menfess kamu mengandung muted words, jangan lupa baca peraturan base yaa!"
@@ -315,7 +352,7 @@ class Twitter:
                     continue
 
                 # MENFESS TRIGGER
-                if any(j.lower() in message.lower() for j in administrator_data.Trigger_word):
+                if any(j.lower() in message.lower() for j in self.credential.Trigger_word):
 
                     print("Getting message -> sender_id: " + str(sender_id))
                     dict_dms = dict(message=message, sender_id=sender_id,
@@ -325,7 +362,7 @@ class Twitter:
                     # attachment url
                     urls = message_data['entities']['urls']
                     for i in urls:
-                        if "https://twitter.com/" in i['expanded_url'] and "/status/" in i['expanded_url']:
+                        if "twitter.com/" in i['expanded_url'] and "/status/" in i['expanded_url']:
                             # i['url]: url in text message                          
                             # Media
                             if any(j in i['expanded_url'] for j in ['/video/', '/photo/', '/media/']):
@@ -364,14 +401,14 @@ class Twitter:
 
                 # WRONG TRIGGER
                 else:
-                    notif = administrator_data.Notify_wrongTrigger
+                    notif = self.credential.Notify_wrongTrigger
                     self.send_dm(recipient_id=sender_id, text=notif)
 
                     # Send wrong menfess to admin
                     username = self.get_user_screen_name(sender_id)
                     notif = message + f"\nstatus: wrong trigger\nfrom: @{username}\nid: {sender_id}"
 
-                    for admin in administrator_data.Admin_id:
+                    for admin in self.credential.Admin_id:
                         self.send_dm(recipient_id=admin, text=notif)
             
             print(str(len(dms)) + " messages collected")
@@ -393,23 +430,23 @@ class Twitter:
             print("Notifying the queue to sender")
             x, y, z = -1, 0, 0
             # x is primary time (30 sec); y is queue; z is addition time for media
-            time = datetime.now(timezone.utc) + timedelta(hours=administrator_data.Timezone)
+            time = datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)
             for i in dms:
                 y += 1
                 x += (len(i['message']) // 272) + 1
                 if i['media_url'] != None:
                     z += 3
                 
-                if administrator_data.Private_mediaTweet is True:
+                if self.credential.Private_mediaTweet is True:
                     z += len(i['attachment_urls']['media']) * 5
 
                 # Delay for the first sender is very quick, so, it won't be notified
                 if x == 0:
                     continue
 
-                sent_time = time + timedelta(seconds= x*(30+self.random_time) + z)
+                sent_time = time + timedelta(seconds= x*(33+self.random_time) + z)
                 sent_time = datetime.strftime(sent_time, '%H:%M')
-                notif = administrator_data.Notify_queueMessage.format(str(y), sent_time)
+                notif = self.credential.Notify_queueMessage.format(str(y), sent_time)
                 self.send_dm(recipient_id=i['sender_id'], text=notif)
 
         except Exception as ex:
@@ -424,11 +461,10 @@ class Twitter:
         :param postid: str or int
         '''
         try:
-            if administrator_data.Notify_sent is True:
-                # Message that will be sent when menfess is posted
-                notif = administrator_data.Notify_sentMessage.format(self.me.screen_name)
-                text = notif + str(postid)                              
-                self.send_dm(recipient_id=sender_id, text=text)
+            # Message that will be sent when menfess is posted
+            notif = self.credential.Notify_sentMessage.format(self.me.screen_name)
+            text = notif + str(postid)                              
+            self.send_dm(recipient_id=sender_id, text=text)
 
         except Exception as ex:
             print(ex)
@@ -467,7 +503,6 @@ class Twitter:
         :returns: username -> str
         '''
         try:
-            print("Getting username...")
             user = self.api.get_user(id)
             return user.screen_name
 
@@ -486,10 +521,10 @@ class Twitter:
         '''
         try:
             print("Downloading media...")
-            oauth = OAuth1(client_key=administrator_data.CONSUMER_KEY,
-                           client_secret=administrator_data.CONSUMER_SECRET,
-                           resource_owner_key=administrator_data.ACCESS_KEY,
-                           resource_owner_secret=administrator_data.ACCESS_SECRET)
+            oauth = OAuth1(client_key=self.credential.CONSUMER_KEY,
+                           client_secret=self.credential.CONSUMER_SECRET,
+                           resource_owner_key=self.credential.ACCESS_KEY,
+                           resource_owner_secret=self.credential.ACCESS_SECRET)
 
             r = get(media_url, auth=oauth)
 
@@ -526,7 +561,7 @@ class Twitter:
         file_type = filename.split('.')[-1]
         if file_type in "jpg jpeg png webp":
             print("Adding watermark...")
-            adm = administrator_data
+            adm = self.credential
             wm.watermark_text_image(filename, text=adm.Watermark_text,
             ratio=adm.Watermark_ratio, pos=adm.Watermark_position,
             output=output, color=adm.Watermark_textColor,
@@ -575,7 +610,7 @@ class Twitter:
                 filename = self.download_media(media_url)
 
                 # Add watermark
-                if administrator_data.Watermark is True:
+                if self.credential.Watermark is True:
                     self.add_watermark(filename)
 
                 media_id, media_type = self.upload_media(filename)
@@ -600,7 +635,7 @@ class Twitter:
         :returns: media id, media_type -> tuple
         '''
         try:
-            mediaupload = MediaUpload(filename, media_category)
+            mediaupload = MediaUpload(self.credential, filename, media_category)
             media_id, media_type = mediaupload.upload_init()
             mediaupload.upload_append()
             mediaupload.upload_finalize()
@@ -632,7 +667,7 @@ class Twitter:
                 filename = self.download_media(media_url)
 
                 # Add watermark
-                if administrator_data.Watermark is True:
+                if self.credential.Watermark is True:
                     self.add_watermark(filename)
 
                 media_id, media_type = self.upload_media(filename)
@@ -718,7 +753,8 @@ class Twitter:
                 list_media_ids = list_media_ids[1:] + [[]]
 
             # NOTIFY MENFESS SENT OR NOT
-            self.notify_sent(sender_id, postid)
+            if self.credential.Notify_sent is True:
+                self.notify_sent(sender_id, postid)
             print('Menfess is posted -> postid:', str(postid))
 
             sleep(30+self.random_time)

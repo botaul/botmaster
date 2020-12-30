@@ -107,7 +107,7 @@ Keep_DM = False
 #     sleep(60)
 # for id in ids: api.destroy_direct_message(id)
 
-Database = False 
+Database = False
 # bool, True: Using database (Push simple txt to github every midnight),
 # You can directly update using 'set! db_update' command from DM
 # Github_token and Github_repo are not required when Database is False
@@ -124,136 +124,38 @@ Account_status = True
 # If there are messages on DM when turned off, those will be posted when this bot switched to on
 
 Trigger_word = ["fess!", "blablabla!"]
-Notify_wrongTrigger = "Keyword yang kamu kirim salah!"
+Notify_wrongTrigger = "Trigger menfess tidak terdeteksi, pesan kamu akan dikirimkan ke admin"
+# Message will be sent to admin
 Sensitive_word = "/sensitive"
 # Used when sender send sensitive content, order them to use this word
 # But I advise against sending sensitive content, Twitter may ban your account,
 # And using this bot for 'adult' base is strictly prohibited.
 Blacklist_words = ['covid', 'blablabla'] 
 # hashtags and mentions will be changed into "#/" and "@/" in app.py to avoid ban
-Admin_cmd = "set!"  # exec command in Dict_adminCmd
-User_cmd = "user!" # exec command in Dict_userCmd
 
-# Please make Dict_admin/userCmd's command in lowercase
-Dict_adminCmd = {
-    'add_blacklist': 'administrator_data.Blacklist_words.append("{}")',
+# Please set Admin_cmd and User_cmd in lowercase
+# If you want to modify command, don't change the order of #add_blacklist and #rm_blacklist
+# don't edit #switch
 
-
-    'rm_blacklist': 'administrator_data.Blacklist_words.remove("{}")',
-
-
-    'display_blacklist': 'self.send_dm(sender_id, str(administrator_data.Blacklist_words))', 
-
-
-    'db_update': '''
-contents = tmp.repo.get_contents(tmp.filename_github)
-with open(tmp.filename_github) as f:
-    tmp.repo.update_file(contents.path, "updating Database", f.read(), contents.sha)
-    f.close()''',
-
-
-    'rm_followed':'''
-user = (api.get_user(screen_name="{}"))._json
-self.followed.remove(int(user['id']))
-api.destroy_friendship(user['id'])''',
-
-
-    'who':'''
-urls = message_data["entities"]["urls"]
-if len(urls) == 0:
-    raise Exception("Tweet link is not mentioned")
-for i in urls:
-    url = i["expanded_url"]
-    postid = str()
-    if "?" in url:
-        postid = sub("[/?]", " ", url).split()[-2]
-    else:
-        postid = url.split("/")[-1]
-    found = 0
-    for req_senderId in self.db_sent.keys():
-        if found == 1:
-            break
-        if req_senderId == 'deleted':
-            # 'deleted': (req_senderId, postid)
-            for x in self.db_sent['deleted']:
-                if x[1] == postid:
-                    found, req_senderId = 1, x[0]
-                    username = self.get_user_screen_name(req_senderId)
-                    text = "username: @" + username + "\\nid: " + req_senderId + "\\nstatus: deleted\\nurl: " + url
-                    self.send_dm(sender_id, text)
-                    break
-            continue
-        for j in self.db_sent[req_senderId]:
-            if j == postid:
-                found = 1
-                username = self.get_user_screen_name(req_senderId)
-                text = "username: @" + username + "\\nid: " + req_senderId + "\\nstatus: exists " + url
-                self.send_dm(sender_id, text)
-                break
-    if found == 0:
-        raise Exception("menfess is not found in db_sent")''',
-
-
-    'add_admin':'''
-user = (api.get_user(screen_name="{}"))._json
-administrator_data.Admin_id.append(str(user['id']))''',
-
-
-    'rm_admin':'''
-user = (api.get_user(screen_name="{}"))._json
-administrator_data.Admin_id.remove(str(user['id']))''',
-
-
-    'switch':'''
-status = "{}"
-if status == "on":
-    administrator_data.Account_status = True
-elif status == "off":
-    administrator_data.Account_status = False
-else:
-    raise Exception("available parameters are on or off")'''
+Admin_cmd = {
+    '#add_blacklist'    : 'AdminCmd.add_blacklist(arg)',
+    '#rm_blacklist'     : 'AdminCmd.rm_blacklist(arg)',
+    '#display_blacklist': 'AdminCmd.display_blacklist(sender_id) #no_notif',
+    '#db_update'        : 'AdminCmd.db_update()',
+    '#rm_followed'      : 'AdminCmd.rm_followed(self.followed, arg)',
+    '#who'              : 'AdminCmd.who(sender_id, self.db_sent, urls) #no_notif',
+    '#add_admin'        : 'AdminCmd.add_admin(arg)',
+    '#rm_admin'         : 'AdminCmd.rm_admin(arg)',
+    '#switch'           : 'AdminCmd.switch(arg)',
 }
+# #no_notif is an indicator to skip send notif to admin
 # db_update is not available when Database set to False
 # rm_followed is not available when Only_followed is False
 # who is only available for one day (reset every midnight)
 
-Dict_userCmd = {
-    'delete':'''
-if sender_id not in self.db_sent and sender_id not in administrator_data.Admin_id:
-    raise Exception("sender_id not in db_sent")
-urls = message_data["entities"]["urls"]
-if len(urls) == 0:
-    raise Exception("Tweet link is not mentioned")
-for i in urls:
-    postid = str()
-    if "?" in i["expanded_url"]:
-        postid = sub("[/?]", " ", i["expanded_url"]).split()[-2]
-    else:
-        postid = i["expanded_url"].split("/")[-1]
-    found = 0
-    if sender_id in self.db_sent: # user has sent menfess
-        if postid in self.db_sent[sender_id]: # normal succes
-            self.db_sent_updater('add', 'deleted', (sender_id, postid))
-            self.db_sent_updater('delete', sender_id, postid)
-            found = 1
-        elif sender_id not in administrator_data.Admin_id: # normal trying other menfess
-            raise Exception("sender doesn't have access to delete postid")
-    elif sender_id not in administrator_data.Admin_id: # user hasn't sent menfess
-        raise Exception("sender doesn't have access to delete postid")
-    if found == 0: # administrator mode
-        for req_senderId in self.db_sent.keys():
-            if found != 0:
-                break
-            for j in self.db_sent[req_senderId]:
-                if j == postid:
-                    found = req_senderId
-                    break
-        if found != 0:
-            self.db_sent_updater('add', 'deleted', (found, postid))
-            self.db_sent_updater('delete', found, postid)
-        else:
-            print("admin mode: directly destroy_status")
-    api.destroy_status(id=postid) # It doesn't matter when error happen here'''
+
+User_cmd = {
+    '#delete'           : 'UserCmd.delete(sender_id, self.db_sent, urls)',
 }
 # delete is not available for user when bot was just started and user id not in db_sent
 # delete & db_sent are only available for one day (reset every midnight)
