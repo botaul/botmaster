@@ -197,9 +197,7 @@ class Twitter:
                         dm.reverse()
                         break
                 else:
-                    print("Account_status is False")
-                    sleep(60)
-                    return dms
+                    pass
 
             for x in range(len(dm)):
                 sender_id = dm[x].message_create['sender_id'] # str
