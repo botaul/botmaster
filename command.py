@@ -45,6 +45,8 @@ class AdminCommand:
     def db_update(self):
         '''Update Github database
         '''
+        if self.filename_github == str():
+            raise Exception("Database is disabled")
         contents = self.repo.get_contents(self.filename_github)
         with open(self.filename_github) as f:
             self.repo.update_file(contents.path, "updating Database", f.read(), contents.sha)
@@ -56,8 +58,11 @@ class AdminCommand:
         :param username: username of the account -> str
         '''
         user = (self.api.get_user(screen_name=username))._json
-        followed.remove(int(user['id']))
         self.api.destroy_friendship(user['id'])
+        try:
+            followed.remove(int(user['id']))
+        except:
+            raise Exception("Only_followed is disabled, but destroy_friendship is succeeded")
     
     def who(self, sender_id, db_sent, urls):
         '''Check who was sent the menfess
@@ -213,5 +218,7 @@ class UserCommand:
                     self.__db_sent_updater('delete', db_sent, found, postid)
                 else:
                     print("admin mode: directly destroy_status")
-
-            self.api.destroy_status(id=postid) # It doesn't matter when error happen here'''   
+            try:
+                self.api.destroy_status(id=postid) # It doesn't matter when error happen here
+            except Exception as ex:
+                raise Exception(f"You can't delete this tweet. Error: {ex}")   

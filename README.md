@@ -1,5 +1,8 @@
 # twitter_autobase
-A Twitter bot that can read your DMs, then tweets like Twitter autobase. This project is a re-code of [autodm_base](https://github.com/ydhnwb/autodm_base) by [Prieyudha Akadita S.](https://github.com/ydhnwb) with many improvements and fixed bugs. This project is under MIT License. You can try on my autobase account [@autobase_reborn](https://twitter.com/autobase_reborn).
+A Twitter bot that can read your DMs, then tweets like Twitter autobase. This project is a re-code of
+[autodm_base](https://github.com/ydhnwb/autodm_base) by [Prieyudha Akadita S.](https://github.com/ydhnwb)
+with many improvements and fixed bugs. This project is under MIT License. You can try on my autobase account
+[@autobase_reborn](https://twitter.com/autobase_reborn).
 - **Read [Twitter rules](https://help.twitter.com/en/rules-and-policies/twitter-search-policies)** <br>
 - **USING THIS BOT FOR 'ADULT' BASE IS STRICTLY PROHIBITED** <br>
 
@@ -21,7 +24,7 @@ A Twitter bot that can read your DMs, then tweets like Twitter autobase. This pr
 - Notify sender when the menfess sent or not
 - Tweet GIF and video
 - Post a Thread when characters > 280
-- Sync simple database (text) on github repository
+- Sync simple database (json) on github repository
 - Setting account from DM
 - Upload more than 4 media
 - Trigger words are not case-sensitive
@@ -31,7 +34,7 @@ A Twitter bot that can read your DMs, then tweets like Twitter autobase. This pr
 
 ## Requirements
 - Good at basic python programming
-- Python 3.7+
+- Python 3.8.x
 - Twitter Developer Account
 - Github Account
 - Heroku Account
@@ -45,7 +48,7 @@ A Twitter bot that can read your DMs, then tweets like Twitter autobase. This pr
 
 
 ## Installation
-Note: You can run this bot from Windows as well. Search it on Google. <br>
+Note: You can run this bot on Windows and MacOS as well<br>
 Open your Linux terminal on the specified folder <br>
 ```bash
 # Clone this repository or download released version on https://github.com/fakhrirofi/twitter_autobase/releases
@@ -63,7 +66,7 @@ __pycache__/
 pyvenv.cfg
 # add another, up to you
 ```
-Run app.py by using syntax: python3 app.py
+After modifying contents on administrator_data, run app by using syntax: python3 app.py
 
 
 ## Deploy to Heroku
@@ -90,13 +93,15 @@ Then deploy github repository to Heroku, search it on Google. <br>
 
 ### Heroku limitations
 - 550 free dyno hours, you can upgrade to 1000 hours by adding credit card to your account.
-- Dyno cycling (restart) at least once per day, so, `add_admin`, `rm_admin`, `add_blacklist`, `rm_blacklist`, `switch on/off`, and all db (including Github database) won't work perfectly.
- It would be better if you use Heroku database services e.g. Postgres. Please setting `Blacklist_words`, `Admin_id`, and etc. before deploying to Heroku. Database will be changed to Postgres
- in future update.
+- Dyno cycling (restart), so `add_admin`, `rm_admin`, `add_blacklist`, `rm_blacklist`,
+`switch on/off`, and all temporary db (including Github database) won't work perfectly. It would be better if
+you use Heroku database services e.g. Postgres. Please setting `Blacklist_words`, `Admin_id`, and etc. before
+deploying to Heroku. Database will be changed to Postgres in future updates.
 
 
 ## DMs examples (based on administrator_data)
-You can tweet more than one media with media link on tweet. Open your twitter app then tap (hold) the tweet. Media link automatically will be copied, then send the link to this bot from DM.
+You can tweet more than one media with media link on tweet. Open your twitter app then tap (hold) the tweet.
+Media link automatically will be copied, then send the link to this bot from DM.
 
 ### Quote-retweet
 `fess! your message https://twitter.com/username/1234567890?s=19` (by attaching media, url, or not)
@@ -108,7 +113,9 @@ You can tweet more than one media with media link on tweet. Open your twitter ap
 `fess! your message` (by attaching media, url, or not)
 
 ### Admin command
-Only admin can access these commands. If user try to access this commands, the user will be notified that the keyword is wrong. <br>
+Note: Due to Heroku dyno cycling, some commands that use temporary data won't work perfectly. <br>
+Only admin can access these commands. If user try to access this commands, the user will be notified that the
+keyword is wrong. <br>
 `#add_blacklist word1 word2 word-n` <br>
 `#rm_blacklist word1 word2 word-n` <br>
 `#db_update` not available when Database = False <br>
@@ -130,19 +137,23 @@ Only sender who has sent the menfess that can delete the mentioned tweet link, a
 
 ## Notes
 - Admin pass all filters
-- Only admin that can setting account with 'set!' command
-- db_sent only available for one day (reset at midnight and heroku dyno cycling)
-- If you use github repository to deploy to heroku, make sure to set the repository to private. Github automatically will delete your github token if your repository is public
+- Only admin that can setting account with admin command
+- All temporary data only available for one day (reset at midnight or heroku dyno cycling)
+- If you use github repository to deploy to heroku, make sure to set the repository to private. Github
+automatically will delete your github token if your repository is public
 - Keywords are not case-sensitive (upper, lower, capitalize)
 - See changelogs on [releases's notes](https://github.com/fakhrirofi/twitter_autobase/releases)
 - I have written documentation in administrator_data
 
 ### Auto accept message requests
-In the beginning, this bot will automatically fill 50 followers to tw.follower. So it can't track new followers when the bot was just started. If your followers didn't receive a message from the bot. Unfollow this bot for some minutes then follow it again.
+This works by sending welcome message to new followers, so Sender must follow the bot. In the beginning, it
+fills 50 followers to tw.follower. So it can't track new followers when the bot was just started. If your
+followers didn't receive a welcome message from the bot. Unfollow this bot for some minutes then follow it again.
 
 
 ## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. To make a pull request, see the GitHub documentation on [creating a pull request](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request).
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to
+change. To make a pull request, see the GitHub documentation on [creating a pull request](https://help.githubcom/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request).
 
 
 ## MIT License

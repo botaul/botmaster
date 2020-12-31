@@ -61,7 +61,7 @@ class Twitter:
         self.db_sent = dict() # dict of sender and his postid, update every midnight with self.day
         self.day = (datetime.now(timezone.utc) + timedelta(hours=credential.Timezone)).day
         self.db_received = list() # list of 55 received menfess's message id
-        self.indicator_start = 0
+        self.indicator_start = False
         self.db_intervalTime = dict()
     
 
@@ -173,8 +173,8 @@ class Twitter:
             dm = api.list_direct_messages(count=50)
 
             # FILL DB_RECEIVED WHEN BOT WAS JUST STARTED (Keep_DM)
-            if self.indicator_start == 0:
-                self.indicator_start = 1
+            if self.indicator_start is False:
+                self.indicator_start = True
 
                 if self.credential.Keep_DM is True:
                     for x in dm:
@@ -188,8 +188,8 @@ class Twitter:
                 dm.reverse()
             else:
                 for x in range(len(dm)):
-                    message = dm[x].message_create['message_data']['text']
-                    if "#switch on" in message.lower():
+                    message = dm[x].message_create['message_data']['text'].lower()
+                    if "#switch on" in message:
                         self.credential.Account_status = True
                         self.delete_dm(dm[x].id)
                         self.send_dm(dm[x].message_create['sender_id'],"processed: #switch on")
@@ -197,7 +197,12 @@ class Twitter:
                         dm.reverse()
                         break
                 else:
-                    pass
+                    for x in dm:
+                        message = x.message_create['message_data']['text'].lower()
+                        # Only admin command that still active
+                        if any(i in message for i in self.credential.Admin_cmd):
+                            dm.reverse()
+                            break
 
             for x in range(len(dm)):
                 sender_id = dm[x].message_create['sender_id'] # str
@@ -422,7 +427,7 @@ class Twitter:
 
     def notify_queue(self, dms):
         """Notify the menfess queue to sender
-        :param dms: dms that returned from self.read_dm -> dict
+        :param dms: dms that returned from self.read_dm -> list of dict
         """
         try:
             print("Notifying the queue to sender")

@@ -44,7 +44,7 @@ Only_followed = False
 # bool, True: only sender that followed by bot that can sends menfess
 # delay in the beginning will be added, based on your followed accounts
 # get 5000 account/minute, you can count it. Admin pass this filter.
-# If you want to delete account from followed, send 'Set! rm_followed username1 username2 username-n'
+# If you want to delete account from followed, send '#rm_followed username1 username2 username-n'
 # You can follow the sender as usual
 Notify_followed = "Yeay! kamu udah difollow sama base ini. Jangan lupa baca peraturan sebelum mengirim menfess yaa!"
 Notify_notFollowed = "Hmm, kamu belum difollow sama base ini. Jadi ga bisa ngirim menfess dehh :("
@@ -108,8 +108,8 @@ Keep_DM = False
 # for id in ids: api.destroy_direct_message(id)
 
 Database = False
-# bool, True: Using database (Push simple txt to github every midnight),
-# You can directly update using 'set! db_update' command from DM
+# bool, True: Using database (Push json to github every midnight),
+# You can directly update using '#db_update' command from DM
 # Github_token and Github_repo are not required when Database is False
 Github_token = "****"
 # get it from https://github.com/settings/tokens , set allow for editing repo
@@ -119,8 +119,8 @@ Github_repo = "username/your_repo"
 
 Account_status = True
 # bool, True: Turn on the automenfess. If it turned into False, this bot won't
-# post menfess. But, accept message & command features are still running
-# You can switch it using 'set! switch on/off' command from DM
+# post menfess. But, accept message & admin command are still running
+# You can switch it using '#switch on/off' command from DM
 # If there are messages on DM when turned off, those will be posted when this bot switched to on
 
 Trigger_word = ["fess!", "blablabla!"]

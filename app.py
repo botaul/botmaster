@@ -40,16 +40,16 @@ class Autobase:
     def __update_follow(self, indicator):
         api = self.tw.api
         me = self.tw.me
-        first = 1 # indicator for accept message
-        first1 = 1 # indicator for followed
+        inAccMsg = False # indicator for accept message
+        inFoll = False # indicator for followed
         while True:
             # AUTO ACCEPT MESSAGE REQUESTS
             print("Accepting message requests...")
             try:
                 follower = api.followers_ids(user_id=me.id, count=50)
                 if len(follower) != 0:
-                    if first == 1:
-                        first = 0
+                    if inAccMsg == False:
+                        inAccMsg = True
                         self.tw.follower = follower.copy()
 
                     for i in follower:
@@ -71,8 +71,8 @@ class Autobase:
             # GETTING LIST OF FOLLOWED
             if self.credential.Only_followed is True:
                 try:
-                    if first1 == 1:
-                        first1 = 0
+                    if inFoll == False:
+                        inFoll = True
                         followed = self.tw.get_all_followed(me.id, first_delay=False)
                         self.tw.followed = followed.copy()
                     else:
