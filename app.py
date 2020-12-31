@@ -154,9 +154,9 @@ class Autobase:
             if len(dms) != 0:
 
                 # Cleaning dms
-                dmsCopy = dms.copy()
                 while 'dm_safe' not in indicator:
                     sleep(1)
+                dmsCopy = dms.copy()
                 dms.clear()
 
                 if self.credential.Notify_queue is True:
