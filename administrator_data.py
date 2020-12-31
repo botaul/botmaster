@@ -134,8 +134,7 @@ Blacklist_words = ['covid', 'blablabla']
 # hashtags and mentions will be changed into "#/" and "@/" in app.py to avoid ban
 
 # Please set Admin_cmd and User_cmd in lowercase
-# If you want to modify command, don't change the order of #add_blacklist and #rm_blacklist
-# don't edit #switch
+# If you want to modify command, don't edit #switch
 
 Admin_cmd = {
     '#add_blacklist'    : 'AdminCmd.add_blacklist(arg)',

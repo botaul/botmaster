@@ -27,12 +27,14 @@ class AdminCommand:
         '''
         :param word: word that will be added to Blacklist_words -> str
         '''
+        word = word.replace("_", " ")
         self.credential.Blacklist_words.append(word)
     
     def rm_blacklist(self, word):
         '''
         :param word: word that will be deleted from Blacklist_words -> str
         '''
+        word = word.replace("_", " ")
         self.credential.Blacklist_words.remove(word)
 
     def display_blacklist(self, sender_id):

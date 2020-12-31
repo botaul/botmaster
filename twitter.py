@@ -250,10 +250,7 @@ class Twitter:
                             try:
                                 notif += f"\nprocessed: {command} {arg}"
                                 fix_command = dict_command[command.lower()]
-                                if command.lower() in list(self.credential.Admin_cmd)[:2]:
-                                    arg = arg.replace("_", " ")
-
-                                exec(dict_command[command.lower()])
+                                exec(fix_command)
                                 if "urls" in fix_command:
                                     break
 
