@@ -21,6 +21,7 @@ class AdminCommand:
         self.credential = credential
         self.api = api
         self.repo = lambda x: None
+        self.repo.indicator = False # indicator for db_update method
         self.filename_github = str()
     
     def add_blacklist(self, word):
@@ -47,8 +48,8 @@ class AdminCommand:
     def db_update(self):
         '''Update Github database
         '''
-        if self.filename_github == str():
-            raise Exception("Database is disabled")
+        if self.repo.indicator is False:
+            raise Exception("Github database is disabled")
         contents = self.repo.get_contents(self.filename_github)
         with open(self.filename_github) as f:
             self.repo.update_file(contents.path, "updating Database", f.read(), contents.sha)
@@ -61,9 +62,9 @@ class AdminCommand:
         '''
         user = (self.api.get_user(screen_name=username))._json
         self.api.destroy_friendship(user['id'])
-        try:
+        if int(user['id']) in followed:
             followed.remove(int(user['id']))
-        except:
+        else:
             raise Exception("Only_followed is disabled, but destroy_friendship is succeeded")
     
     def who(self, sender_id, db_sent, urls):

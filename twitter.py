@@ -18,7 +18,7 @@ from watermark import app as wm
 
 class Twitter:
     '''
-    :param credential: class that contains object class like administrator_data -> object
+    :param credential: class that contains objects like administrator_data -> object
     '''
 
     def __init__(self, credential):
@@ -39,7 +39,7 @@ class Twitter:
             - indicator_start
             - db_intervalTime
         
-        :param credential: class that contains object class like administrator_data -> object
+        :param credential: class that contains objects like administrator_data -> object
         '''
         self.credential = credential
 
@@ -145,8 +145,7 @@ class Twitter:
 
     def read_dm(self):
         '''Read and filter DMs
-        Delay 60 seconds will be added because of Twitter API limit.
-        This method contains Command_word that can do exec and
+        This method contains AdminCmd and UserCmd that can do exec and
         self.db_sent updater.
         Filters:
             - received dm
@@ -180,7 +179,6 @@ class Twitter:
                     for x in dm:
                         self.db_received.append(x.id)
                     # Ignore messages that received before bot started
-                    sleep(60)
                     return dms
             
             # Check Account_status to make process (after Turned off) faster
@@ -196,13 +194,14 @@ class Twitter:
                         del dm[x]
                         dm.reverse()
                         break
+
+                    elif any(i in message for i in self.credential.Admin_cmd):
+                        dm.reverse()
+                        break
+
                 else:
-                    for x in dm:
-                        message = x.message_create['message_data']['text'].lower()
-                        # Only admin command that still active
-                        if any(i in message for i in self.credential.Admin_cmd):
-                            dm.reverse()
-                            break
+                    print("Account status: False; AdminCmd not found")
+                    return dms
 
             for x in range(len(dm)):
                 sender_id = dm[x].message_create['sender_id'] # str
@@ -341,8 +340,8 @@ class Twitter:
                 list_blacklist = [i.lower() for i in self.credential.Blacklist_words]
                 if any(i in message.lower() for i in list_blacklist) and sender_id not in self.credential.Admin_id:
                     try:
-                        print("Deleting muted menfess")
-                        notif = "Menfess kamu mengandung muted words, jangan lupa baca peraturan base yaa!"
+                        print("Skipping blacklist menfess")
+                        notif = self.credential.Notify_blacklistWords
                         self.send_dm(recipient_id=sender_id, text=notif)
                     except Exception as ex:
                         sleep(60)
@@ -412,7 +411,6 @@ class Twitter:
                         self.send_dm(recipient_id=admin, text=notif)
             
             print(str(len(dms)) + " messages collected")
-            sleep(60)
             return dms
 
         except Exception as ex:
@@ -438,13 +436,13 @@ class Twitter:
                     z += 3
                 
                 if self.credential.Private_mediaTweet is True:
-                    z += len(i['attachment_urls']['media']) * 5
+                    z += len(i['attachment_urls']['media']) * 4
 
                 # Delay for the first sender is very quick, so, it won't be notified
                 if x == 0:
                     continue
 
-                sent_time = time + timedelta(seconds= x*(33+self.random_time) + z)
+                sent_time = time + timedelta(seconds= x*(32+self.random_time) + z)
                 sent_time = datetime.strftime(sent_time, '%H:%M')
                 notif = self.credential.Notify_queueMessage.format(str(y), sent_time)
                 self.send_dm(recipient_id=i['sender_id'], text=notif)
@@ -453,22 +451,6 @@ class Twitter:
             pass
             print(ex)
             sleep(60)
-
-
-    def notify_sent(self, sender_id, postid):
-        '''Notify sender, the menfess sent or not
-        :param sender_id: str or int
-        :param postid: str or int
-        '''
-        try:
-            # Message that will be sent when menfess is posted
-            notif = self.credential.Notify_sentMessage.format(self.me.screen_name)
-            text = notif + str(postid)                              
-            self.send_dm(recipient_id=sender_id, text=text)
-
-        except Exception as ex:
-            print(ex)
-            pass
 
 
     def delete_dm(self, id):
@@ -493,8 +475,8 @@ class Twitter:
             self.delete_dm(sent.id)
         except Exception as ex:
             pass
-            sleep(60)
             print(ex)
+            sleep(60)
 
 
     def get_user_screen_name(self, id):
@@ -519,33 +501,28 @@ class Twitter:
         :param filename: None (default) or filename --> str
         :returns: file name (when filename=None) -> str
         '''
-        try:
-            print("Downloading media...")
-            oauth = OAuth1(client_key=self.credential.CONSUMER_KEY,
-                           client_secret=self.credential.CONSUMER_SECRET,
-                           resource_owner_key=self.credential.ACCESS_KEY,
-                           resource_owner_secret=self.credential.ACCESS_SECRET)
+        print("Downloading media...")
+        oauth = OAuth1(client_key=self.credential.CONSUMER_KEY,
+                       client_secret=self.credential.CONSUMER_SECRET,
+                       resource_owner_key=self.credential.ACCESS_KEY,
+                       resource_owner_secret=self.credential.ACCESS_SECRET)
 
-            r = get(media_url, auth=oauth)
+        r = get(media_url, auth=oauth)
 
+        if filename == None:
+            for i in sub("[/?=]", " ", media_url).split():
+                if search(r"\.mp4$|\.gif$|\.jpg$|\.jpeg$|\.png$|\.webp$", i):
+                    filename = i
+                    break
             if filename == None:
-                for i in sub("[/?=]", " ", media_url).split():
-                    if search(r"\.mp4$|\.gif$|\.jpg$|\.jpeg$|\.png$|\.webp$", i):
-                        filename = i
-                        break
-                if filename == None:
-                    raise Exception("filename is not supported, please check the link")
+                raise Exception("filename is not supported, please check the link")
 
-            with open(filename, 'wb') as f:
-                f.write(r.content)
-                f.close()
+        with open(filename, 'wb') as f:
+            f.write(r.content)
+            f.close()
 
-            print("Download media successfully")
-            return filename
-
-        except Exception as ex:
-            print(ex)
-            pass
+        print("Download media successfully")
+        return filename
     
 
     def add_watermark(self, filename, output=None):
@@ -555,19 +532,25 @@ class Twitter:
         :param output: output name -> str
         :returns: output name -> str
         '''
-        if output == None:
-            output = filename
+        try:
+            if output == None:
+                output = filename
 
-        file_type = filename.split('.')[-1]
-        if file_type in "jpg jpeg png webp":
-            print("Adding watermark...")
-            adm = self.credential
-            wm.watermark_text_image(filename, text=adm.Watermark_text,
-            ratio=adm.Watermark_ratio, pos=adm.Watermark_position,
-            output=output, color=adm.Watermark_textColor,
-            stroke_color=adm.Watermark_textStroke, watermark=adm.Watermark_image)
-        
-        return output
+            file_type = filename.split('.')[-1]
+            if file_type in "jpg jpeg png webp":
+                print("Adding watermark...")
+                adm = self.credential
+                wm.watermark_text_image(filename, text=adm.Watermark_text,
+                ratio=adm.Watermark_ratio, pos=adm.Watermark_position,
+                output=output, color=adm.Watermark_textColor,
+                stroke_color=adm.Watermark_textStroke, watermark=adm.Watermark_image)
+            
+            return output
+
+        except Exception as ex:
+            pass
+            print(ex)
+            return filename
 
 
     def upload_media_tweet(self, media_tweet_url):
@@ -618,6 +601,7 @@ class Twitter:
                 media_idsAndTypes.append((media_id, media_type))
         
             return media_idsAndTypes # e.g [(media_id, media_type), (media_id, media_type), ]
+
         except Exception as ex:
             pass
             print(ex)
@@ -634,22 +618,18 @@ class Twitter:
         :param media_category: 'tweet' or 'dm'. default to 'tweet'
         :returns: media id, media_type -> tuple
         '''
-        try:
-            mediaupload = MediaUpload(self.credential, filename, media_category)
-            media_id, media_type = mediaupload.upload_init()
-            mediaupload.upload_append()
-            mediaupload.upload_finalize()
-            return media_id, media_type
+        mediaupload = MediaUpload(self.credential, filename, media_category)
+        media_id, media_type = mediaupload.upload_init()
+        mediaupload.upload_append()
+        mediaupload.upload_finalize()
+        return media_id, media_type
 
-        except Exception as ex:
-            pass
-            print(ex)
-            sleep(60)
 
 
     def post_tweet(self, tweet, sender_id, media_url=None, attachment_url=None,
                 media_idsAndTypes=list(), possibly_sensitive=False):
         '''Post a tweet, contains watermark module and self.db_sent updater
+        Per tweet delay is 30s + self.random_time, but the last delay is deleted
         :param tweet: -> str
         :param sender_id: -> str or int
         :param media_url: media url that will be posted -> str
@@ -752,15 +732,11 @@ class Twitter:
 
                 list_media_ids = list_media_ids[1:] + [[]]
 
-            # NOTIFY MENFESS SENT OR NOT
-            if self.credential.Notify_sent is True:
-                self.notify_sent(sender_id, postid)
             print('Menfess is posted -> postid:', str(postid))
-
-            sleep(30+self.random_time)
 
             # ADD TO DB SENT
             self.db_sent_updater('add', sender_id, str(postid))
+            
             return postid
 
         except Exception as ex:

@@ -20,7 +20,7 @@ Notify_queueMessage = "Menfess kamu berada pada urutan ke-{}, akan terkirim seki
 Notify_sent = True
 # bool, True: Send menfess tweet link to sender when menfess sent
 Notify_sentMessage = "Yeay! Menfess kamu telah terkirim! https://twitter.com/{}/status/"
-# Please keep the "{}" format -> .format(bot username) + postid
+# Please keep the "{}" format -> .format(bot_username) + postid
 Notify_sentFail1 = "Maaf ada kesalahan pada sistem :( \ntolong screenshot & laporkan kepada admin"
 # Used when error is happened in system
 Notify_sentFail2 = "ketentuan Triggerword menfess kamu tidak sesuai!"
@@ -31,7 +31,7 @@ Interval_time = 0 # int
 # Interval time (in seconds) of sending menfess per sender, Admin pass this filter
 
 Delay_time = 0 # int, seconds
-# Twitter API limiting to post tweet. System will delay 30s per/tweet. You can add it by input
+# Twitter API limits user to post tweet. System will delay 30s per/tweet. You can add it by input
 # seconds in Delay_time. e.g Delay_time = 60, it means system will delay 90 seconds per tweet
 
 # Welcome message to new followers
@@ -108,9 +108,11 @@ Keep_DM = False
 # for id in ids: api.destroy_direct_message(id)
 
 Database = False
-# bool, True: Using database (Push json to github every midnight),
-# You can directly update using '#db_update' command from DM
-# Github_token and Github_repo are not required when Database is False
+# bool, True: Using database (Make json file in local)
+Github_database = False # Push json file to Github
+# bool, True: using github to save database, False: database only in local
+# Github_token and Github_repo are not required when Github_database is False
+# You can directly update Github database using '#db_update' command from DM
 Github_token = "****"
 # get it from https://github.com/settings/tokens , set allow for editing repo
 Github_repo = "username/your_repo"
@@ -132,6 +134,7 @@ Sensitive_word = "/sensitive"
 # And using this bot for 'adult' base is strictly prohibited.
 Blacklist_words = ['covid', 'blablabla'] 
 # hashtags and mentions will be changed into "#/" and "@/" in app.py to avoid ban
+Notify_blacklistWords = "di menfess kamu terdapat blacklist words, jangan lupa baca peraturan base yaa!"
 
 # Please set Admin_cmd and User_cmd in lowercase
 # If you want to modify command, don't edit #switch
@@ -150,14 +153,14 @@ Admin_cmd = {
 # #no_notif is an indicator to skip send notif to admin
 # db_update is not available when Database set to False
 # rm_followed is not available when Only_followed is False
-# who is only available for one day (reset every midnight)
+# who is only available for one day (reset every midnight or heroku dyno cycling)
 
 
 User_cmd = {
     '#delete'           : 'UserCmd.delete(sender_id, self.db_sent, urls)',
 }
 # delete is not available for user when bot was just started and user id not in db_sent
-# delete & db_sent are only available for one day (reset every midnight)
+# delete & db_sent are only available for one day (reset every midnight or heroku dyno cycling)
 Notify_userCmdDelete = "Yeay! Menfess kamu sudah berhasil dihapus"
 Notify_userCmdDeleteFail = "Duh! Menfess ini ngga bisa kamu hapus :("
 # Notify above are only for user

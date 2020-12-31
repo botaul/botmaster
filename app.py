@@ -20,7 +20,8 @@ class Autobase:
     :param credential: class that contains object class like administrator_data.py -> object 
     '''
     def __init__(self, credential):
-        '''
+        '''You can control account and bot using credential & tw attributes
+
         Attributes:
             - credential
             - tw
@@ -66,6 +67,7 @@ class Autobase:
                                 
             except Exception as ex:
                 print(ex)
+                sleep(60)
                 pass
 
             # GETTING LIST OF FOLLOWED
@@ -87,6 +89,7 @@ class Autobase:
 
                 except Exception as ex:
                     print(ex)
+                    sleep(60)
                     pass
             
             if 'idle' in indicator:
@@ -95,15 +98,18 @@ class Autobase:
 
 
     def __update_dm(self, dms, indicator):
+        '''
+        delay 60s on self.tw.read_dm is moved here to make threading faster
+        '''
         while True:
             dms_new = self.tw.read_dm()
             indicator.remove('dm_safe')
             dms.extend(dms_new)
             indicator.add('dm_safe')
-            sleep(5)
+            sleep(65)
     
 
-    def update_file_heroku(self, sender_id, message, postid):
+    def update_local_file(self, sender_id, message, postid):
         screen_name = self.tw.get_user_screen_name(sender_id)
         if exists(self.AdminCmd.filename_github):
             with open(self.AdminCmd.filename_github, 'r+') as f:
@@ -111,22 +117,29 @@ class Autobase:
                 for x in range(len(data)):
                     if int(data[x]['id']) == int(sender_id):
                         data[x]['username'] = screen_name
-                        data[x]['menfess'].append({'postid':postid, 'text':message})
+                        data[x]['menfess'].append({'postid': postid, 'text': message})
                         break
                 else:
-                    data.append({'username':screen_name, 'id':int(sender_id),
-                        'menfess': [{'postid':postid, 'text':message}]})
+                    data.append({'username': screen_name, 'id': int(sender_id),
+                                'menfess': [{'postid': postid, 'text': message}]})
                 f.seek(0)
                 dump(data, f, indent=4)
                 f.truncate()
                 f.close()
         else:
-            with open(self.AdminCmd.filename_github, 'w') as f:
-                f.write("[]")
+            with open(self.AdminCmd.filename_github, 'w+') as f:
+                data = [{'username': screen_name, 'id': int(sender_id),
+                        'menfess': [{'postid': postid, 'text': message}]}]
+                f.seek(0)
+                dump(data, f, indent=4)
+                f.truncate()
                 f.close()
 
 
     def start_autobase(self):
+        '''
+        the last self.tw.post_tweet delay is moved here to make threading faster
+        '''
         print("Starting program...")
         dms = list()
         indicator = {'idle', 'dm_safe'}
@@ -202,14 +215,24 @@ class Autobase:
                             postid = self.tw.post_tweet(message, sender_id, media_url=media_url, attachment_url=attachment_urls[1],
                                     media_idsAndTypes=media_idsAndTypes, possibly_sensitive=possibly_sensitive)
                             
-                            # update heroku database
+                            # update heroku/local database
                             if self.database_indicator is True:
-                                self.update_file_heroku(sender_id, message, postid)
+                                self.update_local_file(sender_id, message, postid)
 
-                            if postid == None:
+                            # NOTIFY MENFESS SENT OR NOT
+                            if postid != None and self.credential.Notify_sent is True:
+                                notif = self.credential.Notify_sentMessage.format(self.bot_username)
+                                text = notif + str(postid)
+                                self.tw.send_dm(recipient_id=sender_id, text=text)                       
+                            elif postid == None:
                                 # Error happen on system
-                                text = self.credential.Notify_sentFail1
+                                text = self.credential.Notify_sentFail1                           
                                 self.tw.send_dm(recipient_id=sender_id, text=text)
+                            else:
+                                # credential.Notify_sent is False
+                                pass
+                            
+                            sleep(30+self.tw.random_time)
 
                         else:
                             # Notify sender, message doesn't meet the algorithm's requirement
@@ -226,7 +249,7 @@ class Autobase:
             
     def check_file_github(self, new=True):
         '''
-        True when bot was just started, download & save file from github
+        :param new: True when bot was just started, download & save file from github -> bool
         False when bot is running. If file exists, doesn't save the file from github.
         'new' parameter used if you update database not every midnight on Database method
         '''
@@ -275,21 +298,24 @@ class Autobase:
             print(ex)
 
 
-    def database(self):
+    def __database(self, Github_database=True):
         while True:
             try:
                 # update every midnight, you can update directly from DM with 'db_update'
                 # check on administrator_data.py
                 datee = datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)
                 if self.AdminCmd.filename_github != f"{self.bot_username} {datee.year}-{datee.month}-{datee.day}.json":
-                    print("Github threading active...")
-                    contents = self.AdminCmd.repo.get_contents(self.AdminCmd.filename_github)
-                    with open(self.AdminCmd.filename_github) as f:
-                        self.AdminCmd.repo.update_file(contents.path, "updating Database", f.read(), contents.sha)
-                        f.close()
-                    self.check_file_github(new=False)
-                    print("Github Database updated")
-                    sleep(60)
+                    if Github_database is True:
+                        print("Github threading active...")
+                        contents = self.AdminCmd.repo.get_contents(self.AdminCmd.filename_github)
+                        with open(self.AdminCmd.filename_github) as f:
+                            self.AdminCmd.repo.update_file(contents.path, "updating Database", f.read(), contents.sha)
+                            f.close()
+                        self.check_file_github(new=False)
+                        print("Github Database updated")
+                    
+                    else:
+                        self.AdminCmd.filename_github = f"{self.bot_username} {datee.year}-{datee.month}-{datee.day}.json"
 
                 else:
                     sleep(60)
@@ -301,17 +327,19 @@ class Autobase:
                 pass
 
 
-    def start_database(self):
+    def start_database(self, Github_database=True):
         self.database_indicator = True
-        github = Github(self.credential.Github_token)
+        if Github_database is True:
+            github = Github(self.credential.Github_token)
+            self.AdminCmd.repo = github.get_repo(self.credential.Github_repo)
+            self.AdminCmd.repo.indicator = True
+            self.check_file_github(new=True)
 
         datee = datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)
         self.AdminCmd.filename_github = "{} {}-{}-{}.json".format(
-            self.bot_username, datee.year, datee.month, datee.day)
-        self.AdminCmd.repo = github.get_repo(self.credential.Github_repo)
+            self.bot_username, datee.year, datee.month, datee.day)   
 
-        self.check_file_github(new=True)
-        Thread(target=self.database).start()
+        Thread(target=self.__database, args=[Github_database]).start()
 
 
 if __name__ == "__main__":
@@ -319,7 +347,7 @@ if __name__ == "__main__":
     
     User = Autobase(administrator_data)
     if administrator_data.Database is True:
-        User.start_database()
+        User.start_database(administrator_data.Github_database)
 
     User.start_autobase()
 
