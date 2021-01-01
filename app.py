@@ -45,6 +45,8 @@ class Autobase:
         inFoll = False # indicator for followed
         while True:
             # AUTO ACCEPT MESSAGE REQUESTS
+            # self.tw.follower is only 54, and the get requests is only 50
+            # the order is from new to old
             print("Accepting message requests...")
             try:
                 follower = api.followers_ids(user_id=me.id, count=50)
@@ -53,7 +55,7 @@ class Autobase:
                         inAccMsg = True
                         self.tw.follower = follower.copy()
 
-                    for i in follower:
+                    for i in follower[::-1]:
                         if i not in self.tw.follower:
                             notif = self.credential.Notify_acceptMessage
                             # I don't know, sometimes error happen here, so, I update self.tw.follower after send_dm
@@ -71,15 +73,16 @@ class Autobase:
                 pass
 
             # GETTING LIST OF FOLLOWED
+            # self.tw.followed is from old to new
             if self.credential.Only_followed is True:
                 try:
                     if inFoll == False:
                         inFoll = True
                         followed = self.tw.get_all_followed(me.id, first_delay=False)
-                        self.tw.followed = followed.copy()
+                        self.tw.followed = followed[::-1]
                     else:
                         print("Updating friends ids...")
-                        followed = api.friends_ids(user_id=me.id)
+                        followed = api.friends_ids(user_id=me.id, count=50)
                     
                     for i in followed:
                         if i not in self.tw.followed:
