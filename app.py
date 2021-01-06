@@ -45,11 +45,11 @@ class Autobase:
         inFoll = False # indicator for followed
         while True:
             # AUTO ACCEPT MESSAGE REQUESTS
-            # self.tw.follower is only 54, and the get requests is only 50
+            # self.tw.follower is only 110, and the get requests is only 50
             # the order is from new to old
             print("Accepting message requests...")
             try:
-                follower = api.followers_ids(user_id=me.id, count=50)
+                follower = api.followers_ids(user_id=me.id, count=100)
                 if len(follower) != 0:
                     if inAccMsg == False:
                         inAccMsg = True
@@ -62,7 +62,7 @@ class Autobase:
                             try:
                                 self.tw.send_dm(recipient_id=i, text=notif)
                                 self.tw.follower.insert(0, i)
-                                if len(self.tw.follower) > 55: self.tw.follower.pop()
+                                if len(self.tw.follower) > 110: self.tw.follower.pop()
                             except Exception as ex:
                                 print(ex)
                                 pass
