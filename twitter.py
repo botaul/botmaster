@@ -214,7 +214,7 @@ class Twitter:
                     continue
 
                 # Avoid keyword error by skipping bot messages
-                if sender_id == self.me.id:
+                if sender_id == str(self.me.id):
                     self.delete_dm(id)
                     continue
 
