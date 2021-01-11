@@ -120,11 +120,11 @@ class Autobase:
                 for x in range(len(data)):
                     if int(data[x]['id']) == int(sender_id):
                         data[x]['username'] = screen_name
-                        data[x]['menfess'].append({'postid': postid, 'text': message})
+                        data[x]['menfess'].append({'postid': postid, 'text': unescape(message)})
                         break
                 else:
                     data.append({'username': screen_name, 'id': int(sender_id),
-                                'menfess': [{'postid': postid, 'text': message}]})
+                                'menfess': [{'postid': postid, 'text': unescape(message)}]})
                 f.seek(0)
                 dump(data, f, indent=4)
                 f.truncate()
@@ -132,7 +132,7 @@ class Autobase:
         else:
             with open(self.AdminCmd.filename_github, 'w+') as f:
                 data = [{'username': screen_name, 'id': int(sender_id),
-                        'menfess': [{'postid': postid, 'text': message}]}]
+                        'menfess': [{'postid': postid, 'text': unescape(message)}]}]
                 f.seek(0)
                 dump(data, f, indent=4)
                 f.truncate()
