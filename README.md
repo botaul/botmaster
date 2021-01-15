@@ -75,7 +75,7 @@ After modifying contents on administrator_data, run app by using syntax: python3
 
 ## Deploy to Heroku
 
-### Deploy with Heroku CLI
+### Deploy using Heroku CLI
 Make sure you have deleted the local Database if you previously ran the bot on local.
 ```bash
 git add .
@@ -84,16 +84,8 @@ heroku git:remote -a your_heroku_app_name
 git push heroku master
 ```
 
-### Push to Github (If you deploy to Heroku with Github repo) or Fork this repository
-Use a private repo, because data in administrator_data.py is important
-```bash
-git init
-git remote add origin your_repo
-git add .
-git commit -m "first commit"
-git push origin master
-```
-Then deploy github repository to Heroku, search it on Google. <br>
+### Deploy using github (Fork this repository)
+Set to private repo, your credenetials are on administrator_data. Then deploy github repository to Heroku, search it on Google.
 
 ### Heroku limitations
 - 550 free dyno hours, you can upgrade to 1000 hours by adding credit card to your account.
