@@ -84,9 +84,6 @@ heroku git:remote -a your_heroku_app_name
 git push heroku master
 ```
 
-### Deploy using github (Fork this repository)
-Set to private repo, your credenetials are on administrator_data. Then deploy github repository to Heroku, search it on Google.
-
 ### Heroku limitations
 - 550 free dyno hours, you can upgrade to 1000 hours by adding credit card to your account.
 - Dyno cycling (restart), so `add_admin`, `rm_admin`, `add_blacklist`, `rm_blacklist`,
