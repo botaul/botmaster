@@ -22,9 +22,9 @@ requests if you have any questions, feature requests, or bugs.
 
 
 ## New Features
-- Added blacklist words
+- Blacklist words
 - Only followed by account that can send menfess
-- Auto accepts message requests
+- Auto accept message requests
 - Notify sender when the menfess sent or not
 - Tweet GIF and video
 - Post a Thread when characters > 280
@@ -32,7 +32,7 @@ requests if you have any questions, feature requests, or bugs.
 - Setting account from DM
 - Upload more than 4 media
 - Trigger words are not case-sensitive
-- Trigger words are list
+- Control multiple accounts [[example]](https://pastebin.com/CMfqxknA)
 - etc. see on administrator_data
 
 
@@ -140,7 +140,7 @@ automatically will delete your github token if your repository is public
 
 ### Auto accept message requests
 This works by sending welcome message to new followers, so Sender must follow the bot. In the beginning, it
-fills 50 followers to tw.follower. So it can't track new followers when the bot was just started. If your
+fills 100 followers to tw.follower. So it can't track new followers when the bot was just started. If your
 followers didn't receive a welcome message from the bot. Unfollow this bot for some minutes then follow it again.
 
 
