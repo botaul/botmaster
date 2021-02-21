@@ -400,15 +400,16 @@ class Twitter:
 
                 # WRONG TRIGGER
                 else:
-                    notif = self.credential.Notify_wrongTrigger
-                    self.send_dm(recipient_id=sender_id, text=notif)
+                    if self.credential.notifyWrongTrigger is True:
+                        notif = self.credential.Notify_wrongTrigger
+                        self.send_dm(recipient_id=sender_id, text=notif)
 
-                    # Send wrong menfess to admin
-                    username = self.get_user_screen_name(sender_id)
-                    notif = message + f"\nstatus: wrong trigger\nfrom: @{username}\nid: {sender_id}"
+                        # Send wrong menfess to admin
+                        username = self.get_user_screen_name(sender_id)
+                        notif = message + f"\nstatus: wrong trigger\nfrom: @{username}\nid: {sender_id}"
 
-                    for admin in self.credential.Admin_id:
-                        self.send_dm(recipient_id=admin, text=notif)
+                        for admin in self.credential.Admin_id:
+                            self.send_dm(recipient_id=admin, text=notif)
             
             print(str(len(dms)) + " messages collected")
             return dms
@@ -420,13 +421,16 @@ class Twitter:
             return dms
 
 
-    def notify_queue(self, dms):
+    def notify_queue(self, dms, queue=0):
         """Notify the menfess queue to sender
         :param dms: dms that returned from self.read_dm -> list of dict
+        :param queue: the current queue (len of current dms) -> int
         """
         try:
-            print("Notifying the queue to sender")
+            print("Notifying the queue to sender...")
             x, y, z = -1, 0, 0
+            x += queue
+            y += queue
             # x is primary time (30 sec); y is queue; z is addition time for media
             time = datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)
             for i in dms:
@@ -436,7 +440,7 @@ class Twitter:
                     z += 3
                 
                 if self.credential.Private_mediaTweet is True:
-                    z += len(i['attachment_urls']['media']) * 4
+                    z += len(i['attachment_urls']['media']) * 3
 
                 # Delay for the first sender is very quick, so, it won't be notified
                 if x == 0:

@@ -100,15 +100,17 @@ class Autobase:
             sleep(67)
 
 
-    def __update_dm(self, dms, indicator):
+    def __update_dm(self, dms):
         '''
         delay 60s on self.tw.read_dm is moved here to make threading faster
         '''
         while True:
             dms_new = self.tw.read_dm()
-            indicator.remove('dm_safe')
+            if self.credential.Notify_queue is True:
+                # notify queue to sender
+                self.tw.notify_queue(dms_new, queue=len(dms))
+
             dms.extend(dms_new)
-            indicator.add('dm_safe')
             sleep(65)
     
 
@@ -145,34 +147,26 @@ class Autobase:
         '''
         print("Starting program...")
         dms = list()
-        indicator = {'idle', 'dm_safe'}
+        indicator = {'idle'}
         Thread(target=self.__update_follow, args=[indicator]).start()
         while 'idle' in indicator:
-            sleep(3)
-        Thread(target=self.__update_dm, args=[dms, indicator]).start()
-        # for i in administartor_data.Admin_id:
+            sleep(1)
+        Thread(target=self.__update_dm, args=[dms]).start()
+        # for i in administrator_data.Admin_id:
         #     sent = self.tw.send_dm(recipient_id=i, text="Twitter autobase is starting...!")
 
         while True:
             if len(dms) != 0:
 
-                # Cleaning dms
-                while 'dm_safe' not in indicator:
-                    sleep(1)
-                dmsCopy = dms.copy()
-                dms.clear()
+                while len(dms) > 0:
+                    dm = dms.pop(0)
 
-                if self.credential.Notify_queue is True:
-                    # Notify the menfess queue to sender
-                    self.tw.notify_queue(dmsCopy)
-
-                for i in range(len(dmsCopy)):
                     try:
-                        message = dmsCopy[i]['message']
-                        sender_id = dmsCopy[i]['sender_id']
-                        media_url = dmsCopy[i]['media_url']
-                        attachment_urls = dmsCopy[i]['attachment_urls']['tweet']
-                        list_attchmentUrlsMedia = dmsCopy[i]['attachment_urls']['media']
+                        message = dm['message']
+                        sender_id = dm['sender_id']
+                        media_url = dm['media_url']
+                        attachment_urls = dm['attachment_urls']['tweet']
+                        list_attchmentUrlsMedia = dm['attachment_urls']['media']
                         
                         if any(j.lower() in message.lower() for j in self.credential.Trigger_word):
                             # Keyword Deleter
@@ -346,7 +340,17 @@ class Autobase:
 
 
 if __name__ == "__main__":
-    import administrator_data
+    
+    ### for development ### 
+    from sys import argv
+    if len(argv) > 1:
+
+        if argv[1] == 'dev':
+            import config_dev as administrator_data
+
+    else:
+        import administrator_data
+    ### ###
     
     User = Autobase(administrator_data)
     if administrator_data.Database is True:

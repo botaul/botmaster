@@ -58,7 +58,7 @@ Minimum_followers = 0 # int
 Minimum_day = 0 # e.g 100, it means sender account must be created at 100 days ago
 Notify_senderRequirements = "Hmm, menfess dan akun kamu ngga sesuai sama peraturan base :("
 
-Private_mediaTweet = True
+Private_mediaTweet = False
 # bool, True: Delete username on the bottom of the attached media tweet.
 # Usually when sender want to attach more than one media, they will attach a media url
 # from tweet. But the username of the sender is mentioned on the bottom of media. With this
@@ -128,6 +128,8 @@ Account_status = True
 Trigger_word = ["fess!", "blablabla!"]
 Notify_wrongTrigger = "Trigger menfess tidak terdeteksi, pesan kamu akan dikirimkan ke admin"
 # Message will be sent to admin
+notifyWrongTrigger = False
+
 Sensitive_word = "/sensitive"
 # Used when sender send sensitive content, order them to use this word
 # But I advise against sending sensitive content, Twitter may ban your account,
