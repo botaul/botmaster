@@ -1,6 +1,6 @@
 from PIL import Image, ImageFont, ImageDraw
 
-def watermark_text_image(filename, watermark='watermark/photo.png', font='Pillow/Tests/fonts/FreeMono.ttf',
+def watermark_text_image(filename, watermark='twitter_autobase/watermark/photo.png', font='twitter_autobase/watermark/FreeMono.ttf',
         text=str(), ratio=0.1, pos=('right', 'bottom'), output='watermarked.jpg', color=(0,0,0,0),
         stroke_color=(225,225,225,1)):
         
@@ -78,7 +78,7 @@ if __name__ == "__main__":
     from sys import argv
     # Ignore vscode problems message on these lines
     # argv e.g 'python3 app.py 'autobase_reborn' right,bottom photo.png 0.103 100,0,0,1 0,225,225,1 watermarked.jpg'
-    script, text, pos, watermark, ratio, color, stroke_color, output = argv
+    script, text, font, pos, watermark, ratio, color, stroke_color, output = argv
     ratio = float(ratio)
     pos = tuple([i for i in pos.split(",")])
     if watermark == 'False':
@@ -90,5 +90,5 @@ if __name__ == "__main__":
 
     color = tuple([int(i) for i in [float(i) for i in color.split(",")]])
     stroke_color = tuple(int(i) for i in [float(i) for i in stroke_color.split(",")])
-    watermark_text_image("filename.jpg", watermark, text=text,
+    watermark_text_image("filename.jpg", watermark, text=text, font=font,
             color=color, stroke_color=stroke_color, ratio=ratio, pos=pos, output=output)

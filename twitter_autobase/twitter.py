@@ -1,24 +1,24 @@
 # Original code by Prieyudha Akadita S.
 #     Source: https://https://github.com/ydhnwb/autodm_base
-# Re-code by Fakhri Catur Rofi under MIT License
+# Re-code by Fakhri Catur Rofi
 #     Source: https://github.com/fakhrirofi/twitter_autobase
 
-from command import AdminCommand, UserCommand
+from .command import AdminCommand, UserCommand
+from .watermark import app as wm
+from .async_upload import MediaUpload
 from tweepy import OAuthHandler, API, Cursor
 from time import sleep
 from os import remove
 from requests import get
 from requests_oauthlib import OAuth1
-from async_upload import MediaUpload
 from html import unescape
 from datetime import datetime, timezone, timedelta
 from re import sub, search
-from watermark import app as wm
 
 
 class Twitter:
     '''
-    :param credential: class that contains objects like administrator_data -> object
+    :param credential: class that contains objects like config -> object
     '''
 
     def __init__(self, credential):
@@ -39,7 +39,7 @@ class Twitter:
             - indicator_start
             - db_intervalTime
         
-        :param credential: class that contains objects like administrator_data -> object
+        :param credential: class that contains objects like config -> object
         '''
         self.credential = credential
 
@@ -400,7 +400,7 @@ class Twitter:
 
                 # WRONG TRIGGER
                 else:
-                    if self.credential.notifyWrongTrigger is True:
+                    if self.credential.NotifyWrongTrigger is True:
                         notif = self.credential.Notify_wrongTrigger
                         self.send_dm(recipient_id=sender_id, text=notif)
 
@@ -544,7 +544,7 @@ class Twitter:
             if file_type in "jpg jpeg png webp":
                 print("Adding watermark...")
                 adm = self.credential
-                wm.watermark_text_image(filename, text=adm.Watermark_text,
+                wm.watermark_text_image(filename, text=adm.Watermark_text, font=adm.Watermark_font,
                 ratio=adm.Watermark_ratio, pos=adm.Watermark_position,
                 output=output, color=adm.Watermark_textColor,
                 stroke_color=adm.Watermark_textStroke, watermark=adm.Watermark_image)

@@ -1,10 +1,16 @@
-CONSUMER_KEY = "****"
-CONSUMER_SECRET = "****"
-ACCESS_KEY = "****"
-ACCESS_SECRET = "****"
+NGROK_AUTH_TOKEN = ""
+# sign up for ngrok. then copy the auth token from https://dashboard.ngrok.com/get-started/your-authtoken
 
+CONSUMER_KEY = ""
+CONSUMER_SECRET = ""
+ACCESS_KEY = ""
+ACCESS_SECRET = ""
+ENV_NAME = ""
+# create Account Activity API (AAPI) dev env on https://developer.twitter.com/en/account/environments
+# ENV_NAME is the same as Dev environment label
+# Check your AAPI subcription renewal date on https://developer.twitter.com/en/account/subscriptions
 
-Admin_id = ["****"] # list of str
+Admin_id = [] # list of str
 # Admin id is like sender id. To check it, send a menfess from your admin account.
 # or you can use api.get_user(screen_name="usernameoftheaccount")
 # This is used to giving access to pass some message filters & admin command
@@ -68,13 +74,13 @@ Private_mediaTweet = False
 
 Watermark = False
 # bool, True: Add watermark text to sender's photo
-Watermark_image = False # bool or str
-# bool, True: Add watermark using default image. str, file_path e.g 'watermark/photo.png'
-# the default image path is 'watermark/photo.png'
-# You can change default image and font in watermark folder
+Watermark_image = "twitter_autobase/watermark/photo.png" # bool or str
+# bool, True: Add watermark using default image. str, file_path e.g 'twitter_autobase/watermark/photo.png'
+# Watermark image's size must be square
 Watermark_text = "lorem ipsum"
 # If you won't to add text, fill str() or "" to Watermark_text.
 # You can add enter "\n", maximum: 2 lines
+Watermark_font = "twitter_autobase/watermark/FreeMono.ttf"
 Watermark_textColor = (100,0,0,1)
 Watermark_textStroke = (0,225,225,1)
 # RGBA color format, you can search it on google
@@ -128,7 +134,7 @@ Account_status = True
 Trigger_word = ["fess!", "blablabla!"]
 Notify_wrongTrigger = "Trigger menfess tidak terdeteksi, pesan kamu akan dikirimkan ke admin"
 # Message will be sent to admin
-notifyWrongTrigger = False
+NotifyWrongTrigger = False
 
 Sensitive_word = "/sensitive"
 # Used when sender send sensitive content, order them to use this word

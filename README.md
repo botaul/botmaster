@@ -6,20 +6,7 @@ with many improvements and fixed bugs. This project is under MIT License. You ca
 
 - **Read Twitter rules[[1]](https://help.twitter.com/en/rules-and-policies/twitter-search-policies)[[2]](https://developer.twitter.com/en/developer-terms/more-on-restricted-use-cases)[[3]](https://help.twitter.com/en/rules-and-policies/twitter-automation)** <br>
 - **USING THIS BOT FOR 'ADULT' BASE IS STRICTLY PROHIBITED** <br>
-
-All updates will be postponed until June 2021 (or sooner). Feel free to make issues or pull
-requests if you have any questions, feature requests, or bugs.
-
-
-## Table of Contents
-- [New Features](#new-features)
-- [Requirements](#requirements)
-- [How to run this bot?](#how-to-run-this-bot)
-- [DMs examples (based on administrator_data)](#dms-examples-based-on-administrator_data)
-- [Notes](#notes)
-- [Contributing](#contributing)
-- [License](#mit-license)
-
+- **Download on [the release page](https://github.com/fakhrirofi/twitter_autobase/releases) for stable version**
 
 ## New Features
 - Blacklist words
@@ -33,7 +20,7 @@ requests if you have any questions, feature requests, or bugs.
 - Upload more than 4 media
 - Trigger words are not case-sensitive
 - Control multiple accounts [[example]](https://pastebin.com/CMfqxknA)
-- etc. see on administrator_data
+- etc. see on config
 
 
 ## Requirements
@@ -47,7 +34,7 @@ requests if you have any questions, feature requests, or bugs.
 ## How to run this bot?
 - Install pip3, virtualenv, git, heroku
 - [Do Installation](#installation)
-- Edit contents on administrator_data.py
+- Edit contents on config.py
 - [Deploy to Heroku](#deploy-to-heroku)
 
 
@@ -70,7 +57,7 @@ __pycache__/
 pyvenv.cfg
 # add another, up to you
 ```
-After modifying contents on administrator_data, run app by using syntax: python3 app.py
+After modifying contents on config, run app by using syntax: python3 app.py
 
 
 ## Deploy to Heroku
@@ -92,7 +79,7 @@ you use Heroku database services e.g. Postgres. Please setting `Blacklist_words`
 deploying to Heroku. Database will be changed to Postgres in future updates.
 
 
-## DMs examples (based on administrator_data)
+## DMs examples (based on config)
 You can tweet more than one media with media link on tweet. Open your twitter app then tap (hold) the tweet.
 Media link automatically will be copied, then send the link to this bot from DM.
 
@@ -136,7 +123,7 @@ Only sender who has sent the menfess that can delete the mentioned tweet link, a
 automatically will delete your github token if your repository is public
 - Keywords are not case-sensitive (upper, lower, capitalize)
 - See changelogs on [releases's notes](https://github.com/fakhrirofi/twitter_autobase/releases)
-- I have written documentation in administrator_data
+- I have written documentation in config
 
 ### Auto accept message requests
 This works by sending welcome message to new followers, so Sender must follow the bot. In the beginning, it

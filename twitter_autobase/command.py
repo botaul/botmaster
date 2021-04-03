@@ -1,6 +1,5 @@
 from re import sub
 
-
 class AdminCommand:
     '''
     :param api: tweepy api object -> object
