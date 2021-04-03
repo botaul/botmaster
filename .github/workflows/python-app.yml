@@ -45,4 +45,4 @@ jobs:
         ACCESS_SECRET_2: ${{ secrets.ACCESS_SECRET_2 }}
         ENV_NAME_2: ${{ secrets.ENV_NAME_2 }}
       run: |
-        pytest /tests
+        pytest tests
