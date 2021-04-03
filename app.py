@@ -1,4 +1,4 @@
-from twitter_autobase.main import Autobase
+from twitter_autobase import Autobase
 import config
 
 User = Autobase(config)

@@ -128,8 +128,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-config_dev.py
 pyvenv.cfg
 bin/
 */__pycache__
-lab/
+.vscode/
