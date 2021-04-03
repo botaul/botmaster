@@ -25,7 +25,9 @@ def register_webhook(url: str, name: str, credential):
     )
     url += "/{}".format(name)
     print(activity.register_webhook(url))
-    print(activity.subscribe())
+    subcription = activity.subscribe()
+    print(subcription)
+    return subcription.status_code
 
 # Webhook server
 class StreamEvent(Event):
@@ -43,7 +45,6 @@ class StreamEvent(Event):
 
     def on_data(self, data):
         if data is None:
-            print("test_server: success")
             return
             
         self.stored_data.append(data)
