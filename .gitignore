@@ -132,3 +132,6 @@ pyvenv.cfg
 bin/
 */__pycache__
 .vscode/
+test.env
+.pytest_cache
+watermarked.jpg

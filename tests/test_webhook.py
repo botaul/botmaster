@@ -1,11 +1,12 @@
 import os
-from dotenv import load_dotenv
+from os.path import join, dirname
+from dotenv import load_dotenv, find_dotenv
 from twitter_autobase import webhook_manager as wman
 from multiprocessing import Process
 from requests import post
 from time import sleep
 
-load_dotenv()
+load_dotenv("test.env")
 
 def test_create_ngrok_process():
     global public_url
@@ -21,7 +22,6 @@ def test_server():
     stream_event.update_credential_id(
         {
             'Darksiede1': os.environ["CONSUMER_SECRET"],
-            'autobase_reborn': os.environ["CONSUMER_SECRET_2"],
         }
     )
 
@@ -30,7 +30,7 @@ def test_server():
     p1.start()
 
     # waiting server
-    sleep(5)
+    sleep(3)
     
     assert post(public_url+"/listener/test").status_code == 200
 
