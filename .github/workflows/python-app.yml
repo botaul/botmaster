@@ -31,7 +31,9 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test test_webhook
+    - name: Test with pytest
+      run: |
+        pytest tests
       env:
         NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
         CONSUMER_KEY: ${{ secrets.CONSUMER_KEY }}
@@ -44,5 +46,3 @@ jobs:
         ACCESS_KEY_2: ${{ secrets.ACCESS_KEY_2 }}
         ACCESS_SECRET_2: ${{ secrets.ACCESS_SECRET_2 }}
         ENV_NAME_2: ${{ secrets.ENV_NAME_2 }}
-      run: |
-        pytest tests

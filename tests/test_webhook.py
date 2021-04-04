@@ -9,7 +9,7 @@ load_dotenv()
 
 def test_create_ngrok_process():
     global public_url
-    public_url = wman.connect_ngrok(os.environ.get("NGROK_AUTH_TOKEN"))
+    public_url = wman.connect_ngrok(os.environ["NGROK_AUTH_TOKEN"])
     assert "https" in public_url
 
 
@@ -20,8 +20,8 @@ def test_server():
     stream_event.set_callback(public_url+"/listener")
     stream_event.update_credential_id(
         {
-            'Darksiede1': os.environ.get("CONSUMER_SECRET"),
-            'autobase_reborn': os.environ.get("CONSUMER_SECRET_2"),
+            'Darksiede1': os.environ["CONSUMER_SECRET"],
+            'autobase_reborn': os.environ["CONSUMER_SECRET_2"],
         }
     )
 
@@ -43,11 +43,11 @@ def test_register_webhook():
             "object",
             (object,),
             {
-                'CONSUMER_KEY': os.environ.get("CONSUMER_KEY"),
-                'CONSUMER_SECRET': os.environ.get("CONSUMER_SECRET"),
-                'ACCESS_KEY': os.environ.get("ACCESS_KEY"),
-                'ACCESS_SECRET': os.environ.get("ACCESS_SECRET"),
-                'ENV_NAME': os.environ.get("ENV_NAME"),
+                'CONSUMER_KEY': os.environ["CONSUMER_KEY"],
+                'CONSUMER_SECRET': os.environ["CONSUMER_SECRET"],
+                'ACCESS_KEY': os.environ["ACCESS_KEY"],
+                'ACCESS_SECRET': os.environ["ACCESS_SECRET"],
+                'ENV_NAME': os.environ["ENV_NAME"],
             }
         ) 
     )
@@ -63,11 +63,11 @@ def test_multiple_register_webhook():
             "object",
             (object,),
             {
-                'CONSUMER_KEY': os.environ.get("CONSUMER_KEY_2"),
-                'CONSUMER_SECRET': os.environ.get("CONSUMER_SECRET_2"),
-                'ACCESS_KEY': os.environ.get("ACCESS_KEY_2"),
-                'ACCESS_SECRET': os.environ.get("ACCESS_SECRET_2"),
-                'ENV_NAME': os.environ.get("ENV_NAME_2"),
+                'CONSUMER_KEY': os.environ["CONSUMER_KEY_2"],
+                'CONSUMER_SECRET': os.environ["CONSUMER_SECRET_2"],
+                'ACCESS_KEY': os.environ["ACCESS_KEY_2"],
+                'ACCESS_SECRET': os.environ["ACCESS_SECRET_2"],
+                'ENV_NAME': os.environ["ENV_NAME_2"],
             }
         ) 
     )
