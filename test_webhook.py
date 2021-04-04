@@ -32,19 +32,21 @@ assert post(public_url+"/listener/test").status_code == 200
 
 
 print("registering webhook...")
+cred1 = {
+    'CONSUMER_KEY': os.environ.get("CONSUMER_KEY"),
+    'CONSUMER_SECRET': os.environ.get("CONSUMER_SECRET"),
+    'ACCESS_KEY': os.environ.get("ACCESS_KEY"),
+    'ACCESS_SECRET': os.environ.get("ACCESS_SECRET"),
+    'ENV_NAME': os.environ.get("ENV_NAME"),
+}
+print(cred1)
 webhook_1 = wman.register_webhook(
     public_url+"/listener",
     "Darksiede1",
     type(
         "object",
         (object,),
-        {
-            'CONSUMER_KEY': os.environ.get("CONSUMER_KEY"),
-            'CONSUMER_SECRET': os.environ.get("CONSUMER_SECRET"),
-            'ACCESS_KEY': os.environ.get("ACCESS_KEY"),
-            'ACCESS_SECRET': os.environ.get("ACCESS_SECRET"),
-            'ENV_NAME': os.environ.get("ENV_NAME"),
-        }
+        cred1,
     ) 
 )
 
@@ -52,19 +54,21 @@ assert webhook_1.status_code == 204
 
 
 print("registering webhook_2...")
+cred2 = {
+    'CONSUMER_KEY': os.environ.get("CONSUMER_KEY_2"),
+    'CONSUMER_SECRET': os.environ.get("CONSUMER_SECRET_2"),
+    'ACCESS_KEY': os.environ.get("ACCESS_KEY_2"),
+    'ACCESS_SECRET': os.environ.get("ACCESS_SECRET_2"),
+    'ENV_NAME': os.environ.get("ENV_NAME_2"),
+}
+print(cred2)
 webhook_2 = wman.register_webhook(
     public_url+"/listener",
     "autobase_reborn",
     type(
         "object",
         (object,),
-        {
-            'CONSUMER_KEY': os.environ.get("CONSUMER_KEY_2"),
-            'CONSUMER_SECRET': os.environ.get("CONSUMER_SECRET_2"),
-            'ACCESS_KEY': os.environ.get("ACCESS_KEY_2"),
-            'ACCESS_SECRET': os.environ.get("ACCESS_SECRET_2"),
-            'ENV_NAME': os.environ.get("ENV_NAME_2"),
-        }
+        cred2,
     ) 
 )
 
