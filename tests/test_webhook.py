@@ -34,45 +34,5 @@ def test_server():
     
     assert post(public_url+"/listener/test").status_code == 200
 
-
-def test_register_webhook():
-    webhook_1 = wman.register_webhook(
-        public_url+"/listener",
-        "Darksiede1",
-        type(
-            "object",
-            (object,),
-            {
-                'CONSUMER_KEY': os.environ["CONSUMER_KEY"],
-                'CONSUMER_SECRET': os.environ["CONSUMER_SECRET"],
-                'ACCESS_KEY': os.environ["ACCESS_KEY"],
-                'ACCESS_SECRET': os.environ["ACCESS_SECRET"],
-                'ENV_NAME': os.environ["ENV_NAME"],
-            }
-        ) 
-    )
-
-    assert webhook_1.status_code == 204
-
-
-def test_multiple_register_webhook():
-    webhook_2 = wman.register_webhook(
-        public_url+"/listener",
-        "autobase_reborn",
-        type(
-            "object",
-            (object,),
-            {
-                'CONSUMER_KEY': os.environ["CONSUMER_KEY_2"],
-                'CONSUMER_SECRET': os.environ["CONSUMER_SECRET_2"],
-                'ACCESS_KEY': os.environ["ACCESS_KEY_2"],
-                'ACCESS_SECRET': os.environ["ACCESS_SECRET_2"],
-                'ENV_NAME': os.environ["ENV_NAME_2"],
-            }
-        ) 
-    )
-
-    assert webhook_2.status_code == 204
-
     # stop Process
     p1.terminate()
