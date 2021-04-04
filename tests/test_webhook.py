@@ -1,12 +1,11 @@
 import os
-from os.path import join, dirname
-from dotenv import load_dotenv, find_dotenv
+from dotenv import load_dotenv
 from twitter_autobase import webhook_manager as wman
 from multiprocessing import Process
 from requests import post
 from time import sleep
 
-load_dotenv("test.env")
+load_dotenv()
 
 def test_create_ngrok_process():
     global public_url
