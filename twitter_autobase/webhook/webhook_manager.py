@@ -25,9 +25,7 @@ def register_webhook(url: str, name: str, credential):
     )
     url += "/{}".format(name)
     print(activity.register_webhook(url))
-    subcription = activity.subscribe()
-    print(subcription)
-    return subcription
+    return activity.subscribe()
 
 # Webhook server
 class StreamEvent(Event):

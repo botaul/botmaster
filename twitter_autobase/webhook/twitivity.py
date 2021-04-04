@@ -35,7 +35,9 @@ class Activity:
         self._auth.set_access_token(credential['access_token'], credential['access_token_secret'])
 
         # delete the last active webhook
-        for environment in self.webhooks()['environments']:
+        webhooks = self.webhooks()
+        print(webhooks)
+        for environment in webhooks['environments']:
             if environment['environment_name'] == self.env_name:
                 if len(environment['webhooks']):
                     webhook_id = environment['webhooks'][0]['id']
