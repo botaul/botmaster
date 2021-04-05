@@ -12,8 +12,8 @@ def connect_ngrok(ngrok_auth_token: str) -> str:
     return public_url
 
 # Register webhook
-def register_webhook(url: str, name: str, credential):
-    print("Registering webhook...")
+def register_webhook(url: str, name: str, credential, delLastWeb=True):
+
     activity = Activity(
         {
             'consumer_key'      : credential.CONSUMER_KEY,
@@ -23,15 +23,30 @@ def register_webhook(url: str, name: str, credential):
             'env_name'          : credential.ENV_NAME
         }
     )
+    # delete the last active webhook
+    if delLastWeb is True:
+        for environment in activity.webhooks()['environments']:
+            if environment['environment_name'] == activity.env_name:
+                if len(environment['webhooks']):
+                    webhook_id = environment['webhooks'][0]['id']
+                    activity.delete(webhook_id)
+                    break
+
     url += "/{}".format(name)
     print(activity.register_webhook(url))
     return activity.subscribe()
 
 # Webhook server
 class StreamEvent(Event):
+    '''
+    :param func_data: function (contains only 1 argument) that will be called when webhook receives data
+    :param subscribe: list of (str) subscriptions that will be subscribed.\
+    see more on: https://developer.twitter.com/en/docs/twitter-api/enterprise/account-activity-api/guides/account-activity-data-objects
+    '''
     
-    def __init__(self, stored_data: list):
-        self.stored_data = stored_data
+    def __init__(self, func_data, subscribe):
+        self.func_data = func_data
+        self.subcriptions = subscribe
     
     @classmethod
     def set_callback(cls, callback_url: str):
@@ -41,12 +56,13 @@ class StreamEvent(Event):
     def update_credential_id(cls, credential_id: dict):
         cls.credential_id.update(credential_id)
 
-    def on_data(self, data):
+    def on_data(self, data: json):
         if data is None:
             return
-            
-        self.stored_data.append(data)
-        print(json.dumps(data, indent=2))
+        for x in self.subcriptions:
+            if x in data:
+                self.func_data(data)
+                break
 
 if __name__ == "__main__":
     import config
@@ -56,14 +72,21 @@ if __name__ == "__main__":
 
     public_url = connect_ngrok(config.NGROK_AUTH_TOKEN)
 
-    stored_data = list()
+    def func_data(data):
+        print(json.dumps(data, indent=2))
 
-    stream_event = StreamEvent(stored_data)
+    stream_event = StreamEvent(
+        func_data,
+        [
+            'direct_message_events',
+        ]
+    )
+    
     stream_event.set_callback(public_url+"/listener")
     stream_event.update_credential_id(
         {
             'darksiede' : config.CONSUMER_SECRET,
-            'autobase_reborn' : ""
+            'autobase_reborn' : config.CONSUMER_SECRET_2,
         }
     )
     
@@ -74,7 +97,21 @@ if __name__ == "__main__":
     while post(public_url+"/listener/test").status_code != 200:
         sleep(1)
 
-    register_webhook(public_url+"/listener", "darksiede", config)
+    register_webhook(
+        public_url+"/listener",
+        "darksiede",
+        type(
+            "data",
+            (object,),
+            {
+                'CONSUMER_KEY'      : config.CONSUMER_KEY,
+                'CONSUMER_SECRET'   : config.CONSUMER_SECRET, 
+                'ACCESS_KEY'        : config.ACCESS_KEY,
+                'ACCESS_SECRET'     : config.ACCESS_SECRET,
+                'ENV_NAME'          : config.ENV_NAME,
+            }
+        )
+    )
     
     register_webhook(
         public_url+"/listener",
@@ -83,11 +120,11 @@ if __name__ == "__main__":
             "data",
             (object,),
             {
-                'CONSUMER_KEY'      : "",
-                'CONSUMER_SECRET'   : "",
-                'ACCESS_KEY'        : "",
-                'ACCESS_SECRET'     : "",
-                'ENV_NAME'          : ""  
+                'CONSUMER_KEY'      : config.CONSUMER_KEY_2,
+                'CONSUMER_SECRET'   : config.CONSUMER_SECRET_2, 
+                'ACCESS_KEY'        : config.ACCESS_KEY_2,
+                'ACCESS_SECRET'     : config.ACCESS_SECRET_2,
+                'ENV_NAME'          : config.ENV_NAME_2,
             }
         )
     )

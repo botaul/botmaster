@@ -5,7 +5,7 @@ from multiprocessing import Process
 from requests import post
 from time import sleep
 
-load_dotenv()
+load_dotenv("test.env")
 
 def test_create_ngrok_process():
     global public_url
@@ -14,9 +14,10 @@ def test_create_ngrok_process():
 
 
 def test_server():
-    stored_data = list()
+    def func_data(data):
+        print(data)
     
-    stream_event = wman.StreamEvent(stored_data)
+    stream_event = wman.StreamEvent(func_data, ['direct_message_events'])
     stream_event.set_callback(public_url+"/listener")
     stream_event.update_credential_id(
         {
@@ -24,7 +25,6 @@ def test_server():
         }
     )
 
-    global p1
     p1 = Process(target=stream_event.listen)
     p1.start()
 

@@ -33,14 +33,7 @@ class Activity:
 
         self._auth = OAuthHandler(credential['consumer_key'], credential['consumer_secret'])
         self._auth.set_access_token(credential['access_token'], credential['access_token_secret'])
-
-        # delete the last active webhook
-        for environment in self.webhooks()['environments']:
-            if environment['environment_name'] == self.env_name:
-                if len(environment['webhooks']):
-                    webhook_id = environment['webhooks'][0]['id']
-                    self.delete(webhook_id)
-                    break
+        
 
     def api(self, method: str, endpoint: str, data: dict = None) -> json:
         """

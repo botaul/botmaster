@@ -130,8 +130,9 @@ dmypy.json
 
 pyvenv.cfg
 bin/
-*/__pycache__
+**/__pycache__
 .vscode/
-test.env
-.pytest_cache
+**/test1.env
+**/.pytest_cache
 watermarked.jpg
+twitter_autobase/webhook/config.py
