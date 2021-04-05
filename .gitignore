@@ -135,4 +135,4 @@ bin/
 **/test1.env
 **/.pytest_cache
 watermarked.jpg
-twitter_autobase/webhook/config.py
+twitter_autobase/**/config.py

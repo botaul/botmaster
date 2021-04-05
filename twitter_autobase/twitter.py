@@ -57,7 +57,6 @@ class Twitter:
         self.me = self.api.me()
         self.follower = list() # list of integer
         self.followed = list() # list of integer
-        self.random_time = credential.Delay_time
         self.db_sent = dict() # dict of sender and his postid, update every midnight with self.day
         self.day = (datetime.now(timezone.utc) + timedelta(hours=credential.Timezone)).day
         self.db_received = list() # list of 55 received menfess's message id
@@ -446,7 +445,7 @@ class Twitter:
                 if x == 0:
                     continue
 
-                sent_time = time + timedelta(seconds= x*(32+self.random_time) + z)
+                sent_time = time + timedelta(seconds= x*(32+self.credential.Delay_time) + z)
                 sent_time = datetime.strftime(sent_time, '%H:%M')
                 notif = self.credential.Notify_queueMessage.format(str(y), sent_time)
                 self.send_dm(recipient_id=i['sender_id'], text=notif)
@@ -705,7 +704,7 @@ class Twitter:
                         media_ids=list_media_ids[:1][0], possibly_sensitive=possibly_sensitive).id
                 
                 list_media_ids = list_media_ids[1:] + [[]]
-                sleep(30+self.random_time)
+                sleep(30+self.credential.Delay_time)
                 # tweet are dynamic here
                 tweet = tweet[limit-separator:]
             
@@ -726,7 +725,7 @@ class Twitter:
 
             # When media_ids still exists, It will be attached to the subsequent tweets
             while len(list_media_ids[0]) != 0: # Pay attention to the list format, [[]]
-                sleep(30+self.random_time)
+                sleep(30+self.credential.Delay_time)
 
                 print("Posting the rest of media...")
                 postid1 = self.api.update_status(

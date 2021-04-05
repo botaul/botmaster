@@ -13,9 +13,10 @@ from os import remove
 from html import unescape
 from github import Github
 from json import dump, load
+from .gh_db import check_file_github, update_local_file, gh_database
 
 
-class Autobase:
+class Autobase(Twitter):
     '''
     :param credential: class that contains object class like config.py -> object 
     '''
@@ -31,16 +32,14 @@ class Autobase:
 
         :param credential: class that contains object class like config.py -> object
         '''
-        self.credential = credential
-        self.tw = Twitter(credential)
-        self.AdminCmd = self.tw.AdminCmd
-        self.bot_username = self.tw.me.screen_name
+        super().__init__(credential)
+        self.bot_username = self.me.screen_name
         self.database_indicator = False
 
 
     def __update_follow(self, indicator):
-        api = self.tw.api
-        me = self.tw.me
+        api = self.api
+        me = self.me
         inAccMsg = False # indicator for accept message
         inFoll = False # indicator for followed
         while True:
@@ -53,16 +52,16 @@ class Autobase:
                 if len(follower) != 0:
                     if inAccMsg == False:
                         inAccMsg = True
-                        self.tw.follower = follower.copy()
+                        self.follower = follower.copy()
 
                     for i in follower[::-1]:
-                        if i not in self.tw.follower:
+                        if i not in self.follower:
                             notif = self.credential.Notify_acceptMessage
                             # I don't know, sometimes error happen here, so, I update self.tw.follower after send_dm
                             try:
-                                self.tw.send_dm(recipient_id=i, text=notif)
-                                self.tw.follower.insert(0, i)
-                                if len(self.tw.follower) > 110: self.tw.follower.pop()
+                                self.send_dm(recipient_id=i, text=notif)
+                                self.follower.insert(0, i)
+                                if len(self.follower) > 110: self.follower.pop()
                             except Exception as ex:
                                 print(ex)
                                 pass
@@ -78,17 +77,17 @@ class Autobase:
                 try:
                     if inFoll == False:
                         inFoll = True
-                        followed = self.tw.get_all_followed(me.id, first_delay=False)
-                        self.tw.followed = followed[::-1]
+                        followed = self.get_all_followed(me.id, first_delay=False)
+                        self.followed = followed[::-1]
                     else:
                         print("Updating friends ids...")
                         followed = api.friends_ids(user_id=me.id, count=50)
                     
                     for i in followed:
-                        if i not in self.tw.followed:
+                        if i not in self.followed:
                             notif = self.credential.Notify_followed
-                            self.tw.send_dm(recipient_id=i, text=notif)
-                            self.tw.followed.append(i)
+                            self.send_dm(recipient_id=i, text=notif)
+                            self.followed.append(i)
 
                 except Exception as ex:
                     print(ex)
@@ -105,40 +104,13 @@ class Autobase:
         delay 60s on self.tw.read_dm is moved here to make threading faster
         '''
         while True:
-            dms_new = self.tw.read_dm()
+            dms_new = self.read_dm()
             if self.credential.Notify_queue is True:
                 # notify queue to sender
-                self.tw.notify_queue(dms_new, queue=len(dms))
+                self.notify_queue(dms_new, queue=len(dms))
 
             dms.extend(dms_new)
             sleep(65)
-    
-
-    def update_local_file(self, sender_id, message, postid):
-        screen_name = self.tw.get_user_screen_name(sender_id)
-        if exists(self.AdminCmd.filename_github):
-            with open(self.AdminCmd.filename_github, 'r+') as f:
-                data = load(f)
-                for x in range(len(data)):
-                    if int(data[x]['id']) == int(sender_id):
-                        data[x]['username'] = screen_name
-                        data[x]['menfess'].append({'postid': postid, 'text': unescape(message)})
-                        break
-                else:
-                    data.append({'username': screen_name, 'id': int(sender_id),
-                                'menfess': [{'postid': postid, 'text': unescape(message)}]})
-                f.seek(0)
-                dump(data, f, indent=4)
-                f.truncate()
-                f.close()
-        else:
-            with open(self.AdminCmd.filename_github, 'w+') as f:
-                data = [{'username': screen_name, 'id': int(sender_id),
-                        'menfess': [{'postid': postid, 'text': unescape(message)}]}]
-                f.seek(0)
-                dump(data, f, indent=4)
-                f.truncate()
-                f.close()
 
 
     def start_autobase(self):
@@ -195,7 +167,7 @@ class Autobase:
                             # Pay attention to append and extend!
                             if self.credential.Private_mediaTweet is True:
                                 for media_tweet_url in list_attchmentUrlsMedia:
-                                    list_mediaIdsAndTypes = self.tw.upload_media_tweet(media_tweet_url[1])
+                                    list_mediaIdsAndTypes = self.upload_media_tweet(media_tweet_url[1])
                                     if len(list_mediaIdsAndTypes) != 0:
                                         media_idsAndTypes.extend(list_mediaIdsAndTypes)
                                         message = message.split()
@@ -209,31 +181,31 @@ class Autobase:
 
                             # POST TWEET
                             print("Posting menfess...")
-                            postid = self.tw.post_tweet(message, sender_id, media_url=media_url, attachment_url=attachment_urls[1],
+                            postid = self.post_tweet(message, sender_id, media_url=media_url, attachment_url=attachment_urls[1],
                                     media_idsAndTypes=media_idsAndTypes, possibly_sensitive=possibly_sensitive)
                             
                             # update heroku/local database
                             if self.database_indicator is True:
-                                self.update_local_file(sender_id, message, postid)
+                                update_local_file(self, sender_id, message, postid)
 
                             # NOTIFY MENFESS SENT OR NOT
                             if postid != None and self.credential.Notify_sent is True:
                                 notif = self.credential.Notify_sentMessage.format(self.bot_username)
                                 text = notif + str(postid)
-                                self.tw.send_dm(recipient_id=sender_id, text=text)                       
+                                self.send_dm(recipient_id=sender_id, text=text)                       
                             elif postid == None:
                                 # Error happen on system
                                 text = self.credential.Notify_sentFail1                           
-                                self.tw.send_dm(recipient_id=sender_id, text=text)
+                                self.send_dm(recipient_id=sender_id, text=text)
                             else:
                                 # credential.Notify_sent is False
                                 pass
                             
-                            sleep(30+self.tw.random_time)
+                            sleep(30+self.credential.Delay_time)
 
                         else:
                             # Notify sender, message doesn't meet the algorithm's requirement
-                            self.tw.send_dm(sender_id, self.credential.Notify_sentFail2)
+                            self.send_dm(sender_id, self.credential.Notify_sentFail2)
 
                     except Exception as ex:
                         print(ex)
@@ -243,86 +215,6 @@ class Autobase:
             else:
                 sleep(3)
 
-            
-    def check_file_github(self, new=True):
-        '''
-        :param new: True when bot was just started, download & save file from github -> bool
-        False when bot is running. If file exists, doesn't save the file from github.
-        'new' parameter used if you update database not every midnight on Database method
-        '''
-        print("checking github file...")
-        try:
-            datee = datetime.now(timezone.utc) + \
-                timedelta(hours=self.credential.Timezone)
-            self.AdminCmd.filename_github = "{} {}-{}-{}.json".format(
-                self.bot_username, datee.year, datee.month, datee.day)
-            contents = self.AdminCmd.repo.get_contents("")
-
-            if any(self.AdminCmd.filename_github == content.name for content in contents):
-                # If filename exists in github. But, when midnight,
-                # filename automatically changed.
-                print(f"filename_github detected, new: {str(new)}")
-                if new == False:
-                    return
-                for content in contents:
-                    if self.AdminCmd.filename_github == content.name:
-                        contents = content.decoded_content.decode()
-                        break
-            else:
-                print("filename_github not detected")
-                contents = "[]"
-                self.AdminCmd.repo.create_file(self.AdminCmd.filename_github, "first commit",
-                                contents)
-
-            if exists(self.AdminCmd.filename_github) == False:
-                with open(self.AdminCmd.filename_github, 'w') as f:
-                    f.write(contents)
-                    f.close()
-            else:
-                pass
-
-            old_filename = "{} {}-{}-{}.json".format(
-                    self.bot_username, datee.year, datee.month, datee.day - 1)
-
-            if exists(old_filename):
-                remove(old_filename)
-                print("Heroku yesterday's Database has been deleted")
-            else:
-                print("Heroku yesterday's Database doesn't exist")
-
-        except Exception as ex:
-            pass
-            print(ex)
-
-
-    def __database(self, Github_database=True):
-        while True:
-            try:
-                # update every midnight, you can update directly from DM with 'db_update'
-                # check on config.py
-                datee = datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)
-                if self.AdminCmd.filename_github != f"{self.bot_username} {datee.year}-{datee.month}-{datee.day}.json":
-                    if Github_database is True:
-                        print("Github threading active...")
-                        contents = self.AdminCmd.repo.get_contents(self.AdminCmd.filename_github)
-                        with open(self.AdminCmd.filename_github) as f:
-                            self.AdminCmd.repo.update_file(contents.path, "updating Database", f.read(), contents.sha)
-                            f.close()
-                        self.check_file_github(new=False)
-                        print("Github Database updated")
-                    
-                    else:
-                        self.AdminCmd.filename_github = f"{self.bot_username} {datee.year}-{datee.month}-{datee.day}.json"
-
-                else:
-                    sleep(60)
-
-            except Exception as ex:
-                print(ex)
-                print("Github threading failed..")
-                sleep(720)
-                pass
-
 
     def start_database(self, Github_database=True):
         self.database_indicator = True
@@ -330,10 +222,19 @@ class Autobase:
             github = Github(self.credential.Github_token)
             self.AdminCmd.repo = github.get_repo(self.credential.Github_repo)
             self.AdminCmd.repo.indicator = True
-            self.check_file_github(new=True)
+            check_file_github(self, new=True)
 
         datee = datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)
         self.AdminCmd.filename_github = "{} {}-{}-{}.json".format(
             self.bot_username, datee.year, datee.month, datee.day)   
 
-        Thread(target=self.__database, args=[Github_database]).start()
+        Thread(target=gh_database, args=[self, Github_database]).start()
+
+if __name__ == "__main__":
+    import config
+
+    User = Autobase(config)
+    if config.Database:
+        User.start_database(config.Github_database)
+
+    User.start_autobase()
