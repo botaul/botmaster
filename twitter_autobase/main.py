@@ -5,15 +5,14 @@
 #     Source: https://github.com/fakhrirofi/twitter_autobase
 
 from .twitter import Twitter
+from .gh_db import check_file_github, update_local_file, gh_database
+from .webhook import webhook_manager as webMan
+from .process_dm import process_dm
+from .clean_dm_autobase import clean_main_autobase, clean_private_autobase
 from time import sleep
 from threading import Thread
 from datetime import datetime, timezone, timedelta
-from os.path import exists
-from os import remove
-from html import unescape
 from github import Github
-from json import dump, load
-from .gh_db import check_file_github, update_local_file, gh_database
 
 
 class Autobase(Twitter):
@@ -34,7 +33,9 @@ class Autobase(Twitter):
         '''
         super().__init__(credential)
         self.bot_username = self.me.screen_name
+        self.bot_id = str(self.me.id)
         self.database_indicator = False
+        self.dms = list() #list of filtered dms that processed by process_dm
 
 
     def __update_follow(self, indicator):
@@ -46,30 +47,30 @@ class Autobase(Twitter):
             # AUTO ACCEPT MESSAGE REQUESTS
             # self.tw.follower is only 110, and the get requests is only 50
             # the order is from new to old
-            print("Accepting message requests...")
-            try:
-                follower = api.followers_ids(user_id=me.id, count=100)
-                if len(follower) != 0:
-                    if inAccMsg == False:
-                        inAccMsg = True
-                        self.follower = follower.copy()
+            if self.credential.Greet_newFollower:
+                try:
+                    follower = api.followers_ids(user_id=me.id, count=100)
+                    if len(follower) != 0:
+                        if inAccMsg == False:
+                            inAccMsg = True
+                            self.follower = follower.copy()
 
-                    for i in follower[::-1]:
-                        if i not in self.follower:
-                            notif = self.credential.Notify_acceptMessage
-                            # I don't know, sometimes error happen here, so, I update self.tw.follower after send_dm
-                            try:
-                                self.send_dm(recipient_id=i, text=notif)
-                                self.follower.insert(0, i)
-                                if len(self.follower) > 110: self.follower.pop()
-                            except Exception as ex:
-                                print(ex)
-                                pass
-                                
-            except Exception as ex:
-                print(ex)
-                sleep(60)
-                pass
+                        for i in follower[::-1]:
+                            if i not in self.follower:
+                                notif = self.credential.Notify_acceptMessage
+                                # I don't know, sometimes error happen here, so, I update self.tw.follower after send_dm
+                                try:
+                                    self.send_dm(recipient_id=i, text=notif)
+                                    self.follower.insert(0, i)
+                                    if len(self.follower) > 110: self.follower.pop()
+                                except Exception as ex:
+                                    print(ex)
+                                    pass
+                                    
+                except Exception as ex:
+                    print(ex)
+                    sleep(60)
+                    pass
 
             # GETTING LIST OF FOLLOWED
             # self.tw.followed is from old to new
@@ -98,19 +99,46 @@ class Autobase(Twitter):
                 indicator.remove('idle')      
             sleep(67)
 
+    
+    def notify_queue(self, dms, queue=0):
+        """Notify the menfess queue to sender
+        :param dms: dms that returned from self.read_dm -> list of dict
+        :param queue: the current queue (len of current dms) -> int
+        """
+        try:
+            x, y, z = -1 + queue, queue, 0
+            # x is primary time (36 sec); y is queue; z is addition time for media
+            time = datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)
+            for i in dms:
+                y += 1
+                x += (len(i['message']) // 272) + 1
+                if i['media_url'] != None:
+                    z += 3
+                
+                if self.credential.Private_mediaTweet:
+                    z += len(i['attachment_urls']['media']) * 3
 
-    def __update_dm(self, dms):
-        '''
-        delay 60s on self.tw.read_dm is moved here to make threading faster
-        '''
-        while True:
-            dms_new = self.read_dm()
-            if self.credential.Notify_queue is True:
-                # notify queue to sender
-                self.notify_queue(dms_new, queue=len(dms))
+                # Delay for the first sender is very quick, so, it won't be notified
+                if x == 0:
+                    continue
 
-            dms.extend(dms_new)
-            sleep(65)
+                sent_time = time + timedelta(seconds= x*(37+self.credential.Delay_time) + z)
+                sent_time = datetime.strftime(sent_time, '%H:%M')
+                notif = self.credential.Notify_queueMessage.format(str(y), sent_time)
+                self.send_dm(recipient_id=i['sender_id'], text=notif)
+
+        except Exception as ex:
+            pass
+            print(ex)
+            sleep(60)
+
+
+    def update_dms(self, raw_dm):
+        dm = process_dm(self, raw_dm)
+        if self.credential.Notify_queue is True:
+            # notify queue to sender
+            self.notify_queue(dm, queue=len(self.dms))
+        self.dms.extend(dm)
 
 
     def start_autobase(self):
@@ -118,103 +146,68 @@ class Autobase(Twitter):
         the last self.tw.post_tweet delay is moved here to make threading faster
         '''
         print("Starting program...")
-        dms = list()
         indicator = {'idle'}
         Thread(target=self.__update_follow, args=[indicator]).start()
         while 'idle' in indicator:
             sleep(1)
-        Thread(target=self.__update_dm, args=[dms]).start()
+        
         # for i in credential.Admin_id:
         #     sent = self.tw.send_dm(recipient_id=i, text="Twitter autobase is starting...!")
 
         while True:
-            if len(dms) != 0:
+            while len(self.dms):
+                dm = self.dms.pop(0)
 
-                while len(dms) > 0:
-                    dm = dms.pop(0)
+                try:
+                    message = dm['message']
+                    sender_id = dm['sender_id']
+                    media_url = dm['media_url']
+                    attachment_urls = dm['attachment_urls']['tweet']
+                    list_attchmentUrlsMedia = dm['attachment_urls']['media']
 
-                    try:
-                        message = dm['message']
-                        sender_id = dm['sender_id']
-                        media_url = dm['media_url']
-                        attachment_urls = dm['attachment_urls']['tweet']
-                        list_attchmentUrlsMedia = dm['attachment_urls']['media']
-                        
-                        if any(j.lower() in message.lower() for j in self.credential.Trigger_word):
-                            # Keyword Deleter
-                            if self.credential.Keyword_deleter is True:
-                                message = message.split()
-                                list_keyword = [j.lower() for j in self.credential.Trigger_word] + \
-                                            [j.upper() for j in self.credential.Trigger_word] + \
-                                            [j.capitalize() for j in self.credential.Trigger_word]
+                    message = clean_main_autobase(self, message, attachment_urls)
 
-                                [message.remove(j) for j in list_keyword if j in message]
-                                message = " ".join(message)
-
-                            # Cleaning attachment_url
-                            if attachment_urls != (None, None):
-                                message = message.split()
-                                if attachment_urls[0] in message:
-                                    message.remove(attachment_urls[0])
-                                message = " ".join(message)
+                    # Private_mediaTweet
+                    media_idsAndTypes = list() # e.g [(media_id, media_type), (media_id, media_type), ]
+                    if self.credential.Private_mediaTweet:
+                        message = clean_private_autobase(self, message, media_idsAndTypes, list_attchmentUrlsMedia)
                             
-                            # Cleaning hashtags and mentions
-                            message = message.replace("#", "#/")
-                            message = message.replace("@", "@/")
+                    # Menfess contains sensitive contents
+                    possibly_sensitive = False
+                    if self.credential.Sensitive_word.lower() in message.lower():
+                        possibly_sensitive = True
 
-                            # Private_mediaTweet
-                            media_idsAndTypes = list() # e.g [(media_id, media_type), (media_id, media_type), ]
-                            # Pay attention to append and extend!
-                            if self.credential.Private_mediaTweet is True:
-                                for media_tweet_url in list_attchmentUrlsMedia:
-                                    list_mediaIdsAndTypes = self.upload_media_tweet(media_tweet_url[1])
-                                    if len(list_mediaIdsAndTypes) != 0:
-                                        media_idsAndTypes.extend(list_mediaIdsAndTypes)
-                                        message = message.split()
-                                        message.remove(media_tweet_url[0])
-                                        message = " ".join(message)
+                    # POST TWEET
+                    print("Posting menfess...")
+                    postid = self.post_tweet(message, sender_id, media_url=media_url, attachment_url=attachment_urls[1],
+                            media_idsAndTypes=media_idsAndTypes, possibly_sensitive=possibly_sensitive)
                             
-                            # Menfess contains sensitive contents
-                            possibly_sensitive = False
-                            if self.credential.Sensitive_word.lower() in message.lower():
-                                possibly_sensitive = True
+                    # update heroku/local database
+                    if self.database_indicator:
+                        update_local_file(self, sender_id, message, postid)
 
-                            # POST TWEET
-                            print("Posting menfess...")
-                            postid = self.post_tweet(message, sender_id, media_url=media_url, attachment_url=attachment_urls[1],
-                                    media_idsAndTypes=media_idsAndTypes, possibly_sensitive=possibly_sensitive)
-                            
-                            # update heroku/local database
-                            if self.database_indicator is True:
-                                update_local_file(self, sender_id, message, postid)
-
-                            # NOTIFY MENFESS SENT OR NOT
-                            if postid != None and self.credential.Notify_sent is True:
-                                notif = self.credential.Notify_sentMessage.format(self.bot_username)
-                                text = notif + str(postid)
-                                self.send_dm(recipient_id=sender_id, text=text)                       
-                            elif postid == None:
-                                # Error happen on system
-                                text = self.credential.Notify_sentFail1                           
-                                self.send_dm(recipient_id=sender_id, text=text)
-                            else:
-                                # credential.Notify_sent is False
-                                pass
-                            
-                            sleep(30+self.credential.Delay_time)
-
-                        else:
-                            # Notify sender, message doesn't meet the algorithm's requirement
-                            self.send_dm(sender_id, self.credential.Notify_sentFail2)
-
-                    except Exception as ex:
-                        print(ex)
-                        sleep(30)
+                    # NOTIFY MENFESS SENT OR NOT
+                    if postid != None and self.credential.Notify_sent:
+                        notif = self.credential.Notify_sentMessage.format(self.bot_username)
+                        text = notif + str(postid)
+                        self.send_dm(recipient_id=sender_id, text=text)                       
+                    elif postid == None:
+                        # Error happen on system
+                        text = self.credential.Notify_sentFail1                           
+                        self.send_dm(recipient_id=sender_id, text=text)
+                    else:
+                        # credential.Notify_sent is False
                         pass
+                            
+                    sleep(36+self.credential.Delay_time)
 
-            else:
-                sleep(3)
+                except Exception as ex:
+                    print(ex)
+                    sleep(30)
+                    pass
 
+            sleep(3)
+    
 
     def start_database(self, Github_database=True):
         self.database_indicator = True
@@ -229,12 +222,3 @@ class Autobase(Twitter):
             self.bot_username, datee.year, datee.month, datee.day)   
 
         Thread(target=gh_database, args=[self, Github_database]).start()
-
-if __name__ == "__main__":
-    import config
-
-    User = Autobase(config)
-    if config.Database:
-        User.start_database(config.Github_database)
-
-    User.start_autobase()

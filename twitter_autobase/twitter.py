@@ -59,8 +59,6 @@ class Twitter:
         self.followed = list() # list of integer
         self.db_sent = dict() # dict of sender and his postid, update every midnight with self.day
         self.day = (datetime.now(timezone.utc) + timedelta(hours=credential.Timezone)).day
-        self.db_received = list() # list of 55 received menfess's message id
-        self.indicator_start = False
         self.db_intervalTime = dict()
     
 
@@ -142,320 +140,6 @@ class Twitter:
             print(ex)
 
 
-    def read_dm(self):
-        '''Read and filter DMs
-        This method contains AdminCmd and UserCmd that can do exec and
-        self.db_sent updater.
-        Filters:
-            - received dm
-            - admin & user command
-            - interval per sender
-            - account status
-            - blacklist words
-            - only followed
-            - sender requirements
-            - menfess trigger
-                - attachment_url
-                - photo
-                - video
-                - animated_gif
-        :returns: list of dict filtered DMs
-        '''
-        # Update db_sent
-        self.db_sent_updater('update')
-
-        print("Getting direct messages...")
-        dms = list()
-        try:
-            api = self.api
-            dm = api.list_direct_messages(count=50)
-
-            # FILL DB_RECEIVED WHEN BOT WAS JUST STARTED (Keep_DM)
-            if self.indicator_start is False:
-                self.indicator_start = True
-
-                if self.credential.Keep_DM is True:
-                    for x in dm:
-                        self.db_received.append(x.id)
-                    # Ignore messages that received before bot started
-                    return dms
-            
-            # Check Account_status to make process (after Turned off) faster
-            if self.credential.Account_status is True:
-                dm.reverse()
-            else:
-                for x in range(len(dm)):
-                    message = dm[x].message_create['message_data']['text'].lower()
-                    if "#switch on" in message:
-                        self.credential.Account_status = True
-                        self.delete_dm(dm[x].id)
-                        self.send_dm(dm[x].message_create['sender_id'],"processed: #switch on")
-                        del dm[x]
-                        dm.reverse()
-                        break
-
-                    elif any(i in message for i in self.credential.Admin_cmd):
-                        dm.reverse()
-                        break
-
-                else:
-                    print("Account status: False; AdminCmd not found")
-                    return dms
-
-            for x in range(len(dm)):
-                sender_id = dm[x].message_create['sender_id'] # str
-                message_data = dm[x].message_create['message_data']
-                message = message_data['text']
-                id = dm[x].id
-
-                # Message id is already stored on db_received, the message will be skipped (Keep_DM)
-                if id in self.db_received:
-                    continue
-
-                # Avoid keyword error by skipping bot messages
-                if sender_id == str(self.me.id):
-                    self.delete_dm(id)
-                    continue
-
-                # ADMIN & USER COMMAND
-                list_command = list(self.credential.Admin_cmd) + list(self.credential.User_cmd)
-                command = message.split()[0].lower()
-                if any(i == command for i in list_command):
-                    # delete DM to avoid repeated command
-                    self.delete_dm(id)
-
-                    AdminCmd = self.AdminCmd #pylint: disable=unused-variable
-                    UserCmd = self.UserCmd #pylint: disable=unused-variable
-                    command, *contents = message.split()
-                    notif = str()
-                    
-                    if command.lower() in self.credential.Admin_cmd:
-                        # Manage admin access
-                        if sender_id not in self.credential.Admin_id:
-                            notif = self.credential.Notify_wrongTrigger
-                            self.send_dm(recipient_id=sender_id, text=notif)
-                            continue
-                        else:
-                            pass
-                    print(f"command {command} {str(contents)} in progress...")
-
-                    dict_command = self.credential.Admin_cmd.copy()
-                    dict_command.update(self.credential.User_cmd)
-
-                    if len(contents) != 0:
-                        urls = message_data["entities"]["urls"]
-                        for arg in contents:
-                            try:
-                                notif += f"\nprocessed: {command} {arg}"
-                                fix_command = dict_command[command.lower()]
-                                exec(fix_command)
-                                if "urls" in fix_command:
-                                    break
-
-                            except Exception as ex:
-                                pass
-                                print(ex)
-                                notif += f"\nException: {ex}"
-                    else:
-                        try:
-                            notif += f"\nprocessed: {command}"
-                            exec(dict_command[command.lower()])
-                        except Exception as ex:
-                            pass
-                            print(ex)
-                            notif += f"\nException: {ex}"
-                    
-                    # Skip notif if '#no_notif' in command's comment
-                    if "#no_notif" in dict_command[command.lower()]:
-                        if "Exception" not in notif:
-                            continue
-                    
-                    # Manage notification for user
-                    if sender_id not in self.credential.Admin_id:
-                        if "Exception" not in notif:
-                            notif = self.credential.Notify_userCmdDelete
-                        else:
-                            notif = self.credential.Notify_userCmdDeleteFail
-                    
-                    self.send_dm(sender_id, notif)
-                    continue
-                
-                # ACCOUNT STATUS
-                if self.credential.Account_status is False:
-                    continue
-
-                # Interval time per sender
-                if self.credential.Interval_perSender is True and sender_id not in self.credential.Admin_id:
-                    date_now = datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)
-                    for i in list(self.db_intervalTime):
-                        # cleaning self.db_intervalTime
-                        if self.db_intervalTime[i] < date_now:
-                            del self.db_intervalTime[i]
-
-                    if sender_id in self.db_intervalTime:
-                        continue
-                    else:
-                        self.db_intervalTime[sender_id] = date_now + timedelta(seconds=self.credential.Interval_time)
-
-                # Delete or store message id to avoid repeated menfess (Keep_DM)
-                if self.credential.Keep_DM is True:     
-                    if len(self.db_received) > 55:
-                        self.db_received.pop(0)
-                    self.db_received.append(id)
-
-                else:
-                    self.delete_dm(id)
-
-                # ONLY FOLLOWED
-                if self.credential.Only_followed is True and sender_id not in self.credential.Admin_id:
-                    if int(sender_id) not in self.followed:
-                        self.send_dm(sender_id, self.credential.Notify_notFollowed)
-                        continue
-
-                # Minimum lenMenfess
-                if len(message) < self.credential.Minimum_lenMenfess and sender_id not in self.credential.Admin_id:
-                    self.send_dm(sender_id, self.credential.Notify_senderRequirements)
-                    continue
-
-                # SENDER REQUIREMENTS
-                if self.credential.Sender_requirements is True and sender_id not in self.credential.Admin_id:
-                    indicator = 0
-                    user = (api.get_user(sender_id))._json
-                    # minimum followers
-                    if user['followers_count'] < self.credential.Minimum_followers:
-                        indicator = 1
-                    # minimum age
-                    created_at = datetime.strptime(user['created_at'], '%a %b %d %H:%M:%S +0000 %Y')
-                    now = (datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)).replace(tzinfo=None)
-
-                    if (now-created_at).days < self.credential.Minimum_day:
-                        indicator = 1
-                    
-                    if indicator == 1:
-                        self.send_dm(sender_id, self.credential.Notify_senderRequirements)
-                        continue
-
-                # BLACKLIST WORDS
-                list_blacklist = [i.lower() for i in self.credential.Blacklist_words]
-                if any(i in message.lower() for i in list_blacklist) and sender_id not in self.credential.Admin_id:
-                    try:
-                        print("Skipping blacklist menfess")
-                        notif = self.credential.Notify_blacklistWords
-                        self.send_dm(recipient_id=sender_id, text=notif)
-                    except Exception as ex:
-                        sleep(60)
-                        print(ex)
-                        pass
-
-                    continue
-
-                # MENFESS TRIGGER
-                if any(j.lower() in message.lower() for j in self.credential.Trigger_word):
-
-                    print("Getting message -> sender_id: " + str(sender_id))
-                    dict_dms = dict(message=message, sender_id=sender_id,
-                        media_url=None, attachment_urls={'tweet':(None, None),
-                                                         'media':list()})
-
-                    # attachment url
-                    urls = message_data['entities']['urls']
-                    for i in urls:
-                        if "twitter.com/" in i['expanded_url'] and "/status/" in i['expanded_url']:
-                            # i['url]: url in text message                          
-                            # Media
-                            if any(j in i['expanded_url'] for j in ['/video/', '/photo/', '/media/']):
-                                dict_dms['attachment_urls']['media'].append((i['url'], i['expanded_url']))
-                                #i['expanded_url'] e.g https://twitter.com/username/status/123/photo/1
-                            
-                            # Tweet
-                            else:
-                                dict_dms['attachment_urls']['tweet'] = (i['url'], i['expanded_url'])
-                                #i['expanded_url'] e.g https://twitter.com/username/status/123?s=19
-
-                    # attachment media
-                    if 'attachment' in message_data:
-                        media = message_data['attachment']['media']
-                        media_type = media['type']
-
-                        if media_type == 'photo':
-                            media_url = media['media_url']
-
-                        elif media_type == 'video':
-                            media_urls = media['video_info']['variants']
-                            temp_bitrate = list()
-                            for varian in media_urls:
-                                if varian['content_type'] == "video/mp4":
-                                    temp_bitrate.append((varian['bitrate'], varian['url']))
-                            # sort to choose the highest bitrate
-                            temp_bitrate.sort()
-                            media_url = temp_bitrate[-1][1]
-
-                        elif media_type == 'animated_gif':
-                            media_url = media['video_info']['variants'][0]['url']
-                        
-                        dict_dms['media_url'] = media_url
-
-                    dms.append(dict_dms)
-
-                # WRONG TRIGGER
-                else:
-                    if self.credential.NotifyWrongTrigger is True:
-                        notif = self.credential.Notify_wrongTrigger
-                        self.send_dm(recipient_id=sender_id, text=notif)
-
-                        # Send wrong menfess to admin
-                        username = self.get_user_screen_name(sender_id)
-                        notif = message + f"\nstatus: wrong trigger\nfrom: @{username}\nid: {sender_id}"
-
-                        for admin in self.credential.Admin_id:
-                            self.send_dm(recipient_id=admin, text=notif)
-            
-            print(str(len(dms)) + " messages collected")
-            return dms
-
-        except Exception as ex:
-            pass
-            print(ex)
-            sleep(60)
-            return dms
-
-
-    def notify_queue(self, dms, queue=0):
-        """Notify the menfess queue to sender
-        :param dms: dms that returned from self.read_dm -> list of dict
-        :param queue: the current queue (len of current dms) -> int
-        """
-        try:
-            print("Notifying the queue to sender...")
-            x, y, z = -1, 0, 0
-            x += queue
-            y += queue
-            # x is primary time (30 sec); y is queue; z is addition time for media
-            time = datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)
-            for i in dms:
-                y += 1
-                x += (len(i['message']) // 272) + 1
-                if i['media_url'] != None:
-                    z += 3
-                
-                if self.credential.Private_mediaTweet is True:
-                    z += len(i['attachment_urls']['media']) * 3
-
-                # Delay for the first sender is very quick, so, it won't be notified
-                if x == 0:
-                    continue
-
-                sent_time = time + timedelta(seconds= x*(32+self.credential.Delay_time) + z)
-                sent_time = datetime.strftime(sent_time, '%H:%M')
-                notif = self.credential.Notify_queueMessage.format(str(y), sent_time)
-                self.send_dm(recipient_id=i['sender_id'], text=notif)
-
-        except Exception as ex:
-            pass
-            print(ex)
-            sleep(60)
-
-
     def delete_dm(self, id):
         '''Delete a DM
         :param id: message id -> int or str
@@ -474,8 +158,7 @@ class Twitter:
         :param text: -> str
         '''
         try:
-            sent = self.api.send_direct_message(recipient_id=recipient_id, text=text)
-            self.delete_dm(sent.id)
+            self.api.send_direct_message(recipient_id=recipient_id, text=text)
         except Exception as ex:
             pass
             print(ex)
@@ -704,7 +387,7 @@ class Twitter:
                         media_ids=list_media_ids[:1][0], possibly_sensitive=possibly_sensitive).id
                 
                 list_media_ids = list_media_ids[1:] + [[]]
-                sleep(30+self.credential.Delay_time)
+                sleep(36+self.credential.Delay_time)
                 # tweet are dynamic here
                 tweet = tweet[limit-separator:]
             
@@ -725,7 +408,7 @@ class Twitter:
 
             # When media_ids still exists, It will be attached to the subsequent tweets
             while len(list_media_ids[0]) != 0: # Pay attention to the list format, [[]]
-                sleep(30+self.credential.Delay_time)
+                sleep(36+self.credential.Delay_time)
 
                 print("Posting the rest of media...")
                 postid1 = self.api.update_status(

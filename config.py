@@ -10,7 +10,7 @@ ENV_NAME = ""
 # ENV_NAME is the same as Dev environment label
 # Check your AAPI subcription renewal date on https://developer.twitter.com/en/account/subscriptions
 
-Admin_id = [] # list of str
+Admin_id = [""] # list of str
 # Admin id is like sender id. To check it, send a menfess from your admin account.
 # or you can use api.get_user(screen_name="usernameoftheaccount")
 # This is used to giving access to pass some message filters & admin command
@@ -29,18 +29,17 @@ Notify_sentMessage = "Yeay! Menfess kamu telah terkirim! https://twitter.com/{}/
 # Please keep the "{}" format -> .format(bot_username) + postid
 Notify_sentFail1 = "Maaf ada kesalahan pada sistem :( \ntolong screenshot & laporkan kepada admin"
 # Used when error is happened in system
-Notify_sentFail2 = "ketentuan Triggerword menfess kamu tidak sesuai!"
-# Used when sender sends menfess that ignored by algorithms
 
 Interval_perSender = False # bool
 Interval_time = 0 # int
 # Interval time (in seconds) of sending menfess per sender, Admin pass this filter
 
 Delay_time = 0 # int, seconds
-# Twitter API limits user to post tweet. System will delay 30s per/tweet. You can add it by input
+# Twitter API limits user to post tweet. System will delay 36s per/tweet. You can add it by input
 # seconds in Delay_time. e.g Delay_time = 60, it means system will delay 90 seconds per tweet
 
 # Welcome message to new followers
+Greet_newFollower = False
 Notify_acceptMessage = "Makasih yaa udah follow base ini :) \nJangan lupa baca peraturan base!"
 
 Keyword_deleter = False # Trigger word deleter
@@ -56,6 +55,8 @@ Notify_followed = "Yeay! kamu udah difollow sama base ini. Jangan lupa baca pera
 Notify_notFollowed = "Hmm, kamu belum difollow sama base ini. Jadi ga bisa ngirim menfess dehh :("
 
 Minimum_lenMenfess = 0 # length of the menfess
+Maximum_lenMenfess = 9999999
+Notify_lenMenfess = f"Maksimum jumlah karakter: {Maximum_lenMenfess}, Minimal jumlah karakter {Maximum_lenMenfess}"
 
 Sender_requirements = False
 # bool, True: sender should pass the account requirements. Admin pass this filter
@@ -90,28 +91,6 @@ Watermark_position = ('right', 'bottom') # (x, y)
 # x: 'left', 'center', 'right'
 # y: 'top', 'center', 'bottom'
 
-Keep_DM = False
-# bool, True: DMs id will be stored on db_received
-# So, the messages are still exist on your DM.
-# ONLY MESSAGES SENT BY SENDER that still exist & will be stored.
-# Don't delete messages from DM using Twitter app to avoid error.
-# Advantages : - Easy to monitor from DM
-#              - Heroku or other database is not required
-# Disadvantages: - Only messages that received AFTER BOT STARTED that will be processed.
-#                - Twitter API only list the 50 most recent messages. So, if there are more
-#                  than 50 new (sender) messages in a queue, the rest won't be processed.
-# If you want to change keep_DM from True to False, all messages in last month must be deleted
-# to avoid repeated messages in the process.
-# [[[Example of code to to delete all messages]]]
-# from tweepy import API, Cursor, OAuthHandler
-# auth = OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-# auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
-# api = API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
-# ids = list()
-# for page in Cursor(api.list_direct_messages, count=50).pages():
-#     ids.extend(page)
-#     sleep(60)
-# for id in ids: api.destroy_direct_message(id)
 
 Database = False
 # bool, True: Using database (Make json file in local)
@@ -119,7 +98,7 @@ Github_database = False # Push json file to Github
 # bool, True: using github to save database, False: database only in local
 # Github_token and Github_repo are not required when Github_database is False
 # You can directly update Github database using '#db_update' command from DM
-Github_token = "****"
+Github_token = ""
 # get it from https://github.com/settings/tokens , set allow for editing repo
 Github_repo = "username/your_repo"
 # Make a repository first, then fill the Github_repo
@@ -132,9 +111,9 @@ Account_status = True
 # If there are messages on DM when turned off, those will be posted when this bot switched to on
 
 Trigger_word = ["fess!", "blablabla!"]
-Notify_wrongTrigger = "Trigger menfess tidak terdeteksi, pesan kamu akan dikirimkan ke admin"
-# Message will be sent to admin
-NotifyWrongTrigger = False
+Notify_wrongTriggerUser = True # Will be send to user
+Notify_wrongTriggerAdmin = False # Will be send to admin
+Notify_wrongTriggerMsg = "Trigger menfess tidak terdeteksi, pesan kamu akan dikirimkan ke admin"
 
 Sensitive_word = "/sensitive"
 # Used when sender send sensitive content, order them to use this word
@@ -143,6 +122,7 @@ Sensitive_word = "/sensitive"
 Blacklist_words = ['covid', 'blablabla'] 
 # hashtags and mentions will be changed into "#/" and "@/" in app.py to avoid ban
 Notify_blacklistWords = "di menfess kamu terdapat blacklist words, jangan lupa baca peraturan base yaa!"
+Notify_blacklistWordsAdmin = False #will be send to admin
 
 # Please set Admin_cmd and User_cmd in lowercase
 # If you want to modify command, don't edit #switch

@@ -39,12 +39,16 @@ def register_webhook(url: str, name: str, credential, delLastWeb=True):
 # Webhook server
 class StreamEvent(Event):
     '''
-    :param func_data: function (contains only 1 argument) that will be called when webhook receives data
+    :param func_data: dict of function(one arg) that will be called when webhook receives data, user_id (str) as a key       
+        func_data = {
+            'username': function,
+        }
+
     :param subscribe: list of (str) subscriptions that will be subscribed.\
     see more on: https://developer.twitter.com/en/docs/twitter-api/enterprise/account-activity-api/guides/account-activity-data-objects
     '''
     
-    def __init__(self, func_data, subscribe):
+    def __init__(self, func_data: dict, subscribe):
         self.func_data = func_data
         self.subcriptions = subscribe
     
@@ -59,74 +63,23 @@ class StreamEvent(Event):
     def on_data(self, data: json):
         if data is None:
             return
-        for x in self.subcriptions:
-            if x in data:
-                self.func_data(data)
-                break
+        if any(i in data for i in self.subcriptions):
+            user_id = data['for_user_id']
+            self.func_data[user_id](data)
 
-if __name__ == "__main__":
-    import config
-    from multiprocessing import Process
-    from time import sleep
-    from requests import post
 
-    public_url = connect_ngrok(config.NGROK_AUTH_TOKEN)
+def server_config(url, dict_credential, dict_func, subscribe=['direct_message_events']):
+    '''
+    dict_credential={
+        'username': 'consumer_secret'
+    }
+    dict_func={
+        'user_id': function
+    }
+    :return: multiprocessing.Process object
+    '''
+    stream_event = StreamEvent(dict_func, subscribe)
+    stream_event.set_callback(url)
+    stream_event.update_credential_id(dict_credential)
 
-    def func_data(data):
-        print(json.dumps(data, indent=2))
-
-    stream_event = StreamEvent(
-        func_data,
-        [
-            'direct_message_events',
-        ]
-    )
-    
-    stream_event.set_callback(public_url+"/listener")
-    stream_event.update_credential_id(
-        {
-            'darksiede' : config.CONSUMER_SECRET,
-            'autobase_reborn' : config.CONSUMER_SECRET_2,
-        }
-    )
-    
-    p1 = Process(target=stream_event.listen)
-    p1.start()
-
-    # Wait server
-    while post(public_url+"/listener/test").status_code != 200:
-        sleep(1)
-
-    register_webhook(
-        public_url+"/listener",
-        "darksiede",
-        type(
-            "data",
-            (object,),
-            {
-                'CONSUMER_KEY'      : config.CONSUMER_KEY,
-                'CONSUMER_SECRET'   : config.CONSUMER_SECRET, 
-                'ACCESS_KEY'        : config.ACCESS_KEY,
-                'ACCESS_SECRET'     : config.ACCESS_SECRET,
-                'ENV_NAME'          : config.ENV_NAME,
-            }
-        )
-    )
-    
-    register_webhook(
-        public_url+"/listener",
-        "autobase_reborn",
-        type(
-            "data",
-            (object,),
-            {
-                'CONSUMER_KEY'      : config.CONSUMER_KEY_2,
-                'CONSUMER_SECRET'   : config.CONSUMER_SECRET_2, 
-                'ACCESS_KEY'        : config.ACCESS_KEY_2,
-                'ACCESS_SECRET'     : config.ACCESS_SECRET_2,
-                'ENV_NAME'          : config.ENV_NAME_2,
-            }
-        )
-    )
-
-    p1.join()
+    return stream_event
