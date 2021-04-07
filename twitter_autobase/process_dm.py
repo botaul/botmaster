@@ -129,11 +129,11 @@ def dm_user_filter(selfAlias, sender_id, message) -> bool:
         selfAlias.send_dm(recipient_id=sender_id, text=notif)
 
         if selfAlias.credential.Notify_blacklistWordsAdmin:
+            username = selfAlias.get_user_screen_name(sender_id)
             for id in selfAlias.credential.Admin_id:
                 selfAlias.send_dm(
                     recipient_id=id,
-                    text=f"{message}\nstatus: blacklistWords\nfrom: \
-                        {selfAlias.get_user_screen_name(sender_id)}\nid: {sender_id}"
+                    text=f"{message}\nstatus: blacklistWords\nfrom: @{username}\nid: {sender_id}"
                 )
 
         return True

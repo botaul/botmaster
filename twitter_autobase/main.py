@@ -202,6 +202,8 @@ class Autobase(Twitter):
                     sleep(36+self.credential.Delay_time)
 
                 except Exception as ex:
+                    text = self.credential.Notify_sentFail1 + "\nError code: start_autobase method"
+                    self.send_dm(recipient_id=sender_id, text=text)
                     print(ex)
                     sleep(30)
                     pass

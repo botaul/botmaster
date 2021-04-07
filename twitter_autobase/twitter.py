@@ -372,6 +372,11 @@ class Twitter:
                 separator = len(check[-1])
                 if tweet[limit-1] == " ":
                     separator += 1
+
+                # avoid error if one word length is more than 272 characters
+                if len(check) == 1:
+                    separator = 0
+
                 tweet1 = unescape(tweet[:limit-separator]) + '-cont-'
                 
                 if postid == 0:

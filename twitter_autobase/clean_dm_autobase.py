@@ -19,13 +19,29 @@ def clean_main_autobase(selfAlias, message, attachment_urls) -> str:
     '''
     # Keyword Deleter
     if selfAlias.credential.Keyword_deleter:
-        message = message.split()
-        list_keyword = [j.lower() for j in selfAlias.credential.Trigger_word] + \
-                    [j.upper() for j in selfAlias.credential.Trigger_word] + \
-                    [j.capitalize() for j in selfAlias.credential.Trigger_word]
+        list_keyword = [j.lower() for j in selfAlias.credential.Trigger_word]
+        
+        for word in list_keyword:
+            tmp_message = message.lower()
+            pos = tmp_message.find(word)
+            
+            if pos != -1:
+                replaced = message[pos : pos + len(word)]
+                
+                if pos == 0:
+                    if len(word) == len(message):
+                        pass
+                        # Error will happen on post_tweet method. If the message only contains trigger
+                        # that will be deleted on replaced variable
+                    elif message[pos+len(word)] == " ":
+                        # when trigger is placed on the start of text and there is a space after it
+                        replaced += " "
 
-        [message.remove(j) for j in list_keyword if j in message]
-        message = " ".join(message)
+                elif message[pos-1] == " ":
+                    # when trigger is placed on the middle or the end of text
+                    replaced = " " + replaced
+                
+                message = message.replace(replaced, "")
 
     # Cleaning attachment_url
     if attachment_urls != (None, None):

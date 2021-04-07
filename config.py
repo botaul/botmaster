@@ -132,8 +132,8 @@ Admin_cmd = {
     '#rm_blacklist'     : 'AdminCmd.rm_blacklist(arg)',
     '#display_blacklist': 'AdminCmd.display_blacklist(sender_id) #no_notif',
     '#db_update'        : 'AdminCmd.db_update()',
-    '#rm_followed'      : 'AdminCmd.rm_followed(self.followed, arg)',
-    '#who'              : 'AdminCmd.who(sender_id, self.db_sent, urls) #no_notif',
+    '#rm_followed'      : 'AdminCmd.rm_followed(selfAlias.followed, arg)',
+    '#who'              : 'AdminCmd.who(sender_id, selfAlias.db_sent, urls) #no_notif',
     '#add_admin'        : 'AdminCmd.add_admin(arg)',
     '#rm_admin'         : 'AdminCmd.rm_admin(arg)',
     '#switch'           : 'AdminCmd.switch(arg)',
@@ -145,7 +145,7 @@ Admin_cmd = {
 
 
 User_cmd = {
-    '#delete'           : 'UserCmd.delete(sender_id, self.db_sent, urls)',
+    '#delete'           : 'UserCmd.delete(sender_id, selfAlias.db_sent, urls)',
 }
 # delete is not available for user when bot was just started and user id not in db_sent
 # delete & db_sent are only available for one day (reset every midnight or heroku dyno cycling)
