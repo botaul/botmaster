@@ -89,9 +89,11 @@ def dm_user_filter(selfAlias, sender_id, message) -> bool:
                 del selfAlias.db_intervalTime[i]
 
         if sender_id in selfAlias.db_intervalTime:
+            notif = selfAlias.credential.Notify_intervalPerSender
+            selfAlias.send_dm(recipient_id=sender_id, text=notif)
             return True
         else:
-            selfAlias.db_intervalTime[sender_id] = date_now + timedelta(seconds=selfAlias.credential.Interval_time)
+            selfAlias.db_intervalTime[sender_id] = date_now + timedelta(minutes=selfAlias.credential.Interval_time)
 
     # ONLY FOLLOWED
     if selfAlias.credential.Only_followed:
@@ -247,12 +249,14 @@ def process_dm(selfAlias, raw_dm: dict) -> list:
         if sender_id == str(selfAlias.me.id):
             return list()
             
-        print(f"Processing direct message, sender_id: {sender_id}")
-
         # Ignore message when Account_status is False
         if not selfAlias.credential.Account_status:
             if sender_id not in selfAlias.credential.Admin_id:
+                print("Account_status: False")
                 return list()
+            print("Account_status: False, sender_id in Admin_id")
+
+        print(f"Processing direct message, sender_id: {sender_id}")
 
         # ADMIN & USER COMMAND
         if dm_command(selfAlias, sender_id, message, message_data):

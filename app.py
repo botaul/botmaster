@@ -33,7 +33,7 @@ webhook.start()
 
 # TEST SERVER
 while post(url+"/listener/test").status_code != 200:
-    sleep(3)
+    sleep(1)
 
 # REGISTER WEBHOOK
 webMan.register_webhook(url+"/listener", User.bot_username, config)

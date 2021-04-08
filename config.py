@@ -32,7 +32,8 @@ Notify_sentFail1 = "Maaf ada kesalahan pada sistem :( \ntolong screenshot & lapo
 
 Interval_perSender = False # bool
 Interval_time = 0 # int
-# Interval time (in seconds) of sending menfess per sender, Admin pass this filter
+# Interval time (in minutes) of sending menfess per sender, Admin pass this filter
+Notify_intervalPerSender = f"Mengirim menfess dibatasi! silakan coba lagi sekitar {Interval_time} menit lagi"
 
 Delay_time = 0 # int, seconds
 # Twitter API limits user to post tweet. System will delay 36s per/tweet. You can add it by input

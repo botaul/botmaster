@@ -4,16 +4,16 @@
 #     Source: https://github.com/fakhrirofi/twitter_autobase
 
 from .command import AdminCommand, UserCommand
-from .watermark import app as wm
+from .watermark import app as watermark
 from .async_upload import MediaUpload
 from tweepy import OAuthHandler, API, Cursor
 from time import sleep
 from os import remove
-from requests import get
+import requests
 from requests_oauthlib import OAuth1
 from html import unescape
 from datetime import datetime, timezone, timedelta
-from re import sub, search
+import re
 
 
 class Twitter:
@@ -193,11 +193,11 @@ class Twitter:
                        resource_owner_key=self.credential.ACCESS_KEY,
                        resource_owner_secret=self.credential.ACCESS_SECRET)
 
-        r = get(media_url, auth=oauth)
+        r = requests.get(media_url, auth=oauth)
 
         if filename == None:
-            for i in sub("[/?=]", " ", media_url).split():
-                if search(r"\.mp4$|\.gif$|\.jpg$|\.jpeg$|\.png$|\.webp$", i):
+            for i in re.sub("[/?=]", " ", media_url).split():
+                if re.search(r"\.mp4$|\.gif$|\.jpg$|\.jpeg$|\.png$|\.webp$", i):
                     filename = i
                     break
             if filename == None:
@@ -226,7 +226,7 @@ class Twitter:
             if file_type in "jpg jpeg png webp":
                 print("Adding watermark...")
                 adm = self.credential
-                wm.watermark_text_image(filename, text=adm.Watermark_text, font=adm.Watermark_font,
+                watermark.watermark_text_image(filename, text=adm.Watermark_text, font=adm.Watermark_font,
                 ratio=adm.Watermark_ratio, pos=adm.Watermark_position,
                 output=output, color=adm.Watermark_textColor,
                 stroke_color=adm.Watermark_textStroke, watermark=adm.Watermark_image)
@@ -249,7 +249,7 @@ class Twitter:
         :returns: [(media_id, media_type),] a.k.a media_idsAndTypes -> list
         '''
         try:
-            postid = sub(r"[/\.:]", " ", media_tweet_url).split()[-3]
+            postid = re.sub(r"[/\.:]", " ", media_tweet_url).split()[-3]
             status = self.api.get_status(postid)
             media_idsAndTypes = list()
 
@@ -368,14 +368,33 @@ class Twitter:
             while len(tweet) > 280:
             # Making a Thread.
                 limit = 272
-                check = tweet[:limit].split()
-                separator = len(check[-1])
-                if tweet[limit-1] == " ":
-                    separator += 1
 
-                # avoid error if one word length is more than 272 characters
+                # some emoticons count as 2 char
+                EMOJI = re.compile("["
+                    "\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                    "\U0001F300-\U0001F5FF"  # symbols & pictographs
+                    "\U0001F600-\U0001F64F"  # emoticons
+                    "\U0001F680-\U0001F6FF"  # transport & map symbols
+                    "\U0001F700-\U0001F77F"  # alchemical symbols
+                    "\U0001F780-\U0001F7FF"  # Geometric Shapes Extended
+                    "\U0001F800-\U0001F8FF"  # Supplemental Arrows-C
+                    "\U0001F900-\U0001F9FF"  # Supplemental Symbols and Pictographs
+                    "\U0001FA00-\U0001FA6F"  # Chess Symbols
+                    "\U0001FA70-\U0001FAFF"  # Symbols and Pictographs Extended-A
+                    "\U00002702-\U000027B0"  # Dingbats
+                    "\U000024C2-\U0001F251" 
+                    "]+")
+                len_emoji = len(re.findall(EMOJI, tweet[:limit]))
+                limit -= round(len_emoji / 2)
+
+                check = tweet[:limit].split()                             
                 if len(check) == 1:
+                    # avoid error when user send 272 char in one word
                     separator = 0
+                else:
+                    separator = len(check[-1])
+                    if tweet[limit-1] == " ":
+                        separator += 1
 
                 tweet1 = unescape(tweet[:limit-separator]) + '-cont-'
                 
