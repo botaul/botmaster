@@ -7,7 +7,7 @@ def dm_command(selfAlias, sender_id, message, message_data) -> bool:
     :return: bool, True: There is a command, False: There is no command
     '''
     list_command = list(selfAlias.credential.Admin_cmd) + list(selfAlias.credential.User_cmd)
-    command = message.split()[0].lower()
+    command = message.split(" ")[0].lower()
 
     if not any(i == command for i in list_command):
         return False
@@ -15,7 +15,7 @@ def dm_command(selfAlias, sender_id, message, message_data) -> bool:
     else:
         AdminCmd = selfAlias.AdminCmd #pylint: disable=unused-variable
         UserCmd = selfAlias.UserCmd #pylint: disable=unused-variable
-        contents = message.split()[1:]
+        contents = message.split(" ")[1:]
         notif = str()
                     
         if command in selfAlias.credential.Admin_cmd:
@@ -68,8 +68,8 @@ def dm_command(selfAlias, sender_id, message, message_data) -> bool:
             else:
                 notif = selfAlias.credential.Notify_userCmdDeleteFail
                     
-            selfAlias.send_dm(sender_id, notif)
-            return True
+        selfAlias.send_dm(sender_id, notif)
+        return True
 
 
 def dm_user_filter(selfAlias, sender_id, message) -> bool:

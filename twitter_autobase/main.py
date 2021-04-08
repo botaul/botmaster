@@ -9,6 +9,7 @@ from .gh_db import check_file_github, update_local_file, gh_database
 from .webhook import webhook_manager as webMan
 from .process_dm import process_dm
 from .clean_dm_autobase import clean_main_autobase, clean_private_autobase
+from .command import AdminCommand, UserCommand
 from time import sleep
 from threading import Thread
 from datetime import datetime, timezone, timedelta
@@ -35,6 +36,17 @@ class Autobase(Twitter):
         self.bot_username = self.me.screen_name
         self.bot_id = str(self.me.id)
         self.database_indicator = False
+        self.follower = list() # list of integer
+        self.followed = list() # list of integer
+        self.db_intervalTime = dict()
+       
+        self.db_sent = dict() # { 'sender_id': {'postid': [list_postid_thread],}, }
+        self.db_deleted = dict() # { 'sender_id': ['postid',] }
+        self.day = (datetime.now(timezone.utc) + timedelta(hours=credential.Timezone)).day
+        
+        self.AdminCmd = AdminCommand(self.api, credential)
+        self.UserCmd = UserCommand(self.api, credential)
+
         self.dms = list() #list of filtered dms that processed by process_dm
 
 
@@ -98,6 +110,40 @@ class Autobase(Twitter):
             if 'idle' in indicator:
                 indicator.remove('idle')      
             sleep(67)
+
+
+    def db_sent_updater(self, action, sender_id=str(), postid=str(), list_postid_thread=list()):
+        '''Update self.db_sent
+        :param action: 'update','add_sent', 'add_deleted' or 'delete_sent' -> str
+        :param sender_id: sender id who has sent the menfess -> str
+        :param postid: tweet id or (sender_id, tweet id) -> str or tuple
+        '''
+        try:
+            if action == 'update':
+                day = (datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)).day
+                if day != self.day:
+                    self.day = day
+                    self.db_sent.clear()
+                    self.db_deleted.clear()
+            
+            elif action == 'add_sent':
+                if sender_id not in self.db_sent: # require sender_id, postid, list_postid_thread
+                    self.db_sent[sender_id] = {postid: list_postid_thread}
+                else: self.db_sent[sender_id][postid] = list_postid_thread
+            
+            elif action == 'add_deleted': # require sender_id and postid
+                if sender_id not in self.db_deleted:
+                    self.db_deleted[sender_id] = [postid]
+                else: self.db_deleted[sender_id] += [postid]
+
+            elif action == 'delete_sent': # require sender_id and postid
+                del self.db_sent[sender_id][postid]
+                if len(self.db_sent[sender_id]) == 0:
+                    del self.db_sent[sender_id]
+
+        except Exception as ex:
+            pass
+            print(ex)
 
     
     def notify_queue(self, dms, queue=0):
@@ -179,21 +225,26 @@ class Autobase(Twitter):
 
                     # POST TWEET
                     print("Posting menfess...")
-                    postid = self.post_tweet(message, sender_id, media_url=media_url, attachment_url=attachment_urls[1],
+                    response = self.post_tweet(message, sender_id, media_url=media_url, attachment_url=attachment_urls[1],
                             media_idsAndTypes=media_idsAndTypes, possibly_sensitive=possibly_sensitive)
                             
                     # update heroku/local database
                     if self.database_indicator:
-                        update_local_file(self, sender_id, message, postid)
+                        update_local_file(self, sender_id, message, response['postid'])
 
                     # NOTIFY MENFESS SENT OR NOT
-                    if postid != None and self.credential.Notify_sent:
-                        notif = self.credential.Notify_sentMessage.format(self.bot_username)
-                        text = notif + str(postid)
-                        self.send_dm(recipient_id=sender_id, text=text)                       
-                    elif postid == None:
+                    if response['postid'] != None:
+                        if self.credential.Notify_sent:
+                            notif = self.credential.Notify_sentMessage.format(self.bot_username)
+                            text = notif + str(response['postid'])
+                            self.send_dm(recipient_id=sender_id, text=text)
+
+                        # ADD TO DB_SENT
+                        self.db_sent_updater('add_sent', sender_id, response['postid'], response['list_postid_thread'])
+
+                    elif response['postid'] == None:
                         # Error happen on system
-                        text = self.credential.Notify_sentFail1                           
+                        text = self.credential.Notify_sentFail1 + f"\nerror_code: {response['error_code']}"                         
                         self.send_dm(recipient_id=sender_id, text=text)
                     else:
                         # credential.Notify_sent is False
@@ -202,10 +253,9 @@ class Autobase(Twitter):
                     sleep(36+self.credential.Delay_time)
 
                 except Exception as ex:
-                    text = self.credential.Notify_sentFail1 + "\nError code: start_autobase method"
+                    text = self.credential.Notify_sentFail1 + "\nerror_code: start_autobase method, " + str(ex)
                     self.send_dm(recipient_id=sender_id, text=text)
                     print(ex)
-                    sleep(30)
                     pass
 
             sleep(3)

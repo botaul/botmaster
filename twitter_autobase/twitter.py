@@ -3,16 +3,15 @@
 # Re-code by Fakhri Catur Rofi
 #     Source: https://github.com/fakhrirofi/twitter_autobase
 
-from .command import AdminCommand, UserCommand
 from .watermark import app as watermark
 from .async_upload import MediaUpload
+from .clean_dm_autobase import count_emoji, search_list_media_ids
 from tweepy import OAuthHandler, API, Cursor
 from time import sleep
 from os import remove
 import requests
 from requests_oauthlib import OAuth1
 from html import unescape
-from datetime import datetime, timezone, timedelta
 import re
 
 
@@ -27,17 +26,8 @@ class Twitter:
         Attributes:
             - credential
             - api
-            - AdminCmd
-            - UserCmd
             - me
-            - follower
-            - followed
-            - random_time
-            - db_sent
-            - day
-            - db_received
-            - indicator_start
-            - db_intervalTime
+
         
         :param credential: class that contains objects like config -> object
         '''
@@ -50,16 +40,8 @@ class Twitter:
             credential.ACCESS_KEY, credential.ACCESS_SECRET)
         self.api = API(
             auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
-        
-        self.AdminCmd = AdminCommand(self.api, credential)
-        self.UserCmd = UserCommand(self.api, credential)
-
+        self.api.verify_credentials()
         self.me = self.api.me()
-        self.follower = list() # list of integer
-        self.followed = list() # list of integer
-        self.db_sent = dict() # dict of sender and his postid, update every midnight with self.day
-        self.day = (datetime.now(timezone.utc) + timedelta(hours=credential.Timezone)).day
-        self.db_intervalTime = dict()
     
 
     def get_all_followers(self, user_id, first_delay=True):
@@ -110,34 +92,6 @@ class Twitter:
             print(ex)
             sleep(60)
             return list()
-    
-
-    def db_sent_updater(self, action, sender_id=None, postid=None):
-        '''Update self.db_sent
-        :param action: 'update','add' or 'delete' -> str
-        :param sender_id: sender id who has sent the menfess -> str
-        :param postid: tweet id or (sender_id, tweet id) -> str or tuple
-        '''
-        try:
-            if action == 'update':
-                day = (datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)).day
-                if day != self.day:
-                    self.day = day
-                    self.db_sent.clear()
-            
-            elif action == 'add':
-                if sender_id not in self.db_sent:
-                    self.db_sent[sender_id] = [postid]
-                else: self.db_sent[sender_id] += [postid]
-            
-            elif action == 'delete':
-                self.db_sent[sender_id].remove(postid)
-                if len(self.db_sent[sender_id]) == 0:
-                    del self.db_sent[sender_id]
-
-        except Exception as ex:
-            pass
-            print(ex)
 
 
     def delete_dm(self, id):
@@ -311,10 +265,9 @@ class Twitter:
         return media_id, media_type
 
 
-
     def post_tweet(self, tweet, sender_id, media_url=None, attachment_url=None,
-                media_idsAndTypes=list(), possibly_sensitive=False):
-        '''Post a tweet, contains watermark module and self.db_sent updater
+                media_idsAndTypes=list(), possibly_sensitive=False) -> dict:
+        '''Post a tweet, contains watermark module
         Per tweet delay is 30s + self.random_time, but the last delay is deleted
         :param tweet: -> str
         :param sender_id: -> str or int
@@ -322,18 +275,18 @@ class Twitter:
         :param attachment_url: url -> str
         :param media_idsAndTypes: [(media_ids, media_type),] -> list
         :param possibly_sensitive: True when menfess contains sensitive contents -> bool
-        :returns: tweet id -> str
+        :return: {'postid': '', 'error_code': ''} -> dict
         '''
         try:
             #### ADD MEDIA_ID AND MEDIA_TYPE TO LIST_MEDIA_IDS ####
-            # mediaIdsAndTypes e.g. [(media_id, media_type), (media_id, media_type), ]
+            # media_idsAndTypes e.g. [(media_id, media_type), (media_id, media_type), ]
             if media_url != None:
-                tweet = tweet.split()
+                tweet = tweet.split(" ")
                 tweet = " ".join(tweet[:-1])
                 filename = self.download_media(media_url)
 
                 # Add watermark
-                if self.credential.Watermark is True:
+                if self.credential.Watermark:
                     self.add_watermark(filename)
 
                 media_id, media_type = self.upload_media(filename)
@@ -341,91 +294,60 @@ class Twitter:
                 media_idsAndTypes.insert(0, (media_id, media_type))
                 remove(filename)
 
-            list_media_ids = [[]] # e.g. [[media_ids],[media_ids],[media_ids]]
-            temp = 0
-            while len(media_idsAndTypes) != 0:
-                if temp == 0:
-                    temp = 1
-                    list_media_ids = list()
-                media_ids = list()
-                added = 0
-                for media_id, media_type in media_idsAndTypes[:4]:
-                    if media_type == 'video' or media_type == 'animated_gif':
-                        if added == 0:
-                            media_ids.append(media_id)
-                            added += 1
-                        break
-                    media_ids.append(media_id)
-                    added += 1
-
-                list_media_ids.append(media_ids)
-                # media_idsAndTypes are dynamic here
-                media_idsAndTypes = media_idsAndTypes[added:]
+            list_media_ids = search_list_media_ids(media_idsAndTypes) #[[media_ids],[media_ids],[media_ids]]
             
             #### POST TWEET ####
             postid = 0
+            list_postid_thread = list() # used for #delete command
             # postid is the first tweet of the tweets thread
             while len(tweet) > 280:
             # Making a Thread.
                 limit = 272
-
                 # some emoticons count as 2 char
-                EMOJI = re.compile("["
-                    "\U0001F1E0-\U0001F1FF"  # flags (iOS)
-                    "\U0001F300-\U0001F5FF"  # symbols & pictographs
-                    "\U0001F600-\U0001F64F"  # emoticons
-                    "\U0001F680-\U0001F6FF"  # transport & map symbols
-                    "\U0001F700-\U0001F77F"  # alchemical symbols
-                    "\U0001F780-\U0001F7FF"  # Geometric Shapes Extended
-                    "\U0001F800-\U0001F8FF"  # Supplemental Arrows-C
-                    "\U0001F900-\U0001F9FF"  # Supplemental Symbols and Pictographs
-                    "\U0001FA00-\U0001FA6F"  # Chess Symbols
-                    "\U0001FA70-\U0001FAFF"  # Symbols and Pictographs Extended-A
-                    "\U00002702-\U000027B0"  # Dingbats
-                    "\U000024C2-\U0001F251" 
-                    "]+")
-                limit -= len(re.findall(EMOJI, tweet[:limit]))
+                limit -= count_emoji(tweet[:limit])
 
-                check = tweet[:limit].split()                             
+                check = tweet[:limit].split(" ")                             
                 if len(check) == 1:
                     # avoid error when user send 272 char in one word
                     separator = 0
                 else:
                     separator = len(check[-1])
-                    if tweet[limit-1] == " ":
-                        separator += 1
 
-                tweet1 = unescape(tweet[:limit-separator]) + '-cont-'
+                tweet_thread = unescape(tweet[:limit-separator]) + '-cont-'
                 
                 if postid == 0:
                     print("Making a thread...")
                     # postid is static after first update.
                     postid = self.api.update_status(
-                        tweet1, attachment_url=attachment_url, media_ids=list_media_ids[:1][0],
+                        tweet_thread, attachment_url=attachment_url, media_ids=list_media_ids[:1][0],
                         possibly_sensitive=possibly_sensitive).id
-                    postid1 = postid
+                    postid_thread = str(postid)
                 else:
-                    postid1 = self.api.update_status(
-                        tweet1, in_reply_to_status_id=postid1, auto_populate_reply_metadata=True,
+                    postid_thread = self.api.update_status(
+                        tweet_thread, in_reply_to_status_id=postid_thread, auto_populate_reply_metadata=True,
                         media_ids=list_media_ids[:1][0], possibly_sensitive=possibly_sensitive).id
+                    
+                    list_postid_thread.append(postid_thread)
                 
                 list_media_ids = list_media_ids[1:] + [[]]
                 sleep(36+self.credential.Delay_time)
                 # tweet are dynamic here
                 tweet = tweet[limit-separator:]
             
-            # Above and below operation differences are on tweet1 and unescape(tweet), also tweet[limit-separator:]
+            # Above and below operation differences are on tweet_thread and unescape(tweet), also tweet[limit-separator:]
             # It's possible to change it to be one function
             if postid == 0:
                 # postid is static after first update.
                 postid = self.api.update_status(
                         unescape(tweet), attachment_url=attachment_url, media_ids=list_media_ids[:1][0],
                         possibly_sensitive=possibly_sensitive).id
-                postid1 = postid        
+                postid_thread = str(postid)        
             else:
-                postid1 = self.api.update_status(
-                    unescape(tweet), in_reply_to_status_id=postid1, auto_populate_reply_metadata=True,
+                postid_thread = self.api.update_status(
+                    unescape(tweet), in_reply_to_status_id=postid_thread, auto_populate_reply_metadata=True,
                     media_ids=list_media_ids[:1][0], possibly_sensitive=possibly_sensitive).id
+                
+                list_postid_thread.append(postid_thread)
             
             list_media_ids = list_media_ids[1:] + [[]]
 
@@ -434,22 +356,19 @@ class Twitter:
                 sleep(36+self.credential.Delay_time)
 
                 print("Posting the rest of media...")
-                postid1 = self.api.update_status(
-                    in_reply_to_status_id=postid1,
+                postid_thread = self.api.update_status(
+                    in_reply_to_status_id=postid_thread,
                     auto_populate_reply_metadata=True, media_ids=list_media_ids[:1][0],
                     possibly_sensitive=possibly_sensitive).id
+                
+                list_postid_thread.append(postid_thread)
 
                 list_media_ids = list_media_ids[1:] + [[]]
 
-            print('Menfess is posted -> postid:', str(postid))
-
-            # ADD TO DB SENT
-            self.db_sent_updater('add', sender_id, str(postid))
-            
-            return postid
+            print('Menfess is posted -> postid:', str(postid))            
+            return {'postid': str(postid), 'list_postid_thread': list_postid_thread}
 
         except Exception as ex:
             pass
             print(ex)
-            sleep(60)
-            return None
+            return {'postid': None, 'error_code': 'post_tweet method, ' + str(ex)}

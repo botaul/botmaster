@@ -66,7 +66,7 @@ class AdminCommand:
         else:
             raise Exception("Only_followed is disabled, but destroy_friendship is succeeded")
     
-    def who(self, sender_id, db_sent, urls):
+    def who(self, selfAlias, sender_id, urls):
         '''Check who was sent the menfess
         :param sender_id: id of sender -> str
         :param db_sent: dictionary of db_sent -> dict
@@ -84,35 +84,21 @@ class AdminCommand:
             else:
                 postid = url.split("/")[-1]
 
-            found = 0
-            for req_senderId in db_sent.keys():
+            for req_senderId in selfAlias.db_sent.keys():
+                if postid in selfAlias.db_sent[req_senderId].keys():
+                    username = selfAlias.get_user_screen_name(req_senderId)
+                    text = f"username: @{username}\nid: {req_senderId}\nstatus: exists {url}"
+                    selfAlias.send_dm(sender_id, text)
+                    return
+            
+            for req_senderId in selfAlias.db_deleted.keys():
+                if postid in selfAlias.db_deleted[req_senderId]:
+                    username = selfAlias.get_user_screen_name(req_senderId)
+                    text = f"username @{username}\nid: {req_senderId}\nstatus: deleted\nurl: {url}"
+                    selfAlias.send_dm(sender_id, text)
+                    return
 
-                if found == 1:
-                    break
-
-                if req_senderId == 'deleted':
-                    # 'deleted': (req_senderId, postid)
-                    for x in db_sent['deleted']:
-                        if x[1] == postid:
-                            found, req_senderId = 1, x[0]
-                            username = (self.api.get_user(req_senderId)).screen_name
-                            text = f"username: @{username}\nid: {req_senderId}\nstatus: deleted\nurl: {url}"
-                            sent = self.api.send_direct_message(recipient_id=sender_id, text=text)
-                            self.api.destroy_direct_message(sent.id)
-                            break
-                    continue
-
-                for j in db_sent[req_senderId]:
-                    if j == postid:
-                        found = 1
-                        username = (self.api.get_user(req_senderId)).screen_name
-                        text = f"username: @{username}\nid: {req_senderId}\nstatus: exists {url}"
-                        sent = self.api.send_direct_message(recipient_id=sender_id, text=text)
-                        self.api.destroy_direct_message(sent.id)
-                        break
-
-            if found == 0:
-                raise Exception("menfess is not found in db_sent")
+            raise Exception("menfess is not found in db_sent or db_deleted")
         
     def add_admin(self, username):
         '''
@@ -156,71 +142,62 @@ class UserCommand:
         '''
         self.Admin_id = credential.Admin_id
         self.api = api
-    
-    def __db_sent_updater(self, action, db_sent, sender_id, postid):
-        '''Update self.db_sent
-        :param action: 'add' or 'delete' -> str
-        :param db_sent: dictionary of db_sent -> dict
-        :param sender_id: sender id who has sent the menfess -> str
-        :param postid: tweet id or (sender_id, tweet id) -> str or tuple
-        '''
-        if action == 'add':
-            if sender_id not in db_sent:
-                db_sent[sender_id] = [postid]
-            else: db_sent[sender_id] += [postid]
-        
-        elif action == 'delete':
-            db_sent[sender_id].remove(postid)
-            if len(db_sent[sender_id]) == 0:
-                del db_sent[sender_id]
 
 
-    def delete(self, sender_id, db_sent, urls):
+    def delete(self, selfAlias, sender_id, urls):
         '''Access to user is limited
         :param sender_id: id of the sender -> str
         :param db_sent: dictionary of db_sent -> dict
         :param urls: list of urls from dm -> list
         '''
-        if sender_id not in db_sent and sender_id not in self.Admin_id:
+        if sender_id not in selfAlias.db_sent and sender_id not in self.Admin_id:
             raise Exception("sender_id not in db_sent")
 
         if len(urls) == 0:
             raise Exception("Tweet link is not mentioned")
-
+        
         for i in urls:
-            postid = str()
             if "?" in i["expanded_url"]:
                 postid = sub("[/?]", " ", i["expanded_url"]).split()[-2]
             else:
                 postid = i["expanded_url"].split("/")[-1]
             
-            found = 0
-            if sender_id in db_sent: # user has sent menfess
-                if postid in db_sent[sender_id]: # normal succes
-                    self.__db_sent_updater('add', db_sent, 'deleted', (sender_id, postid))
-                    self.__db_sent_updater('delete', db_sent, sender_id, postid)
-                    found = 1
+            def delete_tweet(postid, list_postid_thread):
+                try:
+                    for postidx in [postid] + list_postid_thread:
+                        self.api.destroy_status(id=postidx) # It doesn't matter when error happen here
+                except Exception as ex:
+                    raise Exception(f"You can't delete this tweet. Error: {ex}")   
+
+            if sender_id in selfAlias.db_sent: # user has sent menfess
+                if postid in selfAlias.db_sent[sender_id]: # normal succes
+                    list_postid_thread = selfAlias.db_sent[sender_id][postid]
+                    
+                    selfAlias.db_sent_updater('add_deleted', sender_id, postid)
+                    selfAlias.db_sent_updater('delete_sent', sender_id, postid)
+                    
+                    delete_tweet(postid, list_postid_thread)
+                    return
+
                 elif sender_id not in self.Admin_id: # normal trying other menfess
                     raise Exception("sender doesn't have access to delete postid")
             
             elif sender_id not in self.Admin_id: # user hasn't sent menfess
                 raise Exception("sender doesn't have access to delete postid")
             
-            if found == 0: # administrator mode
-                for req_senderId in db_sent.keys():
-                    if found != 0:
-                        break
-                    for j in db_sent[req_senderId]:
-                        if j == postid:
-                            found = req_senderId
-                            break
+            # administrator mode
+            found = 0 # sender_id that will be searched
+            for req_senderId in selfAlias.db_sent.keys():
+                if postid in selfAlias.db_sent[req_senderId].keys():
+                    found = req_senderId
+                    break
 
-                if found != 0:
-                    self.__db_sent_updater('add', db_sent, 'deleted', (found, postid))
-                    self.__db_sent_updater('delete', db_sent, found, postid)
-                else:
-                    print("admin mode: directly destroy_status")
-            try:
-                self.api.destroy_status(id=postid) # It doesn't matter when error happen here
-            except Exception as ex:
-                raise Exception(f"You can't delete this tweet. Error: {ex}")   
+            if found != 0:
+                list_postid_thread = selfAlias.db_sent[found][postid]
+                selfAlias.db_sent_updater('add_deleted', found, postid)
+                selfAlias.db_sent_updater('delete_sent', found, postid)
+            else:
+                list_postid_thread = list()
+                print("admin mode: directly destroy_status")
+            
+            delete_tweet(postid, list_postid_thread)
