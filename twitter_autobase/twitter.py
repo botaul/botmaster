@@ -384,8 +384,7 @@ class Twitter:
                     "\U00002702-\U000027B0"  # Dingbats
                     "\U000024C2-\U0001F251" 
                     "]+")
-                len_emoji = len(re.findall(EMOJI, tweet[:limit]))
-                limit -= round(len_emoji / 2)
+                limit -= len(re.findall(EMOJI, tweet[:limit]))
 
                 check = tweet[:limit].split()                             
                 if len(check) == 1:
