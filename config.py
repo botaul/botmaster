@@ -13,7 +13,7 @@ ENV_NAME = ""
 Admin_id = [""] # list of str
 # Admin id is like sender id. To check it, send a menfess from your admin account.
 # or you can use api.get_user(screen_name="usernameoftheaccount")
-# This is used to giving access to pass some message filters & admin command
+# IF YOU WANT TO TEST THE CONFIG, REMEMBER THIS! USERS IN ADMIN_ID PASS ALL USER'S FILTERS, you should delete your id on Admin_id
 
 Timezone = 7
 
@@ -33,38 +33,37 @@ Notify_sentFail1 = "Maaf ada kesalahan pada sistem :( \ntolong screenshot & lapo
 Interval_perSender = False # bool
 Interval_time = 0 # int
 # Interval time (in minutes) of sending menfess per sender, Admin pass this filter
-Notify_intervalPerSender = f"Mengirim menfess dibatasi! silakan coba lagi sekitar {Interval_time} menit lagi"
+Notify_intervalPerSender = f"Mengirim menfess dibatasi! silakan coba sekitar {Interval_time} menit lagi"
 
 Delay_time = 0 # int, seconds
 # Twitter API limits user to post tweet. System will delay 36s per/tweet. You can add it by input
-# seconds in Delay_time. e.g Delay_time = 60, it means system will delay 90 seconds per tweet
+# seconds in Delay_time. e.g Delay_time = 60, it means system will delay 96 seconds per tweet
 
 # Welcome message to new followers
-Greet_newFollower = False
-Notify_acceptMessage = "Makasih yaa udah follow base ini :) \nJangan lupa baca peraturan base!"
+Greet_newFollower = True
+Notif_newFollower = "Makasih yaa udah follow base ini :) \nJangan lupa baca peraturan base!"
 
 Keyword_deleter = False # Trigger word deleter
 # bool, True: Delete keyword from menfess before uploaded
 
-Only_followed = False
-# bool, True: only sender that followed by bot that can sends menfess
-# delay in the beginning will be added, based on your followed accounts
-# get 5000 account/minute, you can count it. Admin pass this filter.
-# If you want to delete account from followed, send '#rm_followed username1 username2 username-n'
-# You can follow the sender as usual
-Notify_followed = "Yeay! kamu udah difollow sama base ini. Jangan lupa baca peraturan sebelum mengirim menfess yaa!"
-Notify_notFollowed = "Hmm, kamu belum difollow sama base ini. Jadi ga bisa ngirim menfess dehh :("
+# send notif to user that followed by bot
+Greet_followed = True
+Notif_followed = "Yeay! kamu udah difollow base ini. Jangan lupa baca peraturan sebelum mengirim menfess yaa!"
 
 Minimum_lenMenfess = 0 # length of the menfess
 Maximum_lenMenfess = 9999999
-Notify_lenMenfess = f"Maksimum jumlah karakter: {Maximum_lenMenfess}, Minimal jumlah karakter {Maximum_lenMenfess}"
+Notify_lenMenfess = f"Maksimum jumlah karakter: {Maximum_lenMenfess}, Minimum jumlah karakter {Minimum_lenMenfess}"
 
 Sender_requirements = False
-# bool, True: sender should pass the account requirements. Admin pass this filter
+# bool, True: sender should passes the following requirements:   (admin pass this filter)
+Only_followed = False
+Notif_notFollowed = "Hmm, kamu belum difollow base ini. Jadi ga bisa ngirim menfess dehh :("
+# Minimum_followers and Minimum_day is (automatically) required when Sender_requirements is True.
 Minimum_followers = 0 # int
 # Minimum-account-created-at
 Minimum_day = 0 # e.g 100, it means sender account must be created at 100 days ago
-Notify_senderRequirements = "Hmm, menfess dan akun kamu ngga sesuai sama peraturan base :("
+Notify_senderRequirements = f"Kamu harus punya {Minimum_followers} followers dan umur akun kamu harus\
+     lebih dari {Minimum_day} hari biar bisa ngirim menfess :("
 
 Private_mediaTweet = False
 # bool, True: Delete username on the bottom of the attached media tweet.
@@ -107,13 +106,13 @@ Github_repo = "username/your_repo"
 
 Account_status = True
 # bool, True: Turn on the automenfess. If it turned into False, this bot won't
-# post menfess. But, accept message & admin command are still running
-# You can switch it using '#switch on/off' command from DM
-# If there are messages on DM when turned off, those will be posted when this bot switched to on
+# post menfess. You can switch it using '#switch on/off' command from DM
+Notify_accountStatus = "Automenfess sedang dimatikan oleh admin, silakan cek tweet terbaru atau \
+    hubungi admin untuk informasi lebih lanjut"
 
 Trigger_word = ["fess!", "blablabla!"]
 Notify_wrongTriggerUser = True # Will be send to user
-Notify_wrongTriggerAdmin = False # Will be send to admin
+Notify_wrongTriggerAdmin = False # menfess will be sent to admin
 Notify_wrongTriggerMsg = "Trigger menfess tidak terdeteksi, pesan kamu akan dikirimkan ke admin"
 
 Sensitive_word = "/sensitive"
@@ -123,7 +122,7 @@ Sensitive_word = "/sensitive"
 Blacklist_words = ['covid', 'blablabla'] 
 # hashtags and mentions will be changed into "#/" and "@/" in app.py to avoid ban
 Notify_blacklistWords = "di menfess kamu terdapat blacklist words, jangan lupa baca peraturan base yaa!"
-Notify_blacklistWordsAdmin = False #will be send to admin
+Notify_blacklistWordsAdmin = False # menfess will be sent to admin
 
 # Please set Admin_cmd and User_cmd in lowercase
 # If you want to modify command, don't edit #switch

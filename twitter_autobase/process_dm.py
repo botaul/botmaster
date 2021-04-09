@@ -95,12 +95,6 @@ def dm_user_filter(selfAlias, sender_id, message) -> bool:
         else:
             selfAlias.db_intervalTime[sender_id] = date_now + timedelta(minutes=selfAlias.credential.Interval_time)
 
-    # ONLY FOLLOWED
-    if selfAlias.credential.Only_followed:
-        if int(sender_id) not in selfAlias.followed:
-            selfAlias.send_dm(sender_id, selfAlias.credential.Notify_notFollowed)
-            return True
-
     # Minimum/Maximum lenMenfess
     if len(message) < selfAlias.credential.Minimum_lenMenfess or len(message) > selfAlias.credential.Maximum_lenMenfess:
         selfAlias.send_dm(sender_id, selfAlias.credential.Notify_lenMenfess)
@@ -109,6 +103,13 @@ def dm_user_filter(selfAlias, sender_id, message) -> bool:
     # SENDER REQUIREMENTS
     if selfAlias.credential.Sender_requirements:
         user = (selfAlias.api.get_user(sender_id))._json
+
+        # only followed
+        if selfAlias.credential.Only_followed:
+            if user['following'] is False:
+                selfAlias.send_dm(sender_id, selfAlias.credential.Notif_notFollowed)
+                return True
+
         # minimum followers
         if user['followers_count'] < selfAlias.credential.Minimum_followers:
             selfAlias.send_dm(sender_id, selfAlias.credential.Notify_senderRequirements)
@@ -126,7 +127,6 @@ def dm_user_filter(selfAlias, sender_id, message) -> bool:
     # BLACKLIST WORDS
     list_blacklist = [i.lower() for i in selfAlias.credential.Blacklist_words]
     if any(i in message.lower() for i in list_blacklist):
-        print("Skipping blacklist menfess")
         notif = selfAlias.credential.Notify_blacklistWords
         selfAlias.send_dm(recipient_id=sender_id, text=notif)
 
@@ -245,16 +245,18 @@ def process_dm(selfAlias, raw_dm: dict) -> list:
         message_data = message_create['message_data']
         message = message_data['text']
 
-        # Avoid keyword error by skipping bot messages
-        if sender_id == str(selfAlias.me.id):
+        # Avoid keyword error & loop messages by skipping bot messages
+        if sender_id in selfAlias.prevent_loop:
             return list()
             
         # Ignore message when Account_status is False
         if not selfAlias.credential.Account_status:
             if sender_id not in selfAlias.credential.Admin_id:
                 print("Account_status: False")
+                selfAlias.send_dm(sender_id, selfAlias.credential.Notify_accountStatus)
                 return list()
-            print("Account_status: False, sender_id in Admin_id")
+
+            print("Account_status: False, admin sends menfess")            
 
         print(f"Processing direct message, sender_id: {sender_id}")
 

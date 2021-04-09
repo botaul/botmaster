@@ -18,14 +18,14 @@ from github import Github
 
 class Autobase(Twitter):
     '''
-    :param credential: class that contains object class like config.py -> object 
+    :param credential: class that contains object class like config.py -> object
+    :param prevent_loop: list
     '''
-    def __init__(self, credential):
+    def __init__(self, credential, prevent_loop):
         '''You can control account and bot using credential & tw attributes
 
         Attributes:
             - credential
-            - tw
             - AdminCmd
             - bot_username
             - database_indicator
@@ -36,8 +36,6 @@ class Autobase(Twitter):
         self.bot_username = self.me.screen_name
         self.bot_id = str(self.me.id)
         self.database_indicator = False
-        self.follower = list() # list of integer
-        self.followed = list() # list of integer
         self.db_intervalTime = dict()
        
         self.db_sent = dict() # { 'sender_id': {'postid': [list_postid_thread],}, }
@@ -47,69 +45,33 @@ class Autobase(Twitter):
         self.AdminCmd = AdminCommand(self.api, credential)
         self.UserCmd = UserCommand(self.api, credential)
 
-        self.dms = list() #list of filtered dms that processed by process_dm
+        self.dms = list() # list of filtered dms that processed by process_dm
 
+        self.prevent_loop = prevent_loop # list of all bot_id (str) that runs using this bot to prevent loop messages from each accounts
 
-    def __update_follow(self, indicator):
-        api = self.api
-        me = self.me
-        inAccMsg = False # indicator for accept message
-        inFoll = False # indicator for followed
-        while True:
-            # AUTO ACCEPT MESSAGE REQUESTS
-            # self.tw.follower is only 110, and the get requests is only 50
-            # the order is from new to old
+    
+    def notify_follow(self, follow_events):
+        '''
+        :param follow_events: dict of 'follow_events' from self.webhook_connector
+        '''
+        if follow_events['follow_events'][0]['type'] != 'follow':
+            return
+
+        # id of the user who clicks 'follow' buttons
+        source_id = follow_events['follow_events'][0]['source']['id']
+        
+        # Greet to new follower
+        if source_id not in self.prevent_loop: # user is not bot
             if self.credential.Greet_newFollower:
-                try:
-                    follower = api.followers_ids(user_id=me.id, count=100)
-                    if len(follower) != 0:
-                        if inAccMsg == False:
-                            inAccMsg = True
-                            self.follower = follower.copy()
+                self.send_dm(source_id, self.credential.Notif_newFollower)
 
-                        for i in follower[::-1]:
-                            if i not in self.follower:
-                                notif = self.credential.Notify_acceptMessage
-                                # I don't know, sometimes error happen here, so, I update self.tw.follower after send_dm
-                                try:
-                                    self.send_dm(recipient_id=i, text=notif)
-                                    self.follower.insert(0, i)
-                                    if len(self.follower) > 110: self.follower.pop()
-                                except Exception as ex:
-                                    print(ex)
-                                    pass
-                                    
-                except Exception as ex:
-                    print(ex)
-                    sleep(60)
-                    pass
+        # Notify user followed by bot, (admin of the bot clicks follow buttons on user profile)
+        # elif source_id in self.prevent_loop:
+        elif self.credential.Greet_followed:
+            target_id = follow_events['follow_events'][0]['target']['id']
 
-            # GETTING LIST OF FOLLOWED
-            # self.tw.followed is from old to new
-            if self.credential.Only_followed is True:
-                try:
-                    if inFoll == False:
-                        inFoll = True
-                        followed = self.get_all_followed(me.id, first_delay=False)
-                        self.followed = followed[::-1]
-                    else:
-                        print("Updating friends ids...")
-                        followed = api.friends_ids(user_id=me.id, count=50)
-                    
-                    for i in followed:
-                        if i not in self.followed:
-                            notif = self.credential.Notify_followed
-                            self.send_dm(recipient_id=i, text=notif)
-                            self.followed.append(i)
-
-                except Exception as ex:
-                    print(ex)
-                    sleep(60)
-                    pass
-            
-            if 'idle' in indicator:
-                indicator.remove('idle')      
-            sleep(67)
+            if target_id not in self.prevent_loop:
+                self.send_dm(target_id, self.credential.Notif_followed)
 
 
     def db_sent_updater(self, action, sender_id=str(), postid=str(), list_postid_thread=list()):
@@ -179,26 +141,24 @@ class Autobase(Twitter):
             sleep(60)
 
 
-    def update_dms(self, raw_dm):
-        dm = process_dm(self, raw_dm)
-        if self.credential.Notify_queue is True:
-            # notify queue to sender
-            self.notify_queue(dm, queue=len(self.dms))
-        self.dms.extend(dm)
+    def webhook_connector(self, raw_data):
+        # https://developer.twitter.com/en/docs/twitter-api/enterprise/account-activity-api/guides/account-activity-data-objects
+        if 'direct_message_events' in raw_data:
+            dm = process_dm(self, raw_data)
+            if self.credential.Notify_queue is True:
+                # notify queue to sender
+                self.notify_queue(dm, queue=len(self.dms))
+            self.dms.extend(dm)
+        
+        elif 'follow_events' in raw_data:
+            self.notify_follow(raw_data)
 
 
     def start_autobase(self):
         '''
         the last self.tw.post_tweet delay is moved here to make threading faster
         '''
-        print("Starting program...")
-        indicator = {'idle'}
-        Thread(target=self.__update_follow, args=[indicator]).start()
-        while 'idle' in indicator:
-            sleep(1)
-        
-        # for i in credential.Admin_id:
-        #     sent = self.tw.send_dm(recipient_id=i, text="Twitter autobase is starting...!")
+        print("Starting autobase...")
 
         while True:
             while len(self.dms):

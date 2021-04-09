@@ -54,8 +54,8 @@ def clean_main_autobase(selfAlias, message, attachment_urls) -> str:
         message = " ".join(message)
                             
     # Cleaning hashtags and mentions
-    message = message.replace("#", "#/")
-    message = message.replace("@", "@/")
+    message = message.replace("#", "#.")
+    message = message.replace("@", "@.")
 
     return message
 
