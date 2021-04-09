@@ -1,5 +1,5 @@
 NGROK_AUTH_TOKEN = ""
-# sign up for ngrok. then copy the auth token from https://dashboard.ngrok.com/get-started/your-authtoken
+# copy the auth token from https://dashboard.ngrok.com/get-started/your-authtoken
 
 CONSUMER_KEY = ""
 CONSUMER_SECRET = ""
@@ -27,6 +27,7 @@ Notify_sent = True
 # bool, True: Send menfess tweet link to sender when menfess sent
 Notify_sentMessage = "Yeay! Menfess kamu telah terkirim! https://twitter.com/{}/status/"
 # Please keep the "{}" format -> .format(bot_username) + postid
+
 Notify_sentFail1 = "Maaf ada kesalahan pada sistem :( \ntolong screenshot & laporkan kepada admin"
 # Used when error is happened in system
 
@@ -66,11 +67,11 @@ Notify_senderRequirements = f"Kamu harus punya {Minimum_followers} followers dan
      lebih dari {Minimum_day} hari biar bisa ngirim menfess :("
 
 Private_mediaTweet = False
-# bool, True: Delete username on the bottom of the attached media tweet.
-# Usually when sender want to attach more than one media, they will attach a media url
-# from tweet. But the username of the sender is mentioned on the bottom of media. With this
+# bool, True: Delete username on the bottom of the attached video tweet.
+# Usually when sender want to attach video (from tweet), they will attach a media url
+# But the username of the (VIDEO) OWNER is mentioned on the bottom of video. With this
 # when sender attach (media and/or media tweet) and if total of media ids are more than
-# 4 media or the space is not available, THE REST OF THE MEDIA WILL BE ATTACHED TO THE
+# 4 or the space is not available, THE REST OF THE MEDIA WILL BE ATTACHED TO THE
 # SUBSEQUENT TWEETS IN SORTED ORDER.
 
 Watermark = False
@@ -85,8 +86,7 @@ Watermark_font = "twitter_autobase/watermark/FreeMono.ttf"
 Watermark_textColor = (100,0,0,1)
 Watermark_textStroke = (0,225,225,1)
 # RGBA color format, you can search it on google
-Watermark_ratio = 0.103 # float number under 1
-# Ratio between watermark and sender's photo
+Watermark_ratio = 0.15 # float number under 1 , ratio between watermark and sender's photo
 Watermark_position = ('right', 'bottom') # (x, y)
 # x: 'left', 'center', 'right'
 # y: 'top', 'center', 'bottom'
@@ -125,22 +125,19 @@ Notify_blacklistWords = "di menfess kamu terdapat blacklist words, jangan lupa b
 Notify_blacklistWordsAdmin = False # menfess will be sent to admin
 
 # Please set Admin_cmd and User_cmd in lowercase
-# If you want to modify command, don't edit #switch
 
 Admin_cmd = {
     '#add_blacklist'    : 'AdminCmd.add_blacklist(arg)',
     '#rm_blacklist'     : 'AdminCmd.rm_blacklist(arg)',
     '#display_blacklist': 'AdminCmd.display_blacklist(sender_id) #no_notif',
     '#db_update'        : 'AdminCmd.db_update()',
-    '#rm_followed'      : 'AdminCmd.rm_followed(selfAlias.followed, arg)',
     '#who'              : 'AdminCmd.who(selfAlias, sender_id, urls) #no_notif',
     '#add_admin'        : 'AdminCmd.add_admin(arg)',
     '#rm_admin'         : 'AdminCmd.rm_admin(arg)',
     '#switch'           : 'AdminCmd.switch(arg)',
 }
 # #no_notif is an indicator to skip send notif to admin
-# db_update is not available when Database set to False
-# rm_followed is not available when Only_followed is False
+# db_update is not available when Github_Database set to False
 # who is only available for one day (reset every midnight or heroku dyno cycling)
 
 

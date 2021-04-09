@@ -41,8 +41,7 @@ class AdminCommand:
         '''
         :param sender_id: id who was sent the command -> str or int
         '''
-        sent = self.api.send_direct_message(recipient_id=sender_id, text=str(self.credential.Blacklist_words))
-        self.api.destroy_direct_message(sent.id)
+        self.api.send_direct_message(recipient_id=sender_id, text=str(self.credential.Blacklist_words))
 
     def db_update(self):
         '''Update Github database
@@ -53,18 +52,6 @@ class AdminCommand:
         with open(self.filename_github) as f:
             self.repo.update_file(contents.path, "updating Database", f.read(), contents.sha)
             f.close()
-    
-    def rm_followed(self, followed, username):
-        '''Delete id from followed database
-        :param followed: list of followed -> list
-        :param username: username of the account -> str
-        '''
-        user = (self.api.get_user(screen_name=username))._json
-        self.api.destroy_friendship(user['id'])
-        if int(user['id']) in followed:
-            followed.remove(int(user['id']))
-        else:
-            raise Exception("Only_followed is disabled, but destroy_friendship is succeeded")
     
     def who(self, selfAlias, sender_id, urls):
         '''Check who was sent the menfess

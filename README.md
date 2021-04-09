@@ -1,38 +1,34 @@
 # twitter_autobase
 A Twitter bot that can read your DMs, then tweets like Twitter autobase. This project is a re-code of
 [autodm_base](https://github.com/ydhnwb/autodm_base) by [Prieyudha Akadita S.](https://github.com/ydhnwb)
-with many improvements and fixed bugs. This project is under MIT License. You can try on my autobase account
+with many improvements and fixed bugs. You can try on my autobase account
 [@autobase_reborn](https://twitter.com/autobase_reborn).
 
 - **Read Twitter rules[[1]](https://help.twitter.com/en/rules-and-policies/twitter-search-policies)[[2]](https://developer.twitter.com/en/developer-terms/more-on-restricted-use-cases)[[3]](https://help.twitter.com/en/rules-and-policies/twitter-automation)** <br>
 - **USING THIS BOT FOR 'ADULT' BASE IS STRICTLY PROHIBITED** <br>
-- **Download on [the release page](https://github.com/fakhrirofi/twitter_autobase/releases) for stable version**
 
-## New Features
-- Blacklist words
-- Only followed by account that can send menfess
-- Auto accept message requests
-- Notify sender when the menfess sent or not
-- Tweet GIF and video
+## Features
+- Real-time account activity
+- User (account) requirements
+- Tweet photo, GIF, and video
 - Post a Thread when characters > 280
 - Sync simple database (json) on github repository
-- Setting account from DM
-- Upload more than 4 media
-- Trigger words are not case-sensitive
-- Control multiple accounts [[example]](https://pastebin.com/CMfqxknA)
-- etc. see on config
+- Send command from admin account (on DM)
+- Run multiple (base) accounts (see on app.py)
+- etc. see on config.py
 
 
 ## Requirements
-- Good at basic python programming
 - Python 3.8.x
 - Twitter Developer Account
-- Github Account
-- Heroku Account
+- NGROK Account
+- Github Account (optional)
+- Heroku Account (optional)
+ 
 
-
-## How to run this bot?
-- Install pip3, virtualenv, git, heroku
+## Getting Started
+- Install [pip](https://pypi.org/project/pip/), [virtualenv](https://pypi.org/project/virtualenv/),
+  [git](https://github.com/git-guides/install-git), and [heroku](https://devcenter.heroku.com/articles/heroku-cli)(optional)
 - [Do Installation](#installation)
 - Edit contents on config.py
 - [Deploy to Heroku](#deploy-to-heroku)
@@ -100,7 +96,6 @@ keyword is wrong. <br>
 `#rm_blacklist word1 word2 word-n` <br>
 `#db_update` not available when Database = False <br>
 `#display_blacklist` <br>
-`#rm_followed username1 username2 username-n` <br>
 `#add_admin username1 username2 username-n` <br>
 `#rm_admin username1 username2 username-n` <br>
 `#who https://twitter.com/username/status/1234567890?s=19` check who was sent the menfess <br>
@@ -121,14 +116,9 @@ Only sender who has sent the menfess that can delete the mentioned tweet link, a
 - All temporary data only available for one day (reset at midnight or heroku dyno cycling)
 - If you use github repository to deploy to heroku, make sure to set the repository to private. Github
 automatically will delete your github token if your repository is public
-- Keywords are not case-sensitive (upper, lower, capitalize)
+- Keywords are not case-sensitive
 - See changelogs on [releases's notes](https://github.com/fakhrirofi/twitter_autobase/releases)
 - I have written documentation in config
-
-### Auto accept message requests
-This works by sending welcome message to new followers, so Sender must follow the bot. In the beginning, it
-fills 100 followers to tw.follower. So it can't track new followers when the bot was just started. If your
-followers didn't receive a welcome message from the bot. Unfollow this bot for some minutes then follow it again.
 
 
 ## Contributing
