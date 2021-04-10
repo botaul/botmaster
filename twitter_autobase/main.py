@@ -9,7 +9,7 @@ from .gh_db import check_file_github, update_local_file, gh_database
 from .webhook import webhook_manager as webMan
 from .process_dm import process_dm
 from .clean_dm_autobase import clean_main_autobase, clean_private_autobase
-from .command import AdminCommand, UserCommand
+from .dm_command import DMCommand
 from time import sleep
 from threading import Thread
 from datetime import datetime, timezone, timedelta
@@ -26,7 +26,7 @@ class Autobase(Twitter):
 
         Attributes:
             - credential
-            - AdminCmd
+            - DMCmd
             - bot_username
             - database_indicator
 
@@ -42,8 +42,7 @@ class Autobase(Twitter):
         self.db_deleted = dict() # { 'sender_id': ['postid',] }
         self.day = (datetime.now(timezone.utc) + timedelta(hours=credential.Timezone)).day
         
-        self.AdminCmd = AdminCommand(self.api, credential)
-        self.UserCmd = UserCommand(self.api, credential)
+        self.DMCmd = DMCommand(self.api, credential)
 
         self.dms = list() # list of filtered dms that processed by process_dm
 
@@ -162,7 +161,7 @@ class Autobase(Twitter):
 
         while True:
             while len(self.dms):
-                dm = self.dms.pop(0)
+                dm = self.dms[0]
 
                 try:
                     message = dm['message']
@@ -213,24 +212,27 @@ class Autobase(Twitter):
                     sleep(36+self.credential.Delay_time)
 
                 except Exception as ex:
-                    text = self.credential.Notify_sentFail1 + "\nerror_code: start_autobase method, " + str(ex)
+                    text = self.credential.Notify_sentFail1 + "\nerror_code: start_autobase, " + str(ex)
                     self.send_dm(recipient_id=sender_id, text=text)
                     print(ex)
                     pass
 
-            sleep(3)
+                finally:
+                    self.dms.pop(0)
+
+            sleep(2)
     
 
     def start_database(self, Github_database=True):
         self.database_indicator = True
         if Github_database is True:
             github = Github(self.credential.Github_token)
-            self.AdminCmd.repo = github.get_repo(self.credential.Github_repo)
-            self.AdminCmd.repo.indicator = True
+            self.DMCmd.repo = github.get_repo(self.credential.Github_repo)
+            self.DMCmd.repo.indicator = True
             check_file_github(self, new=True)
 
         datee = datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)
-        self.AdminCmd.filename_github = "{} {}-{}-{}.json".format(
+        self.DMCmd.filename_github = "{} {}-{}-{}.json".format(
             self.bot_username, datee.year, datee.month, datee.day)   
 
         Thread(target=gh_database, args=[self, Github_database]).start()

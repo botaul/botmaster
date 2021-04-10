@@ -21,7 +21,7 @@ with many improvements and fixed bugs. You can try on my autobase account
 ## Requirements
 - Python 3.8.x
 - Twitter Developer Account
-- NGROK Account
+- Ngrok Account
 - Github Account (optional)
 - Heroku Account (optional)
  
@@ -92,21 +92,21 @@ Media link automatically will be copied, then send the link to this bot from DM.
 Note: Due to Heroku dyno cycling, some commands that use temporary data won't work perfectly. <br>
 Only admin can access these commands. If user try to access this commands, the user will be notified that the
 keyword is wrong. <br>
-`#add_blacklist word1 word2 word-n` <br>
-`#rm_blacklist word1 word2 word-n` <br>
-`#db_update` not available when Database = False <br>
-`#display_blacklist` <br>
-`#add_admin username1 username2 username-n` <br>
-`#rm_admin username1 username2 username-n` <br>
-`#who https://twitter.com/username/status/1234567890?s=19` check who was sent the menfess <br>
-`#switch off` turn off the automenfess <br>
-`#switch on` turn on the automenfess<br> <br>
+`/add_blacklist word1 word2 word-n` <br>
+`/rm_blacklist word1 word2 word-n` <br>
+`/db_update` not available when Database = False <br>
+`/display_blacklist` <br>
+`/add_admin username1 username2 username-n` <br>
+`/rm_admin username1 username2 username-n` <br>
+`/who https://twitter.com/username/status/1234567890?s=19` check who was sent the menfess <br>
+`/switch off` turn off the automenfess <br>
+`/switch on` turn on the automenfess<br> <br>
 For add_blacklist and rm_blacklist, you can add space into your words by giving underscore "_". Example: <br>
-`#add_blacklist _word1_ word2_word3 word-n` <br>
+`/add_blacklist _word1_ word2_word3 word-n` <br>
 This command will append " word1 ", "word2 word3", and "word-n" to Blacklist words list.
 
 ### User command
-`#delete https://twitter.com/username/status/1234567890?s=19` <br>
+`/delete https://twitter.com/username/status/1234567890?s=19` <br>
 Only sender who has sent the menfess that can delete the mentioned tweet link, admin pass this filter.
 
 

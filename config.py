@@ -32,9 +32,10 @@ Notify_sentFail1 = "Maaf ada kesalahan pada sistem :( \ntolong screenshot & lapo
 # Used when error is happened in system
 
 Interval_perSender = False # bool
-Interval_time = 0 # int
+Interval_time = 5 # int
 # Interval time (in minutes) of sending menfess per sender, Admin pass this filter
-Notify_intervalPerSender = f"Mengirim menfess dibatasi! silakan coba sekitar {Interval_time} menit lagi"
+Notify_intervalPerSender = "Mengirim menfess dibatasi! silakan coba lagi setelah pukul {}"
+# Please keep the "{}".format(time)
 
 Delay_time = 0 # int, seconds
 # Twitter API limits user to post tweet. System will delay 36s per/tweet. You can add it by input
@@ -125,16 +126,17 @@ Notify_blacklistWords = "di menfess kamu terdapat blacklist words, jangan lupa b
 Notify_blacklistWordsAdmin = False # menfess will be sent to admin
 
 # Please set Admin_cmd and User_cmd in lowercase
+# You can move Admin_cmd to User_cmd and vice versa
 
 Admin_cmd = {
-    '#add_blacklist'    : 'AdminCmd.add_blacklist(arg)',
-    '#rm_blacklist'     : 'AdminCmd.rm_blacklist(arg)',
-    '#display_blacklist': 'AdminCmd.display_blacklist(sender_id) #no_notif',
-    '#db_update'        : 'AdminCmd.db_update()',
-    '#who'              : 'AdminCmd.who(selfAlias, sender_id, urls) #no_notif',
-    '#add_admin'        : 'AdminCmd.add_admin(arg)',
-    '#rm_admin'         : 'AdminCmd.rm_admin(arg)',
-    '#switch'           : 'AdminCmd.switch(arg)',
+    '/add_blacklist'    : 'DMCmd.add_blacklist(arg)',
+    '/rm_blacklist'     : 'DMCmd.rm_blacklist(arg)',
+    '/display_blacklist': 'DMCmd.display_blacklist(sender_id) #no_notif',
+    '/db_update'        : 'DMCmd.db_update()',
+    '/who'              : 'DMCmd.who(selfAlias, sender_id, urls) #no_notif',
+    '/add_admin'        : 'DMCmd.add_admin(arg)',
+    '/rm_admin'         : 'DMCmd.rm_admin(arg)',
+    '/switch'           : 'DMCmd.switch(arg)',
 }
 # #no_notif is an indicator to skip send notif to admin
 # db_update is not available when Github_Database set to False
@@ -142,10 +144,11 @@ Admin_cmd = {
 
 
 User_cmd = {
-    '#delete'           : 'UserCmd.delete(selfAlias, sender_id, urls)',
+    '/delete'           : 'DMCmd.delete(selfAlias, sender_id, urls)',
+    '/unsend'           : 'DMCmd.unsend(selfAlias, sender_id)',
 }
-# delete is not available for user when bot was just started and user id not in db_sent
+# delete and unsend is not available for user when bot was just started and user id not in db_sent
 # delete & db_sent are only available for one day (reset every midnight or heroku dyno cycling)
-Notify_userCmdDelete = "Yeay! Menfess kamu sudah berhasil dihapus"
-Notify_userCmdDeleteFail = "Duh! Menfess ini ngga bisa kamu hapus :("
+Notify_DMCmdDelete = "Yeay! Menfess kamu sudah berhasil dihapus"
+Notify_DMCmdDeleteFail = "Duh! Menfess ini ngga bisa kamu hapus :("
 # Notify above are only for user

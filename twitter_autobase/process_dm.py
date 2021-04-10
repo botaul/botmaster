@@ -13,15 +13,14 @@ def dm_command(selfAlias, sender_id, message, message_data) -> bool:
         return False
 
     else:
-        AdminCmd = selfAlias.AdminCmd #pylint: disable=unused-variable
-        UserCmd = selfAlias.UserCmd #pylint: disable=unused-variable
+        DMCmd = selfAlias.DMCmd #pylint: disable=unused-variable
         contents = message.split(" ")[1:]
         notif = str()
                     
         if command in selfAlias.credential.Admin_cmd:
             # Manage admin access
             if sender_id not in selfAlias.credential.Admin_id:
-                notif = selfAlias.credential.Notify_wrongTrigger
+                notif = selfAlias.credential.Notify_wrongTriggerMsg
                 selfAlias.send_dm(recipient_id=sender_id, text=notif)
                 return True
             else:
@@ -64,9 +63,9 @@ def dm_command(selfAlias, sender_id, message, message_data) -> bool:
         # Manage notification for user
         if sender_id not in selfAlias.credential.Admin_id:
             if "Exception" not in notif:
-                notif = selfAlias.credential.Notify_userCmdDelete
+                notif = selfAlias.credential.Notify_DMCmdDelete
             else:
-                notif = selfAlias.credential.Notify_userCmdDeleteFail
+                notif = selfAlias.credential.Notify_DMCmdDeleteFail
                     
         selfAlias.send_dm(sender_id, notif)
         return True
@@ -76,6 +75,8 @@ def dm_user_filter(selfAlias, sender_id, message) -> bool:
     '''
     :return: bool, True: dm shouldn't be processed, False: dm should be processed
     '''
+
+    username = 0 # Used on requirements or blacklist_words, to use get_user effectively
 
     if sender_id in selfAlias.credential.Admin_id:
         return False
@@ -89,7 +90,8 @@ def dm_user_filter(selfAlias, sender_id, message) -> bool:
                 del selfAlias.db_intervalTime[i]
 
         if sender_id in selfAlias.db_intervalTime:
-            notif = selfAlias.credential.Notify_intervalPerSender
+            free_time = datetime.strftime(selfAlias.db_intervalTime[sender_id], '%H:%M')
+            notif = selfAlias.credential.Notify_intervalPerSender.format(free_time)
             selfAlias.send_dm(recipient_id=sender_id, text=notif)
             return True
         else:
@@ -103,6 +105,7 @@ def dm_user_filter(selfAlias, sender_id, message) -> bool:
     # SENDER REQUIREMENTS
     if selfAlias.credential.Sender_requirements:
         user = (selfAlias.api.get_user(sender_id))._json
+        username = user['screen_name']
 
         # only followed
         if selfAlias.credential.Only_followed:
@@ -131,7 +134,8 @@ def dm_user_filter(selfAlias, sender_id, message) -> bool:
         selfAlias.send_dm(recipient_id=sender_id, text=notif)
 
         if selfAlias.credential.Notify_blacklistWordsAdmin:
-            username = selfAlias.get_user_screen_name(sender_id)
+            if username == 0:
+                username = selfAlias.get_user_screen_name(sender_id)
             for id in selfAlias.credential.Admin_id:
                 selfAlias.send_dm(
                     recipient_id=id,
@@ -219,7 +223,7 @@ def process_dm(selfAlias, raw_dm: dict) -> list:
     '''
     :param raw_dm: raw data (dict) from webhook
     :return: list of dict filtered dm
-    This method contains AdminCmd and UserCmd that can do exec and
+    This method contains DMCmd that can do exec and
     selfAlias.db_sent updater.
     Filters:
         - admin & user command
@@ -273,5 +277,7 @@ def process_dm(selfAlias, raw_dm: dict) -> list:
     except Exception as ex:
         pass
         print(ex)
-        sleep(60)
+        selfAlias.send_dm(
+            sender_id,
+            selfAlias.credential.Notify_sentFail1 + f"\nerror_code: process_dm, {str(ex)}")
         return list()

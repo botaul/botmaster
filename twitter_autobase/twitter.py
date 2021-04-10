@@ -371,4 +371,4 @@ class Twitter:
         except Exception as ex:
             pass
             print(ex)
-            return {'postid': None, 'error_code': 'post_tweet method, ' + str(ex)}
+            return {'postid': None, 'error_code': 'post_tweet, ' + str(ex)}
