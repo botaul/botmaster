@@ -1,5 +1,6 @@
 # Copyright (c) 2019 Saadman Rafat
 # Distributed under MIT software license
+# Source: https://github.com/twitivity/twitivity
 
 import json
 import hmac

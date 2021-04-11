@@ -204,6 +204,7 @@ class Autobase(Twitter):
                         update_local_file(self, sender_id, message, response['postid'])
 
                     # NOTIFY MENFESS SENT OR NOT
+                    # Ref: https://github.com/azukacchi/twitter_autobase/blob/master/main.py
                     if response['postid'] != None:
                         if self.credential.Notify_sent:
                             notif = self.credential.Notify_sentMessage.format(self.bot_username)
