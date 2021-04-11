@@ -123,12 +123,12 @@ class Event(ABC):
     credential_id: dict = dict()
 
     @abstractmethod
-    def on_data(self, data: json) -> None:
+    def on_data(self, data: json) -> NoReturn:
         pass
 
-    def listen(self) -> None:
+    def listen(self) -> NoReturn:
         app = self._get_server()
-        serve(app, host='0.0.0.0', port=5000)
+        serve(app, host='0.0.0.0', port=8080)
 
     def _get_server(self) -> Flask:
         try:

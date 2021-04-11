@@ -4,9 +4,14 @@ from os.path import exists
 from datetime import datetime, timedelta, timezone
 from time import sleep
 from os import remove
+from typing import NoReturn
 
 
-def update_local_file(selfAlias, sender_id, message, postid):
+def update_local_file(selfAlias: object, sender_id: str, message: str, postid: str) -> NoReturn:
+    '''
+    update database file (json) on local
+    :param selfAlias: an alias of self from Autobase class
+    '''
     screen_name = selfAlias.get_user_screen_name(sender_id)
     if exists(selfAlias.DMCmd.filename_github):
         with open(selfAlias.DMCmd.filename_github, 'r+') as f:
@@ -33,10 +38,10 @@ def update_local_file(selfAlias, sender_id, message, postid):
             f.close()
 
 
-def check_file_github(selfAlias, new=True):
+def check_file_github(selfAlias: object, new: bool=True) -> NoReturn:
     '''
-    :param new: True when bot was just started, download & save file from github -> bool
-    False when bot is running. If file exists, doesn't save the file from github.
+    :param new: True when bot was just started, download & save file from github when bot was just started
+    False when bot is running. If file exists, It doesn't save the file from github.
     'new' parameter used if you update database not every midnight on Database method
     '''
     print("checking github file...")
@@ -84,7 +89,11 @@ def check_file_github(selfAlias, new=True):
         print(ex)
 
 
-def gh_database(selfAlias, Github_database=True):
+def gh_database(selfAlias: object, Github_database: bool=True):
+    '''
+    :param Github_database: sync local database to github repo
+    Sync will only happen on midnight or when admin sends command from DM
+    '''
     while True:
         try:
             # update every midnight, you can update directly from DM with 'db_update'

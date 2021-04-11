@@ -2,8 +2,13 @@ from time import sleep
 from datetime import datetime, timezone, timedelta
 
 
-def dm_command(selfAlias, sender_id, message, message_data) -> bool:
+def dm_command(selfAlias: object, sender_id: str, message: str, message_data: dict) -> bool:
     '''
+    Process command (DMCmd) that sent from dm
+    :param selfAlias: an alias of self from Autobase class
+    :param sender_id: id of account who sends the message
+    :param message: message text
+    :param message_data: dict of message data
     :return: bool, True: There is a command, False: There is no command
     '''
     list_command = list(selfAlias.credential.Admin_cmd) + list(selfAlias.credential.User_cmd)
@@ -20,11 +25,7 @@ def dm_command(selfAlias, sender_id, message, message_data) -> bool:
         if command in selfAlias.credential.Admin_cmd:
             # Manage admin access
             if sender_id not in selfAlias.credential.Admin_id:
-                notif = selfAlias.credential.Notify_wrongTriggerMsg
-                selfAlias.send_dm(recipient_id=sender_id, text=notif)
-                return True
-            else:
-                pass
+                return False
 
         print(f"command {command} {str(contents)} in progress...")
 
@@ -71,8 +72,10 @@ def dm_command(selfAlias, sender_id, message, message_data) -> bool:
         return True
 
 
-def dm_user_filter(selfAlias, sender_id, message) -> bool:
+def dm_user_filter(selfAlias: object, sender_id: str, message: str) -> bool:
     '''
+    Filter user requirements and rules which has been set on config.py
+    :param selfAlias: an alias of self from Autobase class
     :return: bool, True: dm shouldn't be processed, False: dm should be processed
     '''
 
@@ -148,8 +151,10 @@ def dm_user_filter(selfAlias, sender_id, message) -> bool:
     return False
 
 
-def dm_menfess_trigger(selfAlias, sender_id, message, message_data) -> list:
+def dm_menfess_trigger(selfAlias: object, sender_id: str, message: str, message_data: dict) -> list:
     '''
+    Clean data from raw message_data
+    :param selfAlias: an alias of self from Autobase class
     :return: list of dict filtered dm that contains menfess trigger
     '''
     filtered_dm = list()
@@ -219,20 +224,20 @@ def dm_menfess_trigger(selfAlias, sender_id, message, message_data) -> list:
     return filtered_dm
 
     
-def process_dm(selfAlias, raw_dm: dict) -> list:
+def process_dm(selfAlias: object, raw_dm: dict) -> list:
     '''
-    :param raw_dm: raw data (dict) from webhook
+    :param selfAlias: an alias of self from Autobase class
+    :param raw_dm: raw data from webhook
     :return: list of dict filtered dm
-    This method contains DMCmd that can do exec and
-    selfAlias.db_sent updater.
+    This method contains DMCmd that can do exec and selfAlias.db_sent_updater
     Filters:
+        - account status
         - admin & user command
         - user filter
             - interval per sender
-            - account status
+            - minimum and maximum len menfess
+            - sender requirements (only followed, minimum followers and age of account)
             - blacklist words
-            - only followed
-            - sender requirements
         - menfess trigger
             - attachment_url
             - photo

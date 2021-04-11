@@ -13,23 +13,23 @@ import requests
 from requests_oauthlib import OAuth1
 from html import unescape
 import re
+from typing import NoReturn
 
 
 class Twitter:
     '''
-    :param credential: class that contains objects like config -> object
+    Control twitter account
+    Attributes:
+        - credential
+        - api
+        - me
+    :param credential: object that contains attributes like config
     '''
 
-    def __init__(self, credential):
+    def __init__(self, credential: object):
         '''
         initialize twitter with tweepy
-        Attributes:
-            - credential
-            - api
-            - me
-
-        
-        :param credential: class that contains objects like config -> object
+        :param credential: object that contains attributes like config
         '''
         self.credential = credential
 
@@ -44,12 +44,10 @@ class Twitter:
         self.me = self.api.me()
     
 
-    def get_all_followers(self, user_id, first_delay=True):
-        '''Return all followers ids
-        Twitter API limiting to get 5000 followers/minute
-        :param user_id: User id -> int or str
-        :param first_delay: False: delete delay for first operation -> bool
-        :returns: list of followers ids integer
+    def get_all_followers(self, user_id: str, first_delay: bool=True) -> list:
+        '''Get all followers ids, Twitter API limits to get 5000 followers/minute
+        :param first_delay: False: delete delay for the first get request
+        :return: list of followers ids integer
         '''
         try:
             print("Getting all followers ids...")
@@ -69,12 +67,10 @@ class Twitter:
             return list()
 
     
-    def get_all_followed(self, user_id, first_delay=True):
-        '''Get all account ids that followed by screen_name
-        Twitter api limiting to get 5000 followed/minute
-        :param user_id: user id -> str or int
-        :param first_delay: False: delete delay for first operation -> bool
-        :returns: list of followers ids integer
+    def get_all_followed(self, user_id: str, first_delay: bool=True) -> list:
+        '''Get all user ids that followed by bot, Twitter api limits to get 5000 followed/minute
+        :param first_delay: False: delete delay for the first get
+        :return: list of followers ids integer
         '''
         try:
             print("Getting all friends ids...")
@@ -94,9 +90,9 @@ class Twitter:
             return list()
 
 
-    def delete_dm(self, id):
-        '''Delete a DM
-        :param id: message id -> int or str
+    def delete_dm(self, id: str) -> NoReturn:
+        '''
+        :param id: message id
         '''
         try:
             self.api.destroy_direct_message(id)
@@ -106,10 +102,9 @@ class Twitter:
             pass
     
     
-    def send_dm(self, recipient_id, text):
-        '''Send DM and automatically delete the sent DM
-        :param recipient_id: -> str or int
-        :param text: -> str
+    def send_dm(self, recipient_id: str, text: str) -> NoReturn:
+        '''
+        :param recipient_id: account target
         '''
         try:
             self.api.send_direct_message(recipient_id=recipient_id, text=text)
@@ -119,10 +114,10 @@ class Twitter:
             sleep(60)
 
 
-    def get_user_screen_name(self, id):
-        '''Get username
-        :param id: account id -> int
-        :returns: username -> str
+    def get_user_screen_name(self, id: str) -> str:
+        '''
+        :param id: account id
+        :return: username
         '''
         try:
             user = self.api.get_user(id)
@@ -135,11 +130,11 @@ class Twitter:
             return "Exception"
 
 
-    def download_media(self, media_url, filename=None):
+    def download_media(self, media_url: str, filename: str=None) -> str:
         '''Download media from url
-        :param media_url: url -> string
-        :param filename: None (default) or filename --> str
-        :returns: file name (when filename=None) -> str
+        :param media_url: url
+        :param filename: None (default) or filename
+        :return: file name (if filename==None)
         '''
         print("Downloading media...")
         oauth = OAuth1(client_key=self.credential.CONSUMER_KEY,
@@ -165,12 +160,9 @@ class Twitter:
         return filename
     
 
-    def add_watermark(self, filename, output=None):
-        '''Add watermark to photo, then save as output
-        Only support photo, if other, nothing will happen
-        :param filename: file name -> str
-        :param output: output name -> str
-        :returns: output name -> str
+    def add_watermark(self, filename: str, output: str=None) -> str:
+        '''Add watermark to photo, then save as output. Only support photo type
+        :returns: output file name
         '''
         try:
             if output == None:
@@ -193,14 +185,13 @@ class Twitter:
             return filename
 
 
-    def upload_media_tweet(self, media_tweet_url):
-        '''Upload media with (from) media tweet url
-        Usually when sender want to post more than one media, he will attachs media tweet url.
-        But the sender's username is mentioned on the bottom of the media.
-        This method intended to make sender anonym. This return list of media_ids, then
-        you can add media_ids to other method. Contains watermark module
-        :param media_tweet_url: media tweet url e.g https://twitter.com/username/status/123/photo/1 -> str
-        :returns: [(media_id, media_type),] a.k.a media_idsAndTypes -> list
+    def upload_media_tweet(self, media_tweet_url: str) -> list:
+        '''Upload media from media tweet url
+        Usually when sender wants to post more than one media, he will attachs media tweet url.
+        But the sender's username is mentioned on the bottom of the media. This method intended to make sender anonym.
+        you can add media_ids to other method. This method contains watermark module
+        :param media_tweet_url: media tweet url i.e. https://twitter.com/username/status/123/photo/1
+        :return: [(media_id, media_type),] a.k.a media_idsAndTypes
         '''
         try:
             postid = re.sub(r"[/\.:]", " ", media_tweet_url).split()[-3]
@@ -249,14 +240,11 @@ class Twitter:
             return list()
 
 
-    def upload_media(self, filename, media_category='tweet'):
-        '''Upload media with chunk
-        This method are needed when you want to use media to do something on
-        twitter. This returns list of media_id, you can attach it to other method
-        that require media id.
-        :param filename: -> str
+    def upload_media(self, filename: str, media_category: str='tweet') -> tuple:
+        '''Upload media using twitter api v1.1
+        This method are needed when you want to use media to do something on twitter
         :param media_category: 'tweet' or 'dm'. default to 'tweet'
-        :returns: media id, media_type -> tuple
+        :return: media id, media_type
         '''
         mediaupload = MediaUpload(self.credential, filename, media_category)
         media_id, media_type = mediaupload.upload_init()
@@ -265,16 +253,15 @@ class Twitter:
         return media_id, media_type
 
 
-    def post_tweet(self, tweet, sender_id, media_url=None, attachment_url=None,
-                media_idsAndTypes=list(), possibly_sensitive=False) -> dict:
+    def post_tweet(self, tweet: str, sender_id: str, media_url: str=None, attachment_url: str=None,
+                media_idsAndTypes: list=list(), possibly_sensitive: bool=False) -> dict:
         '''Post a tweet, contains watermark module
-        Per tweet delay is 30s + self.random_time, but the last delay is deleted
-        :param tweet: -> str
-        :param sender_id: -> str or int
-        :param media_url: media url that will be posted -> str
-        :param attachment_url: url -> str
-        :param media_idsAndTypes: [(media_ids, media_type),] -> list
-        :param possibly_sensitive: True when menfess contains sensitive contents -> bool
+        Per tweet delay is 36s + self.random_time, but the last delay is deleted
+        :param tweet: message
+        :param media_url: url of the media that sent from dm
+        :param attachment_url: url that will be attached to twett (retweet)
+        :param media_idsAndTypes: [(media_ids, media_type),]
+        :param possibly_sensitive: True if menfess contains sensitive contents
         :return: {'postid': '', 'error_code': ''} -> dict
         '''
         try:

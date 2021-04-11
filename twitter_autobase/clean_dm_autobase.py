@@ -1,8 +1,11 @@
 import re
 
 
-def clean_private_autobase(selfAlias, message, media_idsAndTypes, list_attchmentUrlsMedia) -> str:
+def clean_private_autobase(selfAlias: object, message: str, media_idsAndTypes: list, list_attchmentUrlsMedia: list) -> str:
     '''
+    Move url from list_attachmentUrlsMedia to media_idsAndTypes
+    :param media_idsAndTypes: list of media ids and media types that returned from upload_media_tweet method
+    :param list_attachmentUrlsMedia: list of (url on dm, extended url)
     :return: message
     '''
     for media_tweet_url in list_attchmentUrlsMedia:
@@ -16,8 +19,10 @@ def clean_private_autobase(selfAlias, message, media_idsAndTypes, list_attchment
     return message
 
 
-def clean_main_autobase(selfAlias, message, attachment_urls) -> str:
+def clean_main_autobase(selfAlias: object, message: str, attachment_urls: tuple) -> str:
     '''
+    Clean dm based on config.py
+    :param attachment_urls: (url on dm, extended url)
     :return: message
     '''
     # Keyword Deleter
@@ -60,7 +65,10 @@ def clean_main_autobase(selfAlias, message, attachment_urls) -> str:
     return message
 
 
-def count_emoji(text) -> int:
+def count_emoji(text: str) -> int:
+    '''
+    Count emojis on the text
+    '''
     # Ref: https://gist.github.com/Alex-Just/e86110836f3f93fe7932290526529cd1#gistcomment-3208085
     # Ref: https://en.wikipedia.org/wiki/Unicode_block
     emoji = re.compile("["
@@ -81,8 +89,9 @@ def count_emoji(text) -> int:
     return len(re.findall(emoji, text))
 
 
-def search_list_media_ids(media_idsAndTypes) -> list:
+def search_list_media_ids(media_idsAndTypes: list) -> list:
     '''
+    Manage and divide media ids from media_idsAndTypes
     :return: list of list media_ids per 4 photo or 1 video/gif e.g. [[media_ids],[media_ids],[media_ids]]
     '''
     list_media_ids = [[]] # e.g. [[media_ids],[media_ids],[media_ids]]

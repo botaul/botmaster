@@ -95,10 +95,10 @@ Watermark_position = ('right', 'bottom') # (x, y)
 
 Database = False
 # bool, True: Using database (Make json file in local)
-Github_database = False # Push json file to Github
+Github_database = False # Push json file to Github every midnight
 # bool, True: using github to save database, False: database only in local
 # Github_token and Github_repo are not required when Github_database is False
-# You can directly update Github database using '#db_update' command from DM
+# You can directly update Github database using '/db_update' command from DM
 Github_token = ""
 # get it from https://github.com/settings/tokens , set allow for editing repo
 Github_repo = "username/your_repo"
@@ -107,14 +107,14 @@ Github_repo = "username/your_repo"
 
 Account_status = True
 # bool, True: Turn on the automenfess. If it turned into False, this bot won't
-# post menfess. You can switch it using '#switch on/off' command from DM
+# post menfess. You can switch it using '/switch on/off' command from DM
 Notify_accountStatus = "Automenfess sedang dimatikan oleh admin, silakan cek tweet terbaru atau \
     hubungi admin untuk informasi lebih lanjut"
 
 Trigger_word = ["fess!", "blablabla!"]
-Notify_wrongTriggerUser = True # Will be send to user
-Notify_wrongTriggerAdmin = False # menfess will be sent to admin
-Notify_wrongTriggerMsg = "Trigger menfess tidak terdeteksi, pesan kamu akan dikirimkan ke admin"
+Notify_wrongTriggerUser = False # Will be sent to user
+Notify_wrongTriggerAdmin = False # Will be sent to admin
+Notify_wrongTriggerMsg = "Trigger menfess tidak terdeteksi"
 
 Sensitive_word = "/sensitive"
 # Used when sender send sensitive content, order them to use this word
@@ -123,7 +123,7 @@ Sensitive_word = "/sensitive"
 Blacklist_words = ['covid', 'blablabla'] 
 # hashtags and mentions will be changed into "#/" and "@/" in app.py to avoid ban
 Notify_blacklistWords = "di menfess kamu terdapat blacklist words, jangan lupa baca peraturan base yaa!"
-Notify_blacklistWordsAdmin = False # menfess will be sent to admin
+Notify_blacklistWordsAdmin = False # Will be sent to admin
 
 # Please set Admin_cmd and User_cmd in lowercase
 # You can move Admin_cmd to User_cmd and vice versa

@@ -14,7 +14,7 @@ with many improvements and fixed bugs. You can try on my autobase account
 - Post a Thread when characters > 280
 - Sync simple database (json) on github repository
 - Send command from admin account (on DM)
-- Run multiple (base) accounts (see on app.py)
+- Run multiple autobase accounts (see on app.py)
 - etc. see on config.py
 
 
@@ -62,7 +62,7 @@ After modifying contents on config, run app by using syntax: python3 app.py
 Make sure you have deleted the local Database if you previously ran the bot on local.
 ```bash
 git add .
-git commit -m "first commit"
+git commit -m "initial commit"
 heroku git:remote -a your_heroku_app_name
 git push heroku master
 ```
@@ -90,8 +90,7 @@ Media link automatically will be copied, then send the link to this bot from DM.
 
 ### Admin command
 Note: Due to Heroku dyno cycling, some commands that use temporary data won't work perfectly. <br>
-Only admin can access these commands. If user try to access this commands, the user will be notified that the
-keyword is wrong. <br>
+Only admin can access these commands. <br>
 `/add_blacklist word1 word2 word-n` <br>
 `/rm_blacklist word1 word2 word-n` <br>
 `/db_update` not available when Database = False <br>
@@ -106,13 +105,13 @@ For add_blacklist and rm_blacklist, you can add space into your words by giving 
 This command will append " word1 ", "word2 word3", and "word-n" to Blacklist words list.
 
 ### User command
-`/delete https://twitter.com/username/status/1234567890?s=19` <br>
-Only sender who has sent the menfess that can delete the mentioned tweet link, admin pass this filter.
+`/delete https://twitter.com/username/status/1234567890?s=19` Only sender who has sent the menfess that can delete the mentioned tweet link, admin pass this filter. <br>
+`/unsend` delete the last menfess sent by the user
 
 
 ## Notes
-- Admin pass all filters
-- Only admin that can setting account with admin command
+- Admin passes all filters
+- Only admin that can set account using admin command
 - All temporary data only available for one day (reset at midnight or heroku dyno cycling)
 - If you use github repository to deploy to heroku, make sure to set the repository to private. Github
 automatically will delete your github token if your repository is public

@@ -132,9 +132,7 @@ pyvenv.cfg
 bin/
 **/__pycache__
 .vscode/
-**/test1.env
 **/.pytest_cache
-watermarked.jpg
 twitter_autobase/**/config.py
 Darksiede**
 autobase_reborn**

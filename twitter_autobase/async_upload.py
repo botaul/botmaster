@@ -10,6 +10,7 @@ from time import sleep
 import json
 from requests import get, post
 from requests_oauthlib import OAuth1
+from typing import NoReturn
 
 
 MEDIA_ENDPOINT_URL = 'https://upload.twitter.com/1.1/media/upload.json'
@@ -17,26 +18,27 @@ POST_TWEET_URL = 'https://api.twitter.com/1.1/statuses/update.json'
 
 
 class MediaUpload:
-    '''Upload media using twitter api v.1.1
+    '''
+    Upload media using twitter api v.1.1
 
-    :param credential: class contains following objects: CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET -> object
-    :param file_name: filename of the media -> str
+    Attributes:
+        - video_filename
+        - total_bytes
+        - media_id
+        - processing_info
+        - file_format
+        - media_type
+        - media_category
+
+    :param credential: object contains following attributes: CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET
+    :param file_name: filename of the media
     :param media_category: 'tweet' or 'dm'
     '''
 
-    def __init__(self, credential, file_name, media_category='tweet'):
+    def __init__(self, credential: object, file_name: str, media_category: str='tweet'):
         '''
-        Attributes:
-            - video_filename
-            - total_bytes
-            - media_id
-            - processing_info
-            - file_format
-            - media_type
-            - media_category
-
-        :param credential: class contains following objects: CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET -> class
-        :param file_name: filename of the media -> str
+        :param credential: object contains following attributes: CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET
+        :param file_name: filename of the media
         :param media_category: 'tweet' or 'dm'
         '''
         self.oauth = OAuth1(credential.CONSUMER_KEY,
@@ -70,10 +72,11 @@ class MediaUpload:
         if media_category == 'dm':
             self.media_category = None
 
-    def upload_init(self):
+
+    def upload_init(self) -> tuple:
         '''
         init section
-        :returns: media id, media_type -> tuple
+        :return: media id, media_type
         '''
         # print('INIT')
         request_data = {
@@ -103,7 +106,8 @@ class MediaUpload:
         media_type = dict_format[self.file_format]
         return str(media_id), media_type
 
-    def upload_append(self):
+
+    def upload_append(self) -> NoReturn:
         '''
         append section
         '''
@@ -141,9 +145,10 @@ class MediaUpload:
         file.close()
         # print('Upload chunks complete.')
 
-    def upload_finalize(self):
+
+    def upload_finalize(self) -> NoReturn:
         '''
-        Finalizes uploads and starts video processing
+        Finalize upload and start media processing
         '''
         # print('FINALIZE')
         request_data = {
@@ -157,24 +162,10 @@ class MediaUpload:
         self.processing_info = req.json().get('processing_info', None)
         self.check_status()
 
-    def Tweet(self, tweet):
-        '''
-        tweet a tweet with media_id
-        :param tweet: -> str
-        :returns: tweet id -> int
-        '''
-        request_data = {
-            'status': tweet,
-            'media_ids': self.media_id
-        }
 
-        req = post(url=POST_TWEET_URL, data=request_data, auth=self.oauth)
-        complete = req.json()['id']
-        return complete
-
-    def check_status(self):
+    def check_status(self) -> NoReturn:
         '''
-        Checks video processing status
+        Check video processing status
         '''
         if self.processing_info is None:
             return

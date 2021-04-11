@@ -6,7 +6,6 @@
 
 from .twitter import Twitter
 from .gh_db import check_file_github, update_local_file, gh_database
-from .webhook import webhook_manager as webMan
 from .process_dm import process_dm
 from .clean_dm_autobase import clean_main_autobase, clean_private_autobase
 from .dm_command import DMCommand
@@ -14,23 +13,28 @@ from time import sleep
 from threading import Thread
 from datetime import datetime, timezone, timedelta
 from github import Github
+from typing import NoReturn
 
 
 class Autobase(Twitter):
     '''
-    :param credential: class that contains object class like config.py -> object
-    :param prevent_loop: list
+    Attributes:
+        - credential
+        - bot_username
+        - bot_id
+        - db_sent
+        - db_deleted
+        - DMCmd
+        - dms
+        - prevent_loop
+
+    :param credential: object that contains attributes like config.py
+    :param prevent_loop: list of (str) bot_id
     '''
-    def __init__(self, credential, prevent_loop):
-        '''You can control account and bot using credential & tw attributes
-
-        Attributes:
-            - credential
-            - DMCmd
-            - bot_username
-            - database_indicator
-
-        :param credential: class that contains object class like config.py -> object
+    def __init__(self, credential: object, prevent_loop: list):
+        '''
+        :param credential: object that contains attributes like config.py
+        :param prevent_loop: list of (str) bot_id
         '''
         super().__init__(credential)
         self.bot_username = self.me.screen_name
@@ -49,8 +53,9 @@ class Autobase(Twitter):
         self.prevent_loop = prevent_loop # list of all bot_id (str) that runs using this bot to prevent loop messages from each accounts
 
     
-    def notify_follow(self, follow_events):
+    def notify_follow(self, follow_events: dict) -> NoReturn:
         '''
+        Notify user when he follows the bot and followed by the bot
         :param follow_events: dict of 'follow_events' from self.webhook_connector
         '''
         if follow_events['follow_events'][0]['type'] != 'follow':
@@ -73,11 +78,12 @@ class Autobase(Twitter):
                 self.send_dm(target_id, self.credential.Notif_followed)
 
 
-    def db_sent_updater(self, action, sender_id=str(), postid=str(), list_postid_thread=list()):
-        '''Update self.db_sent
-        :param action: 'update','add_sent', 'add_deleted' or 'delete_sent' -> str
-        :param sender_id: sender id who has sent the menfess -> str
-        :param postid: tweet id or (sender_id, tweet id) -> str or tuple
+    def db_sent_updater(self, action: str, sender_id=str(), postid=str(), list_postid_thread=list()) -> NoReturn:
+        '''Update self.db_sent and self.db_deleted
+        :param action: 'update','add_sent', 'add_deleted' or 'delete_sent'
+        :param sender_id: sender id who has sent the menfess
+        :param postid: main post id
+        :param list_postid_thread: list of post id after the main post id (if user sends menfess that contains characters > 280)
         '''
         try:
             if action == 'update':
@@ -107,10 +113,10 @@ class Autobase(Twitter):
             print(ex)
 
     
-    def notify_queue(self, dms, queue=0):
+    def notify_queue(self, dms: list, queue: int) -> NoReturn:
         """Notify the menfess queue to sender
-        :param dms: dms that returned from self.read_dm -> list of dict
-        :param queue: the current queue (len of current dms) -> int
+        :param dms: list of dms dict that returned from process_dm
+        :param queue: the current queue (len of current self.dms)
         """
         try:
             x, y, z = -1 + queue, queue, 0
@@ -125,7 +131,7 @@ class Autobase(Twitter):
                 if self.credential.Private_mediaTweet:
                     z += len(i['attachment_urls']['media']) * 3
 
-                # Delay for the first sender is very quick, so, it won't be notified
+                # Delay for the first sender (no thread) is very quick, so, it won't be notified
                 if x == 0:
                     continue
 
@@ -140,7 +146,12 @@ class Autobase(Twitter):
             sleep(60)
 
 
-    def webhook_connector(self, raw_data):
+    def webhook_connector(self, raw_data: dict) -> NoReturn:
+        '''
+        Method that will be called by webhook to sends data to Autobase, the process must be separated by Thread
+        or Process(if there is a Database app i.e. Postgres)
+        :param raw_data: dict from webhook 
+        '''
         # https://developer.twitter.com/en/docs/twitter-api/enterprise/account-activity-api/guides/account-activity-data-objects
         if 'direct_message_events' in raw_data:
             dm = process_dm(self, raw_data)
@@ -153,9 +164,10 @@ class Autobase(Twitter):
             self.notify_follow(raw_data)
 
 
-    def start_autobase(self):
+    def start_autobase(self) -> NoReturn:
         '''
-        the last self.tw.post_tweet delay is moved here to make threading faster
+        Process data from self.dms, the process must be separated by Thread or Process(if there is a Database app i.e. Postgres)
+        The last self.post_tweet delay is moved here to reduce the delay before posting menfess
         '''
         print("Starting autobase...")
 
@@ -218,12 +230,18 @@ class Autobase(Twitter):
                     pass
 
                 finally:
+                    # self.notify_queue is using len of dms to count queue, it's why the dms.pop(0) here
                     self.dms.pop(0)
 
             sleep(2)
     
 
-    def start_database(self, Github_database=True):
+    def start_database(self, Github_database: bool=True) -> NoReturn:
+        '''
+        Create Thread to sync data on local and Github repo. The github repo will be updated every midnight or when
+        admin sends command from DM
+        :param Github_database: Push local database to Github
+        '''
         self.database_indicator = True
         if Github_database is True:
             github = Github(self.credential.Github_token)

@@ -1,22 +1,23 @@
-from re import sub
+import re
+from typing import NoReturn
 
 
 class DMCommand:
     '''
-    :param api: tweepy api object -> object
-    :param credential: class (administrator_data) -> object
+    Command that can be accessed from direct message, you can manage command on config.py
+    :param api: tweepy api object
+    :param credential: object that contains attributes like config.py
+    Attributes:
+        - credential
+        - api
+        - repo
+        - filename_github
     '''
 
-    def __init__(self, api, credential):
+    def __init__(self, api: object, credential: object):
         '''
-        Attributes:
-            - credential
-            - api
-            - repo
-            - filename_github
-
-        :param api: tweepy api object -> object
-        :param credential: class (administrator_data) -> object
+        :param api: tweepy api object
+        :param credential: object that contains attributes like config.py
         '''
         self.credential = credential
         self.api = api
@@ -25,30 +26,30 @@ class DMCommand:
         self.filename_github = str()
 
 
-    def add_blacklist(self, word):
+    def add_blacklist(self, word: str) -> NoReturn:
         '''
-        :param word: word that will be added to Blacklist_words -> str
+        :param word: word that will be added to Blacklist_words
         '''
         word = word.replace("_", " ")
         self.credential.Blacklist_words.append(word)
 
 
-    def rm_blacklist(self, word):
+    def rm_blacklist(self, word: str) -> NoReturn:
         '''
-        :param word: word that will be deleted from Blacklist_words -> str
+        :param word: word that will be deleted from Blacklist_words
         '''
         word = word.replace("_", " ")
         self.credential.Blacklist_words.remove(word)
 
 
-    def display_blacklist(self, sender_id):
+    def display_blacklist(self, sender_id: str) -> NoReturn:
         '''
-        :param sender_id: id who was sent the command -> str or int
+        Send list of blacklist words to sender
         '''
         self.api.send_direct_message(recipient_id=sender_id, text=str(self.credential.Blacklist_words))
 
 
-    def db_update(self):
+    def db_update(self) -> NoReturn:
         '''Update Github database
         '''
         if self.repo.indicator is False:
@@ -59,11 +60,10 @@ class DMCommand:
             f.close()
 
 
-    def who(self, selfAlias, sender_id, urls):
+    def who(self, selfAlias: object, sender_id: str, urls: list) -> NoReturn:
         '''Check who was sent the menfess
-        :param sender_id: id of sender -> str
-        :param db_sent: dictionary of db_sent -> dict
-        :param urls: list of urls from dm -> list
+        :param selfAlias: an alias of self from Autobase class
+        :param urls: list of urls from dm
         '''
         if len(urls) == 0:
             raise Exception("Tweet link is not mentioned")
@@ -73,7 +73,7 @@ class DMCommand:
             postid = str()
 
             if "?" in url:
-                postid = sub("[/?]", " ", url).split()[-2]
+                postid = re.sub("[/?]", " ", url).split()[-2]
             else:
                 postid = url.split("/")[-1]
 
@@ -94,23 +94,24 @@ class DMCommand:
             raise Exception("menfess is not found in db_sent or db_deleted")
 
 
-    def add_admin(self, username):
+    def add_admin(self, username: str) -> NoReturn:
         '''
-        :param username: username without '@' -> str
+        Add (append) user to credential.Admin_id
+        :param username: username without '@'
         '''
         user = (self.api.get_user(screen_name=username))._json
         self.credential.Admin_id.append(str(user['id']))
 
 
-    def rm_admin(self, username):
+    def rm_admin(self, username: str) -> NoReturn:
         '''
-        :param username: username without '@' -> str
+        :param username: username without '@'
         '''
         user = (self.api.get_user(screen_name=username))._json
         self.credential.Admin_id.remove(str(user['id']))
 
 
-    def switch(self, arg):
+    def switch(self, arg: str) -> NoReturn:
         '''
         :param arg: 'on' or 'off'
         '''
@@ -122,7 +123,7 @@ class DMCommand:
             raise Exception("available parameters are on or off")
     
 
-    def _delete_tweet(self, postid, list_postid_thread):
+    def _delete_tweet(self, postid: str, list_postid_thread: list) -> NoReturn:
         try:
             for postidx in [postid] + list_postid_thread:
                 self.api.destroy_status(id=postidx) # It doesn't matter when error happen here
@@ -130,11 +131,10 @@ class DMCommand:
             raise Exception(f"You can't delete this tweet. Error: {ex}")
 
 
-    def delete(self, selfAlias, sender_id, urls):
-        '''Access to user is limited
-        :param sender_id: id of the sender -> str
-        :param db_sent: dictionary of db_sent -> dict
-        :param urls: list of urls from dm -> list
+    def delete(self, selfAlias: object, sender_id: str, urls: list):
+        '''Delete tweet
+        :param selfAlias: an alias of self from Autobase class
+        :param urls: list of urls from dm
         '''
         if sender_id not in selfAlias.db_sent and sender_id not in self.credential.Admin_id:
             raise Exception("sender_id not in db_sent")
@@ -144,7 +144,7 @@ class DMCommand:
         
         for i in urls:
             if "?" in i["expanded_url"]:
-                postid = sub("[/?]", " ", i["expanded_url"]).split()[-2]
+                postid = re.sub("[/?]", " ", i["expanded_url"]).split()[-2]
             else:
                 postid = i["expanded_url"].split("/")[-1]   
 
@@ -182,8 +182,11 @@ class DMCommand:
             self._delete_tweet(postid, list_postid_thread)
     
     
-    def unsend(self, selfAlias, sender_id):
-
+    def unsend(self, selfAlias: object, sender_id: str) -> NoReturn:
+        '''
+        :param selfAlias: an alias of self from Autobase class
+        Delete the last tweet that sent by sender
+        '''
         last_postid = list(selfAlias.db_sent[sender_id])[-1]
             
         list_postid_thread = selfAlias.db_sent[sender_id][last_postid]
