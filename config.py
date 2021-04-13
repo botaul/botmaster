@@ -53,7 +53,7 @@ Greet_followed = True
 Notif_followed = "Yeay! kamu udah difollow base ini. Jangan lupa baca peraturan sebelum mengirim menfess yaa!"
 
 Minimum_lenMenfess = 0 # length of the menfess
-Maximum_lenMenfess = 9999999
+Maximum_lenMenfess = 1120
 Notify_lenMenfess = f"Maksimum jumlah karakter: {Maximum_lenMenfess}, Minimum jumlah karakter {Minimum_lenMenfess}"
 
 Sender_requirements = False
@@ -109,10 +109,20 @@ Account_status = True
 # bool, True: Turn on the automenfess. If it turned into False, this bot won't
 # post menfess. You can switch it using '/switch on/off' command from DM
 Notify_accountStatus = "Automenfess sedang dimatikan oleh admin, silakan cek tweet terbaru atau \
-    hubungi admin untuk informasi lebih lanjut"
+hubungi admin untuk informasi lebih lanjut"
+
+Off_schedule = False
+# schedule automenfess to turned off
+Off_scheduleData = {
+    'start'         : ('21', '06'), # ('hour', 'minute')
+    'different_day' : True,
+    'end'           : ('04', '36'), # ('hour', 'minute')
+}
+Off_scheduleMsg = f"Automenfess dimatikan setiap pukul {Off_scheduleData['start'][0]}:{Off_scheduleData['start'][1]} \
+sampai dengan pukul {Off_scheduleData['end'][0]}:{Off_scheduleData['end'][1]}"
 
 Trigger_word = ["fess!", "blablabla!"]
-Notify_wrongTriggerUser = False # Will be sent to user
+Notify_wrongTriggerUser = True # Will be sent to user
 Notify_wrongTriggerAdmin = False # Will be sent to admin
 Notify_wrongTriggerMsg = "Trigger menfess tidak terdeteksi"
 
@@ -121,11 +131,12 @@ Sensitive_word = "/sensitive"
 # But I advise against sending sensitive content, Twitter may ban your account,
 # And using this bot for 'adult' base is strictly prohibited.
 Blacklist_words = ['covid', 'blablabla'] 
-# hashtags and mentions will be changed into "#/" and "@/" in app.py to avoid ban
+# hashtags and mentions will be changed into "#." and "@." in clean_dm_autobase.py to avoid ban
 Notify_blacklistWords = "di menfess kamu terdapat blacklist words, jangan lupa baca peraturan base yaa!"
 Notify_blacklistWordsAdmin = False # Will be sent to admin
 
 # Please set Admin_cmd and User_cmd in lowercase
+# Read README.md for the DMs examples
 # You can move Admin_cmd to User_cmd and vice versa
 
 Admin_cmd = {

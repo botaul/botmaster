@@ -72,6 +72,31 @@ def dm_command(selfAlias: object, sender_id: str, message: str, message_data: di
         return True
 
 
+def check_off_schedule(selfAlias: object, sender_id: str, date_now: object) -> bool:
+    off_data = selfAlias.credential.Off_scheduleData
+    delta_start_day = 0 
+    delta_end_day = 0
+    if off_data['different_day']:
+        if date_now.hour < int(off_data['end'][0]) and date_now.minute < int(off_data['end'][1]):
+        # at the beginning of midnight until the end of schedule
+            delta_start_day = -1
+        else:
+            delta_end_day = +1
+    
+    off_start = date_now.replace(hour=int(off_data['start'][0]), minute=int(off_data['start'][1])) \
+              + timedelta(days=delta_start_day)
+            
+    off_end = date_now.replace(hour=int(off_data['end'][0]), minute=int(off_data['end'][1])) \
+            + timedelta(days=delta_end_day)
+        
+    if date_now > off_start and date_now < off_end:
+        print("Off_schedule is active")
+        selfAlias.send_dm(sender_id, selfAlias.credential.Off_scheduleMsg)
+        return True
+    else:
+        return False
+
+
 def dm_user_filter(selfAlias: object, sender_id: str, message: str) -> bool:
     '''
     Filter user requirements and rules which has been set on config.py
@@ -79,14 +104,27 @@ def dm_user_filter(selfAlias: object, sender_id: str, message: str) -> bool:
     :return: bool, True: dm shouldn't be processed, False: dm should be processed
     '''
 
-    username = 0 # Used on requirements or blacklist_words, to use get_user effectively
-
     if sender_id in selfAlias.credential.Admin_id:
         return False
-    
+
+    # Account_status
+    if not selfAlias.credential.Account_status:
+        print("Account_status: False")
+        selfAlias.send_dm(sender_id, selfAlias.credential.Notify_accountStatus)
+        return True
+
+    # DATA
+    username = 0 # Will be edited on requirements or used on blacklist words, to make get_user effectively
+    date_now = datetime.now(timezone.utc) + timedelta(hours=selfAlias.credential.Timezone)
+    # Used on Off schedule, interval per sender, and sender requirements (minimum age)
+
+    # Off schedule
+    if selfAlias.credential.Off_schedule:
+        if check_off_schedule(selfAlias, sender_id, date_now):
+            return True
+
     # Interval time per sender
     if selfAlias.credential.Interval_perSender:
-        date_now = datetime.now(timezone.utc) + timedelta(hours=selfAlias.credential.Timezone)
         for i in list(selfAlias.db_intervalTime):
             # cleaning selfAlias.db_intervalTime
             if selfAlias.db_intervalTime[i] < date_now:
@@ -123,10 +161,9 @@ def dm_user_filter(selfAlias: object, sender_id: str, message: str) -> bool:
 
         # minimum age
         created_at = datetime.strptime(user['created_at'], '%a %b %d %H:%M:%S +0000 %Y')
-        date_now = (datetime.now(timezone.utc)
-                 + timedelta(hours=selfAlias.credential.Timezone)).replace(tzinfo=None)
+        date_now_req = date_now.replace(tzinfo=None)
 
-        if (date_now-created_at).days < selfAlias.credential.Minimum_day:
+        if (date_now_req - created_at).days < selfAlias.credential.Minimum_day:
             selfAlias.send_dm(sender_id, selfAlias.credential.Notify_senderRequirements)
             return True
 
@@ -234,6 +271,8 @@ def process_dm(selfAlias: object, raw_dm: dict) -> list:
         - account status
         - admin & user command
         - user filter
+            - account status
+            - off schedule
             - interval per sender
             - minimum and maximum len menfess
             - sender requirements (only followed, minimum followers and age of account)
@@ -257,21 +296,12 @@ def process_dm(selfAlias: object, raw_dm: dict) -> list:
         # Avoid keyword error & loop messages by skipping bot messages
         if sender_id in selfAlias.prevent_loop:
             return list()
-            
-        # Ignore message when Account_status is False
-        if not selfAlias.credential.Account_status:
-            if sender_id not in selfAlias.credential.Admin_id:
-                print("Account_status: False")
-                selfAlias.send_dm(sender_id, selfAlias.credential.Notify_accountStatus)
-                return list()
-
-            print("Account_status: False, admin sends menfess")            
 
         print(f"Processing direct message, sender_id: {sender_id}")
-
+        
         # ADMIN & USER COMMAND
         if dm_command(selfAlias, sender_id, message, message_data):
-            return list()
+            return list()       
         
         # FILTER FOR USER
         if dm_user_filter(selfAlias, sender_id, message):
