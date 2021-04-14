@@ -79,9 +79,9 @@ def check_off_schedule(selfAlias: object, sender_id: str, date_now: object) -> b
     if off_data['different_day']:
         if date_now.hour < int(off_data['end'][0]) and date_now.minute < int(off_data['end'][1]):
         # at the beginning of midnight until the end of schedule
-            delta_start_day = -1
+            delta_start_day -= 1
         else:
-            delta_end_day = +1
+            delta_end_day += 1
     
     off_start = date_now.replace(hour=int(off_data['start'][0]), minute=int(off_data['start'][1])) \
               + timedelta(days=delta_start_day)
@@ -188,17 +188,17 @@ def dm_user_filter(selfAlias: object, sender_id: str, message: str) -> bool:
     return False
 
 
-def dm_menfess_trigger(selfAlias: object, sender_id: str, message: str, message_data: dict) -> list:
+def dm_menfess_trigger(selfAlias: object, sender_id: str, message: str, message_data: dict) -> dict or None:
     '''
     Clean data from raw message_data
     :param selfAlias: an alias of self from Autobase class
-    :return: list of dict filtered dm that contains menfess trigger
+    :return: dict dm that contains menfess trigger or None
     '''
-    filtered_dm = list()
+    dict_dm = None
 
     if any(j.lower() in message.lower() for j in selfAlias.credential.Trigger_word):
 
-        dict_dms = dict(message=message, sender_id=sender_id,
+        dict_dm = dict(message=message, sender_id=sender_id,
             media_url=None, attachment_urls={'tweet':(None, None),
                                              'media':list()})
         # tweet and media: (url in message, the real url)
@@ -210,12 +210,12 @@ def dm_menfess_trigger(selfAlias: object, sender_id: str, message: str, message_
                 # i['url]: url in text message                          
                 # Media
                 if any(j in i['expanded_url'] for j in ['/video/', '/photo/', '/media/']):
-                    dict_dms['attachment_urls']['media'].append((i['url'], i['expanded_url']))
+                    dict_dm['attachment_urls']['media'].append((i['url'], i['expanded_url']))
                     #i['expanded_url'] e.g https://twitter.com/username/status/123/photo/1
                         
                 # Tweet
                 else:
-                    dict_dms['attachment_urls']['tweet'] = (i['url'], i['expanded_url'])
+                    dict_dm['attachment_urls']['tweet'] = (i['url'], i['expanded_url'])
                     #i['expanded_url'] e.g https://twitter.com/username/status/123?s=19
 
         # attachment media
@@ -239,9 +239,7 @@ def dm_menfess_trigger(selfAlias: object, sender_id: str, message: str, message_
             elif media_type == 'animated_gif':
                 media_url = media['video_info']['variants'][0]['url']
                         
-            dict_dms['media_url'] = media_url
-
-        filtered_dm.append(dict_dms)
+            dict_dm['media_url'] = media_url
 
     # WRONG TRIGGER
     else:
@@ -258,14 +256,14 @@ def dm_menfess_trigger(selfAlias: object, sender_id: str, message: str, message_
             for admin in selfAlias.credential.Admin_id:
                 selfAlias.send_dm(recipient_id=admin, text=notif)
             
-    return filtered_dm
+    return dict_dm
 
     
-def process_dm(selfAlias: object, raw_dm: dict) -> list:
+def process_dm(selfAlias: object, raw_dm: dict) -> dict or None:
     '''
     :param selfAlias: an alias of self from Autobase class
     :param raw_dm: raw data from webhook
-    :return: list of dict filtered dm
+    :return: dict filtered dm or None
     This method contains DMCmd that can do exec and selfAlias.db_sent_updater
     Filters:
         - account status
@@ -295,17 +293,17 @@ def process_dm(selfAlias: object, raw_dm: dict) -> list:
 
         # Avoid keyword error & loop messages by skipping bot messages
         if sender_id in selfAlias.prevent_loop:
-            return list()
+            return None
 
         print(f"Processing direct message, sender_id: {sender_id}")
         
         # ADMIN & USER COMMAND
         if dm_command(selfAlias, sender_id, message, message_data):
-            return list()       
+            return None       
         
         # FILTER FOR USER
         if dm_user_filter(selfAlias, sender_id, message):
-            return list()
+            return None
         
         return dm_menfess_trigger(selfAlias, sender_id, message, message_data)
         
@@ -315,4 +313,4 @@ def process_dm(selfAlias: object, raw_dm: dict) -> list:
         selfAlias.send_dm(
             sender_id,
             selfAlias.credential.Notify_sentFail1 + f"\nerror_code: process_dm, {str(ex)}")
-        return list()
+        return None

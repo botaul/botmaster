@@ -113,32 +113,32 @@ class Autobase(Twitter):
             print(ex)
 
     
-    def notify_queue(self, dms: list, queue: int) -> NoReturn:
+    def notify_queue(self, dm: dict, queue: int) -> NoReturn:
         """Notify the menfess queue to sender
-        :param dms: list of dms dict that returned from process_dm
-        :param queue: the current queue (len of current self.dms)
+        :param dm: dict that returned from process_dm
+        :param queue: the number of queue (len of self.dms)
         """
         try:
-            x, y, z = -1 + queue, queue, 0
+            x, y, z = queue, queue, 0
             # x is primary time (36 sec); y is queue; z is addition time for media
             time = datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)
-            for i in dms:
-                y += 1
-                x += (len(i['message']) // 272) + 1
-                if i['media_url'] != None:
-                    z += 3
+
+            y += 1
+            x += (len(dm['message']) // 272) + 1
+            if dm['media_url'] != None:
+                z += 3
                 
-                if self.credential.Private_mediaTweet:
-                    z += len(i['attachment_urls']['media']) * 3
+            if self.credential.Private_mediaTweet:
+                z += len(dm['attachment_urls']['media']) * 3
 
-                # Delay for the first sender (no thread) is very quick, so, it won't be notified
-                if x == 0:
-                    continue
+            # Delay for the first tweet (not a thread) is very quick, so, it won't be notified
+            if x == 1:
+                return
 
-                sent_time = time + timedelta(seconds= x*(37+self.credential.Delay_time) + z)
-                sent_time = datetime.strftime(sent_time, '%H:%M')
-                notif = self.credential.Notify_queueMessage.format(str(y), sent_time)
-                self.send_dm(recipient_id=i['sender_id'], text=notif)
+            sent_time = time + timedelta(seconds= (x - 1) * (37 + self.credential.Delay_time) + z)
+            sent_time = datetime.strftime(sent_time, '%H:%M')
+            notif = self.credential.Notify_queueMessage.format(str(y), sent_time)
+            self.send_dm(recipient_id=dm['sender_id'], text=notif)
 
         except Exception as ex:
             pass
@@ -155,10 +155,11 @@ class Autobase(Twitter):
         # https://developer.twitter.com/en/docs/twitter-api/enterprise/account-activity-api/guides/account-activity-data-objects
         if 'direct_message_events' in raw_data:
             dm = process_dm(self, raw_data)
-            if self.credential.Notify_queue is True:
-                # notify queue to sender
-                self.notify_queue(dm, queue=len(self.dms))
-            self.dms.extend(dm)
+            if dm != None:
+                if self.credential.Notify_queue is True:
+                    # notify queue to sender
+                    self.notify_queue(dm, queue=len(self.dms))
+                self.dms.append(dm)
         
         elif 'follow_events' in raw_data:
             self.notify_follow(raw_data)
