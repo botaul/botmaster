@@ -92,7 +92,6 @@ Watermark_position = ('right', 'bottom') # (x, y)
 # x: 'left', 'center', 'right'
 # y: 'top', 'center', 'bottom'
 
-
 Database = False
 # bool, True: Using database (Make json file in local)
 Github_database = False # Push json file to Github every midnight
@@ -140,24 +139,25 @@ Notify_blacklistWordsAdmin = False # Will be sent to admin
 # You can move Admin_cmd to User_cmd and vice versa
 
 Admin_cmd = {
-    '/add_blacklist'    : 'DMCmd.add_blacklist(arg)',
-    '/rm_blacklist'     : 'DMCmd.rm_blacklist(arg)',
-    '/display_blacklist': 'DMCmd.display_blacklist(sender_id) #no_notif',
-    '/db_update'        : 'DMCmd.db_update()',
-    '/who'              : 'DMCmd.who(selfAlias, sender_id, urls) #no_notif',
-    '/add_admin'        : 'DMCmd.add_admin(arg)',
-    '/rm_admin'         : 'DMCmd.rm_admin(arg)',
-    '/switch'           : 'DMCmd.switch(arg)',
+    '/add_blacklist'    : 'DMCmd.add_blacklist(arg)', # /add_blacklist word1 word2 word-n
+    '/rm_blacklist'     : 'DMCmd.rm_blacklist(arg)', # /rm_blacklist word1 word2 wordn
+    '/display_blacklist': 'DMCmd.display_blacklist(sender_id) #no_notif', # /display_blacklist
+    '/db_update'        : 'DMCmd.db_update()', # /db_update
+    '/who'              : 'DMCmd.who(selfAlias, sender_id, urls) #no_notif', # /who tweet_url
+    '/add_admin'        : 'DMCmd.add_admin(arg)', # /add_admin username1 username2 username-n
+    '/rm_admin'         : 'DMCmd.rm_admin(arg)', # /rm_admin username username2 username-n
+    '/switch'           : 'DMCmd.switch(arg)', # /switch on | /switch off
+    '/block'            : 'DMCmd.block_user(selfAlias, sender_id, urls) #no_notif', # /block tweet_url
+    '/unfoll'           : 'DMCmd.unfoll_user(selfAlias, sender_id, urls) #no_notif', # /unfoll tweet_url
 }
 # #no_notif is an indicator to skip send notif to admin
 # db_update is not available when Github_Database set to False
 # who is only available for one day (reset every midnight or heroku dyno cycling)
 
-
 User_cmd = {
-    '/delete'           : 'DMCmd.delete(selfAlias, sender_id, urls)',
-    '/unsend'           : 'DMCmd.unsend(selfAlias, sender_id)',
-    '/menu'             : 'DMCmd.menu(sender_id) #no_notif',
+    '/delete'           : 'DMCmd.delete(selfAlias, sender_id, urls)', # /delete tweet_url
+    '/unsend'           : 'DMCmd.unsend(selfAlias, sender_id)', # /unsend
+    '/menu'             : 'DMCmd.menu(sender_id) #no_notif', # /menu
 }
 # delete and unsend is not available for user when bot was just started and user id not in db_sent
 # delete & db_sent are only available for one day (reset every midnight or heroku dyno cycling)
@@ -167,5 +167,5 @@ Notify_DMCmdDeleteFail = "Duh! Menfess ini ngga bisa kamu hapus :("
 DMCmdMenu = '''
 /menu : Menampilkan pesan ini
 /unsend : Menghapus menfess terakhir yang kamu kirim
-/delete (url) : Menghapus menfess dengan menyertakan url
+/delete tweet_url : Menghapus menfess dengan menyertakan url
 '''

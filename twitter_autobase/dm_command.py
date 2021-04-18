@@ -5,7 +5,7 @@ from typing import NoReturn
 class DMCommand:
     '''
     Command that can be accessed from direct message, you can manage command on config.py
-    :param api: tweepy api object
+    :param api: tweepy API object
     :param credential: object that contains attributes like config.py
     Attributes:
         - credential
@@ -126,7 +126,7 @@ class DMCommand:
     def _delete_tweet(self, postid: str, list_postid_thread: list) -> NoReturn:
         try:
             for postidx in [postid] + list_postid_thread:
-                self.api.destroy_status(id=postidx) # It doesn't matter when error happen here
+                self.api.destroy_status(postidx) # It doesn't matter when error happen here
         except Exception as ex:
             raise Exception(f"You can't delete this tweet. Error: {ex}")
 
@@ -156,7 +156,7 @@ class DMCommand:
                     selfAlias.db_sent_updater('delete_sent', sender_id, postid)
                     
                     self._delete_tweet(postid, list_postid_thread)
-                    return
+                    return sender_id
 
                 elif sender_id not in self.credential.Admin_id: # normal trying other menfess
                     raise Exception("sender doesn't have access to delete postid")
@@ -180,6 +180,7 @@ class DMCommand:
                 print("admin mode: directly destroy_status")
             
             self._delete_tweet(postid, list_postid_thread)
+            if found != 0: return found
     
     
     def unsend(self, selfAlias: object, sender_id: str) -> NoReturn:
@@ -204,3 +205,41 @@ class DMCommand:
             recipient_id=sender_id,
             text=self.credential.DMCmdMenu
         )
+    
+
+    def block_user(self, selfAlias, sender_id, urls):
+        '''
+        Delete menfess and block the sender
+        '''
+        sender_idx = self.delete(selfAlias, sender_id, urls)
+        if sender_idx is None:
+            raise Exception("sender_id not found")
+        elif sender_idx in self.credential.Admin_id:
+            raise Exception("You can't block Admin")
+        else:
+            username = selfAlias.get_user_screen_name(sender_idx)
+        
+        try:
+            self.api.create_block(user_id=sender_idx)
+        except:
+            raise Exception("You can't block the sender")
+
+        selfAlias.send_dm(sender_id, f'username: @{username}\nid: {sender_idx}\nstatus: blocked')
+    
+
+    def unfoll_user(self, selfAlias, sender_id, urls):
+        '''
+        Delete menfess and unfoll the sender
+        '''
+        sender_idx = self.delete(selfAlias, sender_id, urls)
+        if sender_idx is None:
+            raise Exception("sender_id not found")
+        else:
+            username = selfAlias.get_user_screen_name(sender_idx)
+        
+        try:
+            self.api.destroy_friendship(user_id=sender_idx)
+        except:
+            raise Exception("You can't unfollow the sender")
+
+        selfAlias.send_dm(sender_id, f'username: @{username}\nid: {sender_idx}\nstatus: unfollowed')

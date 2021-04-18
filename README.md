@@ -99,13 +99,15 @@ Only admin can access these commands. <br>
 `/rm_admin username1 username2 username-n` <br>
 `/who https://twitter.com/username/status/1234567890?s=19` check who was sent the menfess <br>
 `/switch off` turn off the automenfess <br>
-`/switch on` turn on the automenfess<br> <br>
+`/switch on` turn on the automenfess <br>
+`/block https://twitter.com/username/status/1234567890?s=19` delete menfess & block user by attaching his menfess url <br>
+`/unfoll https://twitter.com/username/status/1234567890?s=19` delete menfess & unfoll user by attaching his menfess url <br><br>
 For add_blacklist and rm_blacklist, you can add space into your words by giving underscore "_". Example: <br>
 `/add_blacklist _word1_ word2_word3 word-n` <br>
 This command will append " word1 ", "word2 word3", and "word-n" to Blacklist words list.
 
 ### User command
-`/delete https://twitter.com/username/status/1234567890?s=19` delete the menfess by attaching tweet url <br>
+`/delete https://twitter.com/username/status/1234567890?s=19` delete menfess by attaching tweet url <br>
 `/unsend` delete the last menfess <br>
 `/menu` send config.DMCmdMenu to sender
 

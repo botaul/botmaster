@@ -14,7 +14,7 @@ def dm_command(selfAlias: object, sender_id: str, message: str, message_data: di
     list_command = list(selfAlias.credential.Admin_cmd) + list(selfAlias.credential.User_cmd)
     command = message.split(" ")[0].lower()
 
-    if not any(i == command for i in list_command):
+    if command not in list_command:
         return False
 
     else:
