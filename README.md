@@ -105,8 +105,9 @@ For add_blacklist and rm_blacklist, you can add space into your words by giving 
 This command will append " word1 ", "word2 word3", and "word-n" to Blacklist words list.
 
 ### User command
-`/delete https://twitter.com/username/status/1234567890?s=19` Only sender who has sent the menfess that can delete the mentioned tweet link, admin pass this filter. <br>
-`/unsend` delete the last menfess sent by the user
+`/delete https://twitter.com/username/status/1234567890?s=19` delete the menfess by attaching tweet url <br>
+`/unsend` delete the last menfess <br>
+`/menu` send config.DMCmdMenu to sender
 
 
 ## Notes

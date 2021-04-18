@@ -65,7 +65,7 @@ Minimum_followers = 0 # int
 # Minimum-account-created-at
 Minimum_day = 0 # e.g 100, it means sender account must be created at 100 days ago
 Notify_senderRequirements = f"Kamu harus punya {Minimum_followers} followers dan umur akun kamu harus\
-     lebih dari {Minimum_day} hari biar bisa ngirim menfess :("
+lebih dari {Minimum_day} hari biar bisa ngirim menfess :("
 
 Private_mediaTweet = False
 # bool, True: Delete username on the bottom of the attached video tweet.
@@ -157,9 +157,15 @@ Admin_cmd = {
 User_cmd = {
     '/delete'           : 'DMCmd.delete(selfAlias, sender_id, urls)',
     '/unsend'           : 'DMCmd.unsend(selfAlias, sender_id)',
+    '/menu'             : 'DMCmd.menu(sender_id) #no_notif',
 }
 # delete and unsend is not available for user when bot was just started and user id not in db_sent
 # delete & db_sent are only available for one day (reset every midnight or heroku dyno cycling)
 Notify_DMCmdDelete = "Yeay! Menfess kamu sudah berhasil dihapus"
 Notify_DMCmdDeleteFail = "Duh! Menfess ini ngga bisa kamu hapus :("
 # Notify above are only for user
+DMCmdMenu = '''
+/menu : Menampilkan pesan ini
+/unsend : Menghapus menfess terakhir yang kamu kirim
+/delete (url) : Menghapus menfess dengan menyertakan url
+'''

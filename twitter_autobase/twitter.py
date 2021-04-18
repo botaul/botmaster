@@ -287,11 +287,11 @@ class Twitter:
             postid = 0
             list_postid_thread = list() # used for #delete command
             # postid is the first tweet of the tweets thread
-            while len(tweet) + count_emoji(tweet) > 280:
+            while len(tweet) + round(count_emoji(tweet) / 2) > 280:
             # Making a Thread.
                 limit = 272
-                # some emoticons count as 2 char
-                limit -= count_emoji(tweet[:limit])
+                # some emoticons are counted as 2 char
+                limit -= round(count_emoji(tweet[:limit]) / 2)
 
                 check = tweet[:limit].split(" ")                             
                 if len(check) == 1:

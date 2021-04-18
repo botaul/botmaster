@@ -194,3 +194,13 @@ class DMCommand:
         selfAlias.db_sent_updater('delete_sent', sender_id, last_postid)
 
         self._delete_tweet(last_postid, list_postid_thread)
+
+
+    def menu(self, sender_id):
+        '''
+        Send command's menu to sender
+        '''
+        self.api.send_direct_message(
+            recipient_id=sender_id,
+            text=self.credential.DMCmdMenu
+        )
