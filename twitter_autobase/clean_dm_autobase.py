@@ -1,69 +1,27 @@
 import re
 
 
-def clean_private_autobase(selfAlias: object, message: str, media_idsAndTypes: list, list_attchmentUrlsMedia: list) -> str:
-    '''
-    Move url from list_attachmentUrlsMedia to media_idsAndTypes
-    :param media_idsAndTypes: list of media ids and media types that returned from upload_media_tweet method
-    :param list_attachmentUrlsMedia: list of (url on dm, extended url)
-    :return: message
-    '''
-    for media_tweet_url in list_attchmentUrlsMedia:
-        list_mediaIdsAndTypes = selfAlias.upload_media_tweet(media_tweet_url[1])
-        if len(list_mediaIdsAndTypes):
-            media_idsAndTypes.extend(list_mediaIdsAndTypes)
-            message = message.split(" ")
-            message.remove(media_tweet_url[0])
-            message = " ".join(message)
-    
-    return message
-
-
-def clean_main_autobase(selfAlias: object, message: str, attachment_urls: tuple) -> str:
-    '''
-    Clean dm based on config.py
-    :param attachment_urls: (url on dm, extended url)
-    :return: message
-    '''
-    # Keyword Deleter
-    if selfAlias.credential.Keyword_deleter:
-        list_keyword = [j.lower() for j in selfAlias.credential.Trigger_word]
+def delete_trigger_word(message, list_keyword):
+    list_keyword = [i.lower() for i in list_keyword]
+    for word in list_keyword:
+        tmp_message = message.lower()
+        pos = tmp_message.find(word)   
+        if pos != -1:
+            replaced = message[pos : pos + len(word)]      
+            if pos == 0:
+                if len(word) == len(message):
+                    pass
+                    # Error will happen on post_tweet method. If the message only contains trigger
+                    # that will be deleted on replaced variable
+                elif message[pos+len(word)] == " ":
+                    # when trigger is placed on the start of text and there is a space after it
+                    replaced += " "
+            elif message[pos-1] == " ":
+                # when trigger is placed on the middle or the end of text
+                replaced = " " + replaced            
+            message = message.replace(replaced, "")
         
-        for word in list_keyword:
-            tmp_message = message.lower()
-            pos = tmp_message.find(word)
-            
-            if pos != -1:
-                replaced = message[pos : pos + len(word)]
-                
-                if pos == 0:
-                    if len(word) == len(message):
-                        pass
-                        # Error will happen on post_tweet method. If the message only contains trigger
-                        # that will be deleted on replaced variable
-                    elif message[pos+len(word)] == " ":
-                        # when trigger is placed on the start of text and there is a space after it
-                        replaced += " "
-
-                elif message[pos-1] == " ":
-                    # when trigger is placed on the middle or the end of text
-                    replaced = " " + replaced
-                
-                message = message.replace(replaced, "")
-
-    # Cleaning attachment_url
-    if attachment_urls != (None, None):
-        message = message.split(" ")
-        if attachment_urls[0] in message:
-            message.remove(attachment_urls[0])
-        message = " ".join(message)
-                            
-    # Cleaning hashtags and mentions
-    message = message.replace("#", "#.")
-    message = message.replace("@", "@.")
-
     return message
-
 
 def count_emoji(text: str) -> int:
     '''
@@ -88,8 +46,7 @@ def count_emoji(text: str) -> int:
     
     return len(re.findall(emoji, text))
 
-
-def search_list_media_ids(media_idsAndTypes: list) -> list:
+def get_list_media_ids(media_idsAndTypes: list) -> list:
     '''
     Manage and divide media ids from media_idsAndTypes
     :return: list of list media_ids per 4 photo or 1 video/gif e.g. [[media_ids],[media_ids],[media_ids]]

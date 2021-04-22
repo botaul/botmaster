@@ -1,68 +1,51 @@
 import re
 from typing import NoReturn
+from abc import abstractmethod, ABC
 
 
-class DMCommand:
+class DMCommand(ABC):
     '''
     Command that can be accessed from direct message, you can manage command on config.py
-    :param api: tweepy API object
-    :param credential: object that contains attributes like config.py
-    Attributes:
-        - credential
-        - api
-        - repo
-        - filename_github
     '''
+    api: object = None
+    credential: object = None
+    db_deleted: dict = None
+    db_sent: dict = None
+    
+    @abstractmethod
+    def get_user_screen_name(self, id):
+        pass
 
-    def __init__(self, api: object, credential: object):
-        '''
-        :param api: tweepy api object
-        :param credential: object that contains attributes like config.py
-        '''
-        self.credential = credential
-        self.api = api
-        self.repo = lambda x: None
-        self.repo.indicator = False # indicator for db_update method
-        self.filename_github = str()
+    @abstractmethod
+    def send_dm(self, recipient_id, text):
+        pass
 
+    @abstractmethod
+    def db_sent_updater(self, action, sender_id, postid, list_postid_thread=list()):
+        pass
 
-    def add_blacklist(self, word: str) -> NoReturn:
+    def _add_blacklist(self, word: str) -> NoReturn:
         '''
         :param word: word that will be added to Blacklist_words
         '''
         word = word.replace("_", " ")
         self.credential.Blacklist_words.append(word)
 
-
-    def rm_blacklist(self, word: str) -> NoReturn:
+    def _rm_blacklist(self, word: str) -> NoReturn:
         '''
         :param word: word that will be deleted from Blacklist_words
         '''
         word = word.replace("_", " ")
         self.credential.Blacklist_words.remove(word)
 
-
-    def display_blacklist(self, sender_id: str) -> NoReturn:
+    def _display_blacklist(self, sender_id: str) -> NoReturn:
         '''
         Send list of blacklist words to sender
         '''
-        self.api.send_direct_message(recipient_id=sender_id, text=str(self.credential.Blacklist_words))
+        self.send_dm(sender_id, str(self.credential.Blacklist_words))
 
-
-    def db_update(self) -> NoReturn:
-        '''Update Github database
-        '''
-        if self.repo.indicator is False:
-            raise Exception("Github database is disabled")
-        contents = self.repo.get_contents(self.filename_github)
-        with open(self.filename_github) as f:
-            self.repo.update_file(contents.path, "updating Database", f.read(), contents.sha)
-            f.close()
-
-
-    def who(self, selfAlias: object, sender_id: str, urls: list) -> NoReturn:
+    def _who_sender(self, sender_id: str, urls: list) -> NoReturn:
         '''Check who was sent the menfess
-        :param selfAlias: an alias of self from Autobase class
         :param urls: list of urls from dm
         '''
         if len(urls) == 0:
@@ -77,24 +60,23 @@ class DMCommand:
             else:
                 postid = url.split("/")[-1]
 
-            for req_senderId in selfAlias.db_sent.keys():
-                if postid in selfAlias.db_sent[req_senderId].keys():
-                    username = selfAlias.get_user_screen_name(req_senderId)
+            for req_senderId in self.db_sent.keys():
+                if postid in self.db_sent[req_senderId].keys():
+                    username = self.get_user_screen_name(req_senderId)
                     text = f"username: @{username}\nid: {req_senderId}\nstatus: exists {url}"
-                    selfAlias.send_dm(sender_id, text)
+                    self.send_dm(sender_id, text)
                     return
             
-            for req_senderId in selfAlias.db_deleted.keys():
-                if postid in selfAlias.db_deleted[req_senderId]:
-                    username = selfAlias.get_user_screen_name(req_senderId)
+            for req_senderId in self.db_deleted.keys():
+                if postid in self.db_deleted[req_senderId]:
+                    username = self.get_user_screen_name(req_senderId)
                     text = f"username @{username}\nid: {req_senderId}\nstatus: deleted\nurl: {url}"
-                    selfAlias.send_dm(sender_id, text)
+                    self.send_dm(sender_id, text)
                     return
 
             raise Exception("menfess is not found in db_sent or db_deleted")
 
-
-    def add_admin(self, username: str) -> NoReturn:
+    def _add_admin(self, username: str) -> NoReturn:
         '''
         Add (append) user to credential.Admin_id
         :param username: username without '@'
@@ -102,16 +84,14 @@ class DMCommand:
         user = (self.api.get_user(screen_name=username))._json
         self.credential.Admin_id.append(str(user['id']))
 
-
-    def rm_admin(self, username: str) -> NoReturn:
+    def _rm_admin(self, username: str) -> NoReturn:
         '''
         :param username: username without '@'
         '''
         user = (self.api.get_user(screen_name=username))._json
         self.credential.Admin_id.remove(str(user['id']))
 
-
-    def switch(self, arg: str) -> NoReturn:
+    def _switch_status(self, arg: str) -> NoReturn:
         '''
         :param arg: 'on' or 'off'
         '''
@@ -121,22 +101,19 @@ class DMCommand:
             self.credential.Account_status = False
         else:
             raise Exception("available parameters are on or off")
-    
 
-    def _delete_tweet(self, postid: str, list_postid_thread: list) -> NoReturn:
+    def __delete_tweet(self, postid: str, list_postid_thread: list) -> NoReturn:
         try:
             for postidx in [postid] + list_postid_thread:
                 self.api.destroy_status(postidx) # It doesn't matter when error happen here
         except Exception as ex:
             raise Exception(f"You can't delete this tweet. Error: {ex}")
 
-
-    def delete(self, selfAlias: object, sender_id: str, urls: list):
+    def _delete_menfess(self, sender_id: str, urls: list):
         '''Delete tweet
-        :param selfAlias: an alias of self from Autobase class
         :param urls: list of urls from dm
         '''
-        if sender_id not in selfAlias.db_sent and sender_id not in self.credential.Admin_id:
+        if sender_id not in self.db_sent and sender_id not in self.credential.Admin_id:
             raise Exception("sender_id not in db_sent")
 
         if len(urls) == 0:
@@ -148,14 +125,14 @@ class DMCommand:
             else:
                 postid = i["expanded_url"].split("/")[-1]   
 
-            if sender_id in selfAlias.db_sent: # user has sent menfess
-                if postid in selfAlias.db_sent[sender_id]: # normal succes
-                    list_postid_thread = selfAlias.db_sent[sender_id][postid]
+            if sender_id in self.db_sent: # user has sent menfess
+                if postid in self.db_sent[sender_id]: # normal succes
+                    list_postid_thread = self.db_sent[sender_id][postid]
                     
-                    selfAlias.db_sent_updater('add_deleted', sender_id, postid)
-                    selfAlias.db_sent_updater('delete_sent', sender_id, postid)
+                    self.db_sent_updater('add_deleted', sender_id, postid)
+                    self.db_sent_updater('delete_sent', sender_id, postid)
                     
-                    self._delete_tweet(postid, list_postid_thread)
+                    self.__delete_tweet(postid, list_postid_thread)
                     return sender_id
 
                 elif sender_id not in self.credential.Admin_id: # normal trying other menfess
@@ -166,80 +143,70 @@ class DMCommand:
             
             # administrator mode
             found = 0 # sender_id that will be searched
-            for req_senderId in selfAlias.db_sent.keys():
-                if postid in selfAlias.db_sent[req_senderId].keys():
+            for req_senderId in self.db_sent.keys():
+                if postid in self.db_sent[req_senderId].keys():
                     found = req_senderId
                     break
 
             if found != 0:
-                list_postid_thread = selfAlias.db_sent[found][postid]
-                selfAlias.db_sent_updater('add_deleted', found, postid)
-                selfAlias.db_sent_updater('delete_sent', found, postid)
+                list_postid_thread = self.db_sent[found][postid]
+                self.db_sent_updater('add_deleted', found, postid)
+                self.db_sent_updater('delete_sent', found, postid)
             else:
                 list_postid_thread = list()
                 print("admin mode: directly destroy_status")
             
-            self._delete_tweet(postid, list_postid_thread)
+            self.__delete_tweet(postid, list_postid_thread)
             if found != 0: return found
     
-    
-    def unsend(self, selfAlias: object, sender_id: str) -> NoReturn:
+    def _unsend_menfess(self, sender_id: str) -> NoReturn:
         '''
-        :param selfAlias: an alias of self from Autobase class
         Delete the last tweet that sent by sender
         '''
-        last_postid = list(selfAlias.db_sent[sender_id])[-1]
+        last_postid = list(self.db_sent[sender_id])[-1]
             
-        list_postid_thread = selfAlias.db_sent[sender_id][last_postid]
-        selfAlias.db_sent_updater('add_deleted', sender_id, last_postid)
-        selfAlias.db_sent_updater('delete_sent', sender_id, last_postid)
+        list_postid_thread = self.db_sent[sender_id][last_postid]
+        self.db_sent_updater('add_deleted', sender_id, last_postid)
+        self.db_sent_updater('delete_sent', sender_id, last_postid)
 
-        self._delete_tweet(last_postid, list_postid_thread)
+        self.__delete_tweet(last_postid, list_postid_thread)
 
-
-    def menu(self, sender_id):
+    def _menu_dm(self, sender_id):
         '''
         Send command's menu to sender
         '''
-        self.api.send_direct_message(
-            recipient_id=sender_id,
-            text=self.credential.DMCmdMenu
-        )
-    
+        self.send_dm(sender_id, self.credential.DMCmdMenu)
 
-    def block_user(self, selfAlias, sender_id, urls):
+    def _block_user(self, sender_id, urls):
         '''
         Delete menfess and block the sender
         '''
-        sender_idx = self.delete(selfAlias, sender_id, urls)
+        sender_idx = self._delete_menfess(sender_id, urls)
         if sender_idx is None:
             raise Exception("sender_id not found")
         elif sender_idx in self.credential.Admin_id:
             raise Exception("You can't block Admin")
         else:
-            username = selfAlias.get_user_screen_name(sender_idx)
+            username = self.get_user_screen_name(sender_idx)     
         
         try:
             self.api.create_block(user_id=sender_idx)
         except:
             raise Exception("You can't block the sender")
-
-        selfAlias.send_dm(sender_id, f'username: @{username}\nid: {sender_idx}\nstatus: blocked')
+        self.send_dm(sender_id, f'username: @{username}\nid: {sender_idx}\nstatus: blocked')
     
-
-    def unfoll_user(self, selfAlias, sender_id, urls):
+    def _unfoll_user(self, sender_id, urls):
         '''
         Delete menfess and unfoll the sender
         '''
-        sender_idx = self.delete(selfAlias, sender_id, urls)
+        sender_idx = self._delete_menfess(sender_id, urls)
         if sender_idx is None:
             raise Exception("sender_id not found")
         else:
-            username = selfAlias.get_user_screen_name(sender_idx)
+            username = self.get_user_screen_name(sender_idx)     
         
         try:
             self.api.destroy_friendship(user_id=sender_idx)
         except:
             raise Exception("You can't unfollow the sender")
-
-        selfAlias.send_dm(sender_id, f'username: @{username}\nid: {sender_idx}\nstatus: unfollowed')
+        self.send_dm(sender_id, f'username: @{username}\nid: {sender_idx}\nstatus: unfollowed')

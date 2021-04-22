@@ -12,7 +12,6 @@ with many improvements and fixed bugs. You can try on my autobase account
 - User (account) requirements
 - Tweet photo, GIF, and video
 - Post a Thread when characters > 280
-- Sync simple database (json) on github repository
 - Send command from admin account (on DM)
 - Run multiple autobase accounts (see on app.py)
 - etc. see on config.py
@@ -22,7 +21,6 @@ with many improvements and fixed bugs. You can try on my autobase account
 - Python 3.8.x
 - Twitter Developer Account
 - Ngrok Account
-- Github Account (optional)
 - Heroku Account (optional)
  
 
@@ -35,31 +33,35 @@ with many improvements and fixed bugs. You can try on my autobase account
 
 
 ## Installation
-Note: You can run this bot on Windows and MacOS as well<br>
-Open your Linux terminal on the specified folder <br>
+Open your terminal on the specified folder <br>
 ```bash
-# Clone this repository or download released version on https://github.com/fakhrirofi/twitter_autobase/releases
+# download on https://github.com/fakhrirofi/twitter_autobase/releases for stable version
 git clone https://github.com/fakhrirofi/twitter_autobase.git
-virtualenv twitter_autobase
 cd twitter_autobase
-. bin/activate
+```
+Linux
+```
+virtualenv venv
+source venv/bin/activate
+pip3 install -r requirements.txt
+```
+Windows
+```
+virtualenv venv
+venv\Scripts\activate
 pip3 install -r requirements.txt
 ```
 Make .gitignore file <br>
 ```
-lib/
-bin/
-__pycache__/
-pyvenv.cfg
+venv/
 # add another, up to you
 ```
-After modifying contents on config, run app by using syntax: python3 app.py
+After modifying contents on config, run app by using syntax: `python3 app.py`
 
 
 ## Deploy to Heroku
 
 ### Deploy using Heroku CLI
-Make sure you have deleted the local Database if you previously ran the bot on local.
 ```bash
 git add .
 git commit -m "initial commit"
@@ -70,8 +72,7 @@ git push heroku master
 ### Heroku limitations
 - 550 free dyno hours, you can upgrade to 1000 hours by adding credit card to your account.
 - Dyno cycling (restart), so `add_admin`, `rm_admin`, `add_blacklist`, `rm_blacklist`,
-`switch on/off`, and all temporary db (including Github database) won't work perfectly. It would be better if
-you use Heroku database services e.g. Postgres. Please setting `Blacklist_words`, `Admin_id`, and etc. before
+`switch on/off`, and all temporary db won't work perfectly. It would be better if you use Heroku database services e.g. Postgres. Please setting `Blacklist_words`, `Admin_id`, and etc. before
 deploying to Heroku. Database will be changed to Postgres in future updates.
 
 
@@ -93,7 +94,6 @@ Note: Due to Heroku dyno cycling, some commands that use temporary data won't wo
 Only admin can access these commands. <br>
 `/add_blacklist word1 word2 word-n` <br>
 `/rm_blacklist word1 word2 word-n` <br>
-`/db_update` not available when Database = False <br>
 `/display_blacklist` <br>
 `/add_admin username1 username2 username-n` <br>
 `/rm_admin username1 username2 username-n` <br>
@@ -116,8 +116,7 @@ This command will append " word1 ", "word2 word3", and "word-n" to Blacklist wor
 - Admin passes all filters
 - Only admin that can set account using admin command
 - All temporary data only available for one day (reset at midnight or heroku dyno cycling)
-- If you use github repository to deploy to heroku, make sure to set the repository to private. Github
-automatically will delete your github token if your repository is public
+- If you use github repository to deploy to heroku, make sure to set the repository to private.
 - Keywords are not case-sensitive
 - See changelogs on [releases's notes](https://github.com/fakhrirofi/twitter_autobase/releases)
 - I have written documentation in config

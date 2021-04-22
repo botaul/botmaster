@@ -5,18 +5,15 @@
 #     Source: https://github.com/fakhrirofi/twitter_autobase
 
 from .twitter import Twitter
-from .gh_db import check_file_github, update_local_file, gh_database
-from .process_dm import process_dm
-from .clean_dm_autobase import clean_main_autobase, clean_private_autobase
-from .dm_command import DMCommand
-from time import sleep
-from threading import Thread
+from .process_dm import ProcessDM
+from .clean_dm_autobase import delete_trigger_word
 from datetime import datetime, timezone, timedelta
-from github import Github
+from threading import Thread
+from time import sleep
 from typing import NoReturn
 
 
-class Autobase(Twitter):
+class Autobase(Twitter, ProcessDM):
     '''
     Attributes:
         - credential
@@ -24,9 +21,9 @@ class Autobase(Twitter):
         - bot_id
         - db_sent
         - db_deleted
-        - DMCmd
         - dms
         - prevent_loop
+        - indicator
 
     :param credential: object that contains attributes like config.py
     :param prevent_loop: list of (str) bot_id
@@ -39,20 +36,19 @@ class Autobase(Twitter):
         super().__init__(credential)
         self.bot_username = self.me.screen_name
         self.bot_id = str(self.me.id)
-        self.database_indicator = False
         self.db_intervalTime = dict()
-       
         self.db_sent = dict() # { 'sender_id': {'postid': [list_postid_thread],}, }
         self.db_deleted = dict() # { 'sender_id': ['postid',] }
-        self.day = (datetime.now(timezone.utc) + timedelta(hours=credential.Timezone)).day
-        
-        self.DMCmd = DMCommand(self.api, credential)
-
         self.dms = list() # list of filtered dms that processed by process_dm
-
         self.prevent_loop = prevent_loop # list of all bot_id (str) that runs using this bot to prevent loop messages from each accounts
+        self.indicator = {
+            'day': (datetime.now(timezone.utc) + timedelta(hours=credential.Timezone)).day,
+            'automenfess': 0,
+        }
 
-    
+        prevent_loop.append(self.bot_id)
+
+
     def notify_follow(self, follow_events: dict) -> NoReturn:
         '''
         Notify user when he follows the bot and followed by the bot
@@ -88,8 +84,8 @@ class Autobase(Twitter):
         try:
             if action == 'update':
                 day = (datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)).day
-                if day != self.day:
-                    self.day = day
+                if day != self.indicator['day']:
+                    self.indicator['day'] = day
                     self.db_sent.clear()
                     self.db_deleted.clear()
             
@@ -154,28 +150,29 @@ class Autobase(Twitter):
         '''
         # https://developer.twitter.com/en/docs/twitter-api/enterprise/account-activity-api/guides/account-activity-data-objects
         if 'direct_message_events' in raw_data:
-            dm = process_dm(self, raw_data)
+            dm = self.process_dm(raw_data) # Inherited from ProcessDM class
             if dm != None:
                 if self.credential.Notify_queue is True:
                     # notify queue to sender
                     self.notify_queue(dm, queue=len(self.dms))
+                
                 self.dms.append(dm)
+                if self.indicator['automenfess'] == 0:
+                    self.indicator['automenfess'] = 1
+                    Thread(target=self.start_automenfess).start()
         
         elif 'follow_events' in raw_data:
             self.notify_follow(raw_data)
 
 
-    def start_autobase(self) -> NoReturn:
+    def start_automenfess(self) -> NoReturn:
         '''
         Process data from self.dms, the process must be separated by Thread or Process(if there is a Database app i.e. Postgres)
         The last self.post_tweet delay is moved here to reduce the delay before posting menfess
         '''
-        print("Starting autobase...")
-
         while True:
             while len(self.dms):
                 dm = self.dms[0]
-
                 try:
                     message = dm['message']
                     sender_id = dm['sender_id']
@@ -183,12 +180,30 @@ class Autobase(Twitter):
                     attachment_urls = dm['attachment_urls']['tweet']
                     list_attchmentUrlsMedia = dm['attachment_urls']['media']
 
-                    message = clean_main_autobase(self, message, attachment_urls)
+                    if self.credential.Keyword_deleter:
+                        message = delete_trigger_word(message, self.credential.Trigger_word)
+
+                    # Cleaning attachment_url
+                    if attachment_urls != (None, None):
+                        message = message.split(" ")
+                        if attachment_urls[0] in message:
+                            message.remove(attachment_urls[0])
+                        message = " ".join(message)
+                                            
+                    # Cleaning hashtags and mentions
+                    message = message.replace("#", "#.")
+                    message = message.replace("@", "@.")
 
                     # Private_mediaTweet
                     media_idsAndTypes = list() # e.g [(media_id, media_type), (media_id, media_type), ]
                     if self.credential.Private_mediaTweet:
-                        message = clean_private_autobase(self, message, media_idsAndTypes, list_attchmentUrlsMedia)
+                        for media_tweet_url in list_attchmentUrlsMedia:
+                            list_mediaIdsAndTypes = self.upload_media_tweet(media_tweet_url[1])
+                            if len(list_mediaIdsAndTypes):
+                                media_idsAndTypes.extend(list_mediaIdsAndTypes)
+                                message = message.split(" ")
+                                message.remove(media_tweet_url[0])
+                                message = " ".join(message)
                             
                     # Menfess contains sensitive contents
                     possibly_sensitive = False
@@ -200,10 +215,6 @@ class Autobase(Twitter):
                     response = self.post_tweet(message, sender_id, media_url=media_url, attachment_url=attachment_urls[1],
                             media_idsAndTypes=media_idsAndTypes, possibly_sensitive=possibly_sensitive)
                             
-                    # update heroku/local database
-                    if self.database_indicator:
-                        update_local_file(self, sender_id, message, response['postid'])
-
                     # NOTIFY MENFESS SENT OR NOT
                     # Ref: https://github.com/azukacchi/twitter_autobase/blob/master/main.py
                     if response['postid'] != None:
@@ -234,25 +245,6 @@ class Autobase(Twitter):
                 finally:
                     # self.notify_queue is using len of dms to count queue, it's why the dms.pop(0) here
                     self.dms.pop(0)
-
-            sleep(2)
-    
-
-    def start_database(self, Github_database: bool=True) -> NoReturn:
-        '''
-        Create Thread to sync data on local and Github repo. The github repo will be updated every midnight or when
-        admin sends command from DM
-        :param Github_database: Push local database to Github
-        '''
-        self.database_indicator = True
-        if Github_database is True:
-            github = Github(self.credential.Github_token)
-            self.DMCmd.repo = github.get_repo(self.credential.Github_repo)
-            self.DMCmd.repo.indicator = True
-            check_file_github(self, new=True)
-
-        datee = datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)
-        self.DMCmd.filename_github = "{} {}-{}-{}.json".format(
-            self.bot_username, datee.year, datee.month, datee.day)   
-
-        Thread(target=gh_database, args=[self, Github_database]).start()
+            
+            self.indicator['automenfess'] = 0
+            break

@@ -3,17 +3,17 @@
 # Re-code by Fakhri Catur Rofi
 #     Source: https://github.com/fakhrirofi/twitter_autobase
 
-from .watermark import app as watermark
 from .async_upload import MediaUpload
-from .clean_dm_autobase import count_emoji, search_list_media_ids
-from tweepy import OAuthHandler, API, Cursor
-from time import sleep
-from os import remove
-import requests
-from requests_oauthlib import OAuth1
+from .clean_dm_autobase import count_emoji, get_list_media_ids
+from .watermark import app as watermark
 from html import unescape
-import re
+from os import remove
+from requests_oauthlib import OAuth1
+from time import sleep
+from tweepy import OAuthHandler, API, Cursor
 from typing import NoReturn
+import re
+import requests
 
 
 class Twitter:
@@ -32,74 +32,15 @@ class Twitter:
         :param credential: object that contains attributes like config
         '''
         self.credential = credential
-
-        print("Initializing twitter...")
         auth = OAuthHandler(
             credential.CONSUMER_KEY, credential.CONSUMER_SECRET)
         auth.set_access_token(
             credential.ACCESS_KEY, credential.ACCESS_SECRET)
         self.api = API(
             auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
-        self.api.verify_credentials()
         self.me = self.api.me()
-    
-
-    def get_all_followers(self, user_id: str, first_delay: bool=True) -> list:
-        '''Get all followers ids, Twitter API limits to get 5000 followers/minute
-        :param first_delay: False: delete delay for the first get request
-        :return: list of followers ids integer
-        '''
-        try:
-            print("Getting all followers ids...")
-            ids = list()
-            for page in Cursor(self.api.followers_ids, user_id=user_id).pages():
-                ids.extend(page)
-                if first_delay is False:
-                    first_delay = True
-                    continue
-                sleep(60)
-            return ids
-
-        except Exception as ex:
-            pass
-            print(ex)
-            sleep(60)
-            return list()
-
-    
-    def get_all_followed(self, user_id: str, first_delay: bool=True) -> list:
-        '''Get all user ids that followed by bot, Twitter api limits to get 5000 followed/minute
-        :param first_delay: False: delete delay for the first get
-        :return: list of followers ids integer
-        '''
-        try:
-            print("Getting all friends ids...")
-            ids = list()
-            for page in Cursor(self.api.friends_ids, user_id=user_id).pages():
-                ids.extend(page)
-                if first_delay is False:
-                    first_delay = True
-                    continue
-                sleep(60)
-            return ids
-
-        except Exception as ex:
-            pass
-            print(ex)
-            sleep(60)
-            return list()
-
-
-    def delete_dm(self, id: str) -> NoReturn:
-        '''
-        :param id: message id
-        '''
-        try:
-            self.api.destroy_direct_message(id)
-        except Exception as ex:
-            print(ex)
-            sleep(60)
-            pass
+        print(f"Initializing twitter... ({self.me.screen_name})")
+        self.api.verify_credentials()
     
     
     def send_dm(self, recipient_id: str, text: str) -> NoReturn:
@@ -156,7 +97,6 @@ class Twitter:
             f.write(r.content)
             f.close()
 
-        print("Download media successfully")
         return filename
     
 
@@ -250,6 +190,7 @@ class Twitter:
         media_id, media_type = mediaupload.upload_init()
         mediaupload.upload_append()
         mediaupload.upload_finalize()
+        del mediaupload
         return media_id, media_type
 
 
@@ -281,7 +222,7 @@ class Twitter:
                 media_idsAndTypes.insert(0, (media_id, media_type))
                 remove(filename)
 
-            list_media_ids = search_list_media_ids(media_idsAndTypes) #[[media_ids],[media_ids],[media_ids]]
+            list_media_ids = get_list_media_ids(media_idsAndTypes) #[[media_ids],[media_ids],[media_ids]]
             
             #### POST TWEET ####
             postid = 0

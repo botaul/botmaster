@@ -92,18 +92,6 @@ Watermark_position = ('right', 'bottom') # (x, y)
 # x: 'left', 'center', 'right'
 # y: 'top', 'center', 'bottom'
 
-Database = False
-# bool, True: Using database (Make json file in local)
-Github_database = False # Push json file to Github every midnight
-# bool, True: using github to save database, False: database only in local
-# Github_token and Github_repo are not required when Github_database is False
-# You can directly update Github database using '/db_update' command from DM
-Github_token = ""
-# get it from https://github.com/settings/tokens , set allow for editing repo
-Github_repo = "username/your_repo"
-# Make a repository first, then fill the Github_repo
-# use another repo instead of primary repo
-
 Account_status = True
 # bool, True: Turn on the automenfess. If it turned into False, this bot won't
 # post menfess. You can switch it using '/switch on/off' command from DM
@@ -130,7 +118,7 @@ Sensitive_word = "/sensitive"
 # But I advise against sending sensitive content, Twitter may ban your account,
 # And using this bot for 'adult' base is strictly prohibited.
 Blacklist_words = ['covid', 'blablabla'] 
-# hashtags and mentions will be changed into "#." and "@." in clean_dm_autobase.py to avoid ban
+# hashtags and mentions will be changed to "#." and "@."
 Notify_blacklistWords = "di menfess kamu terdapat blacklist words, jangan lupa baca peraturan base yaa!"
 Notify_blacklistWordsAdmin = False # Will be sent to admin
 
@@ -139,25 +127,23 @@ Notify_blacklistWordsAdmin = False # Will be sent to admin
 # You can move Admin_cmd to User_cmd and vice versa
 
 Admin_cmd = {
-    '/add_blacklist'    : 'DMCmd.add_blacklist(arg)', # /add_blacklist word1 word2 word-n
-    '/rm_blacklist'     : 'DMCmd.rm_blacklist(arg)', # /rm_blacklist word1 word2 wordn
-    '/display_blacklist': 'DMCmd.display_blacklist(sender_id) #no_notif', # /display_blacklist
-    '/db_update'        : 'DMCmd.db_update()', # /db_update
-    '/who'              : 'DMCmd.who(selfAlias, sender_id, urls) #no_notif', # /who tweet_url
-    '/add_admin'        : 'DMCmd.add_admin(arg)', # /add_admin username1 username2 username-n
-    '/rm_admin'         : 'DMCmd.rm_admin(arg)', # /rm_admin username username2 username-n
-    '/switch'           : 'DMCmd.switch(arg)', # /switch on | /switch off
-    '/block'            : 'DMCmd.block_user(selfAlias, sender_id, urls) #no_notif', # /block tweet_url
-    '/unfoll'           : 'DMCmd.unfoll_user(selfAlias, sender_id, urls) #no_notif', # /unfoll tweet_url
+    '/add_blacklist'    : 'self._add_blacklist(arg)', # /add_blacklist word1 word2 word-n
+    '/rm_blacklist'     : 'self._rm_blacklist(arg)', # /rm_blacklist word1 word2 wordn
+    '/display_blacklist': 'self._display_blacklist(sender_id) #no_notif', # /display_blacklist
+    '/who'              : 'self._who_sender(sender_id, urls) #no_notif', # /who tweet_url
+    '/add_admin'        : 'self._add_admin(arg)', # /add_admin username1 username2 username-n
+    '/rm_admin'         : 'self._rm_admin(arg)', # /rm_admin username username2 username-n
+    '/switch'           : 'self._switch_status(arg)', # /switch on | /switch off
+    '/block'            : 'self._block_user(sender_id, urls) #no_notif', # /block tweet_url
+    '/unfoll'           : 'self._unfoll_user(sender_id, urls) #no_notif', # /unfoll tweet_url
 }
 # #no_notif is an indicator to skip send notif to admin
-# db_update is not available when Github_Database set to False
 # who is only available for one day (reset every midnight or heroku dyno cycling)
 
 User_cmd = {
-    '/delete'           : 'DMCmd.delete(selfAlias, sender_id, urls)', # /delete tweet_url
-    '/unsend'           : 'DMCmd.unsend(selfAlias, sender_id)', # /unsend
-    '/menu'             : 'DMCmd.menu(sender_id) #no_notif', # /menu
+    '/delete'           : 'self._delete_menfess(sender_id, urls)', # /delete tweet_url
+    '/unsend'           : 'self._unsend_menfess(sender_id)', # /unsend
+    '/menu'             : 'self._menu_dm(sender_id) #no_notif', # /menu
 }
 # delete and unsend is not available for user when bot was just started and user id not in db_sent
 # delete & db_sent are only available for one day (reset every midnight or heroku dyno cycling)
