@@ -109,7 +109,8 @@ This command will append " word1 ", "word2 word3", and "word-n" to Blacklist wor
 ### User command
 `/delete https://twitter.com/username/status/1234567890?s=19` delete menfess by attaching tweet url <br>
 `/unsend` delete the last menfess <br>
-`/menu` send config.DMCmdMenu to sender
+`/menu` send config.DMCmdMenu to sender <br>
+`/cancel` cancel the last menfess when it's still on the queue
 
 
 ## Notes

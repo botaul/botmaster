@@ -6,6 +6,7 @@ from time import sleep
 
 class ProcessDM(DMCommand, ABC):
     api: object = None
+    bot_username: str = None
     credential: object = None
     db_intervalTime: dict = None
     prevent_loop: list = None
@@ -82,9 +83,9 @@ class ProcessDM(DMCommand, ABC):
             # Manage notification for user
             if sender_id not in self.credential.Admin_id:
                 if "Exception" not in notif:
-                    notif = self.credential.Notify_DMCmdDelete
+                    notif = self.credential.Notif_DMCmdDelete['succeed']
                 else:
-                    notif = self.credential.Notify_DMCmdDeleteFail
+                    notif = self.credential.Notif_DMCmdDelete['failed']
                         
             self.send_dm(sender_id, notif)
             return True
@@ -115,9 +116,10 @@ class ProcessDM(DMCommand, ABC):
             return False
 
 
-    def __user_filter(self, sender_id: str, message: str) -> bool:
+    def __user_filter(self, sender_id: str, message: str, date_now: object) -> bool:
         '''
         Filter user requirements and rules which has been set on config.py
+        :param date_now: date object that will be used on Off_Schedule, Interval per sender, and sender requirements (minimum-age)
         :return: bool, True: dm shouldn't be processed, False: dm should be processed
         '''
 
@@ -132,7 +134,6 @@ class ProcessDM(DMCommand, ABC):
 
         # DATA
         username = 0 # Will be edited on requirements or used on blacklist words, to make get_user effectively
-        date_now = datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)
         # Used on Off schedule, interval per sender, and sender requirements (minimum age)
 
         # Off schedule
@@ -152,8 +153,6 @@ class ProcessDM(DMCommand, ABC):
                 notif = self.credential.Notify_intervalPerSender.format(free_time)
                 self.send_dm(recipient_id=sender_id, text=notif)
                 return True
-            else:
-                self.db_intervalTime[sender_id] = date_now + timedelta(minutes=self.credential.Interval_time)
 
         # Minimum/Maximum lenMenfess
         if len(message) < self.credential.Minimum_lenMenfess or len(message) > self.credential.Maximum_lenMenfess:
@@ -205,43 +204,53 @@ class ProcessDM(DMCommand, ABC):
         return False
 
 
-    def __menfess_trigger(self, sender_id: str, message: str, message_data: dict) -> dict or None:
+    def __menfess_trigger(self, sender_id: str, message: str, message_data: dict, date_now: object) -> dict or None:
         '''
         Clean data from raw message_data
+        :param date_now: date object that will be used to set db_intervalTime
         :return: dict dm that contains menfess trigger or None
         '''
         dict_dm = None
 
-        if any(j.lower() in message.lower() for j in self.credential.Trigger_word):
+        if any(j.lower() in message.lower() for j in self.credential.Trigger_word):         
+            # Set db_intervalTime
+            if self.credential.Interval_perSender and sender_id not in self.credential.Admin_id:
+                self.db_intervalTime[sender_id] = date_now + timedelta(minutes=self.credential.Interval_time)
 
-            dict_dm = dict(message=message, sender_id=sender_id,
+            dict_dm = dict(message=message, sender_id=sender_id, posting=False,
                 media_url=None, attachment_urls={'tweet':(None, None),
                                                 'media':list()})
-            # tweet and media: (url in message, the real url)
-
+            # 'tweet' and 'media': (url in message, the real url)
             # attachment url
             urls = message_data['entities']['urls']
             for i in urls:
                 if "twitter.com/" in i['expanded_url'] and "/status/" in i['expanded_url']:
                     # i['url]: url in text message                          
-                    # Media
+                    # Media tweet
                     if any(j in i['expanded_url'] for j in ['/video/', '/photo/', '/media/']):
                         dict_dm['attachment_urls']['media'].append((i['url'], i['expanded_url']))
-                        #i['expanded_url'] e.g https://twitter.com/username/status/123/photo/1
-                            
+                        #i['expanded_url'] e.g https://twitter.com/username/status/123/photo/1          
                     # Tweet
                     else:
+                        # Only_QRTBaseTweet
+                        if self.credential.Only_QRTBaseTweet and sender_id not in self.credential.Admin_id:
+                            if self.bot_username not in i['expanded_url']:
+                                self.send_dm(sender_id, self.credential.Notif_QRTBaseTweet)
+                                return None
                         dict_dm['attachment_urls']['tweet'] = (i['url'], i['expanded_url'])
                         #i['expanded_url'] e.g https://twitter.com/username/status/123?s=19
+                # Only_twitterUrl
+                elif "twitter.com/" not in i['expanded_url']: 
+                    if self.credential.Only_twitterUrl and sender_id not in self.credential.Admin_id:
+                        self.send_dm(sender_id, self.credential.Notif_twitterUrl)
+                        return None
 
             # attachment media
             if 'attachment' in message_data:
                 media = message_data['attachment']['media']
                 media_type = media['type']
-
                 if media_type == 'photo':
                     media_url = media['media_url']
-
                 elif media_type == 'video':
                     media_urls = media['video_info']['variants']
                     temp_bitrate = list()
@@ -251,10 +260,9 @@ class ProcessDM(DMCommand, ABC):
                     # sort to choose the highest bitrate
                     temp_bitrate.sort()
                     media_url = temp_bitrate[-1][1]
-
                 elif media_type == 'animated_gif':
-                    media_url = media['video_info']['variants'][0]['url']
-                            
+                    media_url = media['video_info']['variants'][0]['url']                            
+                
                 dict_dm['media_url'] = media_url
 
         # WRONG TRIGGER
@@ -316,11 +324,12 @@ class ProcessDM(DMCommand, ABC):
             if self.__command(sender_id, message, message_data):
                 return None       
             
+            date_now = datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)
             # FILTER FOR USER
-            if self.__user_filter(sender_id, message):
+            if self.__user_filter(sender_id, message, date_now):
                 return None
             
-            return self.__menfess_trigger(sender_id, message, message_data)
+            return self.__menfess_trigger(sender_id, message, message_data, date_now)
             
         except Exception as ex:
             pass

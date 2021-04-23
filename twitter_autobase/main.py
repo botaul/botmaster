@@ -4,9 +4,9 @@
 # Re-code by Fakhri Catur Rofi under MIT License
 #     Source: https://github.com/fakhrirofi/twitter_autobase
 
-from .twitter import Twitter
-from .process_dm import ProcessDM
 from .clean_dm_autobase import delete_trigger_word
+from .process_dm import ProcessDM
+from .twitter import Twitter
 from datetime import datetime, timezone, timedelta
 from threading import Thread
 from time import sleep
@@ -170,81 +170,79 @@ class Autobase(Twitter, ProcessDM):
         Process data from self.dms, the process must be separated by Thread or Process(if there is a Database app i.e. Postgres)
         The last self.post_tweet delay is moved here to reduce the delay before posting menfess
         '''
-        while True:
-            while len(self.dms):
-                dm = self.dms[0]
-                try:
-                    message = dm['message']
-                    sender_id = dm['sender_id']
-                    media_url = dm['media_url']
-                    attachment_urls = dm['attachment_urls']['tweet']
-                    list_attchmentUrlsMedia = dm['attachment_urls']['media']
+        while len(self.dms):
+            self.dms[0]['posting'] = True
+            dm = self.dms[0]
+            try:
+                message = dm['message']
+                sender_id = dm['sender_id']
+                media_url = dm['media_url']
+                attachment_urls = dm['attachment_urls']['tweet']
+                list_attchmentUrlsMedia = dm['attachment_urls']['media']
 
-                    if self.credential.Keyword_deleter:
-                        message = delete_trigger_word(message, self.credential.Trigger_word)
+                if self.credential.Keyword_deleter:
+                    message = delete_trigger_word(message, self.credential.Trigger_word)
 
-                    # Cleaning attachment_url
-                    if attachment_urls != (None, None):
-                        message = message.split(" ")
-                        if attachment_urls[0] in message:
-                            message.remove(attachment_urls[0])
-                        message = " ".join(message)
-                                            
-                    # Cleaning hashtags and mentions
-                    message = message.replace("#", "#.")
-                    message = message.replace("@", "@.")
+                # Cleaning attachment_url
+                if attachment_urls != (None, None):
+                    message = message.split(" ")
+                    for x in message.copy():
+                        if attachment_urls[0] in x:
+                            message.remove(x)
+                            break
+                    message = " ".join(message)
+                                        
+                # Cleaning hashtags and mentions
+                message = message.replace("#", "#.")
+                message = message.replace("@", "@.")
 
-                    # Private_mediaTweet
-                    media_idsAndTypes = list() # e.g [(media_id, media_type), (media_id, media_type), ]
-                    if self.credential.Private_mediaTweet:
-                        for media_tweet_url in list_attchmentUrlsMedia:
-                            list_mediaIdsAndTypes = self.upload_media_tweet(media_tweet_url[1])
-                            if len(list_mediaIdsAndTypes):
-                                media_idsAndTypes.extend(list_mediaIdsAndTypes)
-                                message = message.split(" ")
-                                message.remove(media_tweet_url[0])
-                                message = " ".join(message)
-                            
-                    # Menfess contains sensitive contents
-                    possibly_sensitive = False
-                    if self.credential.Sensitive_word.lower() in message.lower():
-                        possibly_sensitive = True
+                # Private_mediaTweet
+                media_idsAndTypes = list() # e.g [(media_id, media_type), (media_id, media_type), ]
+                if self.credential.Private_mediaTweet:
+                    for media_tweet_url in list_attchmentUrlsMedia:
+                        list_mediaIdsAndTypes = self.upload_media_tweet(media_tweet_url[1])
+                        if len(list_mediaIdsAndTypes):
+                            media_idsAndTypes.extend(list_mediaIdsAndTypes)
+                            message = message.split(" ")
+                            message.remove(media_tweet_url[0])
+                            message = " ".join(message)
+                        
+                # Menfess contains sensitive contents
+                possibly_sensitive = False
+                if self.credential.Sensitive_word.lower() in message.lower():
+                    possibly_sensitive = True
 
-                    # POST TWEET
-                    print("Posting menfess...")
-                    response = self.post_tweet(message, sender_id, media_url=media_url, attachment_url=attachment_urls[1],
-                            media_idsAndTypes=media_idsAndTypes, possibly_sensitive=possibly_sensitive)
-                            
-                    # NOTIFY MENFESS SENT OR NOT
-                    # Ref: https://github.com/azukacchi/twitter_autobase/blob/master/main.py
-                    if response['postid'] != None:
-                        if self.credential.Notify_sent:
-                            notif = self.credential.Notify_sentMessage.format(self.bot_username)
-                            text = notif + str(response['postid'])
-                            self.send_dm(recipient_id=sender_id, text=text)
-
-                        # ADD TO DB_SENT
-                        self.db_sent_updater('add_sent', sender_id, response['postid'], response['list_postid_thread'])
-
-                    elif response['postid'] == None:
-                        # Error happen on system
-                        text = self.credential.Notify_sentFail1 + f"\nerror_code: {response['error_code']}"                         
+                # POST TWEET
+                print("Posting menfess...")
+                response = self.post_tweet(message, sender_id, media_url=media_url, attachment_url=attachment_urls[1],
+                        media_idsAndTypes=media_idsAndTypes, possibly_sensitive=possibly_sensitive)
+                        
+                # NOTIFY MENFESS SENT OR NOT
+                # Ref: https://github.com/azukacchi/twitter_autobase/blob/master/main.py
+                if response['postid'] != None:
+                    if self.credential.Notify_sent:
+                        notif = self.credential.Notify_sentMessage.format(self.bot_username)
+                        text = notif + str(response['postid'])
                         self.send_dm(recipient_id=sender_id, text=text)
-                    else:
-                        # credential.Notify_sent is False
-                        pass
-                            
-                    sleep(36+self.credential.Delay_time)
-
-                except Exception as ex:
-                    text = self.credential.Notify_sentFail1 + "\nerror_code: start_autobase, " + str(ex)
+                    # ADD TO DB_SENT
+                    self.db_sent_updater('add_sent', sender_id, response['postid'], response['list_postid_thread'])
+                elif response['postid'] == None:
+                    # Error happen on system
+                    text = self.credential.Notify_sentFail1 + f"\nerror_code: {response['error_code']}"                         
                     self.send_dm(recipient_id=sender_id, text=text)
-                    print(ex)
+                else:
+                    # credential.Notify_sent is False
                     pass
+                sleep(36+self.credential.Delay_time)
 
-                finally:
-                    # self.notify_queue is using len of dms to count queue, it's why the dms.pop(0) here
-                    self.dms.pop(0)
-            
-            self.indicator['automenfess'] = 0
-            break
+            except Exception as ex:
+                text = self.credential.Notify_sentFail1 + "\nerror_code: start_autobase, " + str(ex)
+                self.send_dm(recipient_id=sender_id, text=text)
+                print(ex)
+                pass
+
+            finally:
+                # self.notify_queue is using len of dms to count queue, it's why the dms[0] deleted here
+                del self.dms[0]
+        
+        self.indicator['automenfess'] = 0

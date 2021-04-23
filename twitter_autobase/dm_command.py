@@ -11,6 +11,7 @@ class DMCommand(ABC):
     credential: object = None
     db_deleted: dict = None
     db_sent: dict = None
+    dms: list = None
     
     @abstractmethod
     def get_user_screen_name(self, id):
@@ -210,3 +211,15 @@ class DMCommand(ABC):
         except:
             raise Exception("You can't unfollow the sender")
         self.send_dm(sender_id, f'username: @{username}\nid: {sender_idx}\nstatus: unfollowed')
+    
+    def _cancel_menfess(self, sender_id):
+        '''
+        Cancel menfess when it's still on self.dms queue
+        '''
+        for x in self.dms.copy():
+            if x['sender_id'] == sender_id and x['posting'] is False:
+                self.dms.remove(x)
+                self.send_dm(sender_id, self.credential.Notif_DMCmdCancel['succeed'])
+                break
+        else:
+            self.send_dm(sender_id, self.credential.Notif_DMCmdCancel['failed'])

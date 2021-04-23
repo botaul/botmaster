@@ -56,6 +56,12 @@ Minimum_lenMenfess = 0 # length of the menfess
 Maximum_lenMenfess = 1120
 Notify_lenMenfess = f"Maksimum jumlah karakter: {Maximum_lenMenfess}, Minimum jumlah karakter {Minimum_lenMenfess}"
 
+Only_QRTBaseTweet = True
+Notif_QRTBaseTweet = "Kamu hanya bisa mengirim url tweet dari base ini :("
+
+Only_twitterUrl = True
+Notif_twitterUrl = "Kamu hanya bisa mengirim url yang berasal dari twitter :("
+
 Sender_requirements = False
 # bool, True: sender should passes the following requirements:   (admin pass this filter)
 Only_followed = False
@@ -64,7 +70,7 @@ Notif_notFollowed = "Hmm, kamu belum difollow base ini. Jadi ga bisa ngirim menf
 Minimum_followers = 0 # int
 # Minimum-account-created-at
 Minimum_day = 0 # e.g 100, it means sender account must be created at 100 days ago
-Notify_senderRequirements = f"Kamu harus punya {Minimum_followers} followers dan umur akun kamu harus\
+Notify_senderRequirements = f"Kamu harus punya {Minimum_followers} followers dan umur akun kamu harus \
 lebih dari {Minimum_day} hari biar bisa ngirim menfess :("
 
 Private_mediaTweet = False
@@ -144,14 +150,23 @@ User_cmd = {
     '/delete'           : 'self._delete_menfess(sender_id, urls)', # /delete tweet_url
     '/unsend'           : 'self._unsend_menfess(sender_id)', # /unsend
     '/menu'             : 'self._menu_dm(sender_id) #no_notif', # /menu
+    '/cancel'           : 'self._cancel_menfess(sender_id) #no_notif', # /cancel
 }
 # delete and unsend is not available for user when bot was just started and user id not in db_sent
 # delete & db_sent are only available for one day (reset every midnight or heroku dyno cycling)
-Notify_DMCmdDelete = "Yeay! Menfess kamu sudah berhasil dihapus"
-Notify_DMCmdDeleteFail = "Duh! Menfess ini ngga bisa kamu hapus :("
-# Notify above are only for user
-DMCmdMenu = '''
+Notif_DMCmdDelete = {
+    'succeed'   : 'Yeay! Menfess kamu sudah berhasil dihapus',
+    'failed'    : 'Duh! Menfess ini ngga bisa kamu hapus :('
+}
+# Notif_DMCmdDelete is only for user, '/unsend' using this notif too
+Notif_DMCmdCancel = {
+    'succeed'   : 'Yeay! Menfess kamu berhasil di-cancel',
+    'failed'    : 'Duh! Menfess kamu ngga bisa di-cancel'
+}
+
+DMCmdMenu = '''\
 /menu : Menampilkan pesan ini
-/unsend : Menghapus menfess terakhir yang kamu kirim
-/delete tweet_url : Menghapus menfess dengan menyertakan url
+/unsend : Menghapus menfess terakhir yang sudah ter-post
+/cancel : Menghapus menfess terakhir yang sedang dalam antrian
+/delete (tweet_url) : Menghapus menfess tertentu dengan menyertakan url
 '''

@@ -1,7 +1,7 @@
-import json
 from .twitivity import Event, Activity
 from pyngrok import ngrok
 from typing import NoReturn
+import json
 
 # Connect ngrok
 def connect_ngrok(ngrok_auth_token: str) -> str:
@@ -30,7 +30,7 @@ def register_webhook(url: str, name: str, credential: object, delLastWeb: bool=T
         }
     )
     # delete the last active webhook
-    if delLastWeb is True:
+    if delLastWeb:
         for environment in activity.webhooks()['environments']:
             if environment['environment_name'] == activity.env_name:
                 if len(environment['webhooks']):
