@@ -1,5 +1,6 @@
 from .twitivity import Event, Activity
 from pyngrok import ngrok
+from time import sleep
 from typing import NoReturn
 import json
 
@@ -8,8 +9,15 @@ def connect_ngrok(ngrok_auth_token: str) -> str:
     '''
     :return: ngrok url
     '''
-    ngrok.set_auth_token(ngrok_auth_token)
-    ngrok_tunnel = ngrok.connect(8080)
+    try:
+        ngrok.set_auth_token(ngrok_auth_token)
+        ngrok_tunnel = ngrok.connect(8080)
+    except:
+        print("waiting ngrok... Make sure you have disconnected another client session!")
+        sleep(15)
+        ngrok.set_auth_token(ngrok_auth_token)
+        ngrok_tunnel = ngrok.connect(8080)
+
     public_url = (ngrok_tunnel.public_url).replace("http", "https")
     print("NGROK URL: {}".format(public_url))
     

@@ -56,7 +56,7 @@ Minimum_lenMenfess = 0 # length of the menfess
 Maximum_lenMenfess = 1120
 Notify_lenMenfess = f"Maksimum jumlah karakter: {Maximum_lenMenfess}, Minimum jumlah karakter {Minimum_lenMenfess}"
 
-Only_QRTBaseTweet = True
+Only_QRTBaseTweet = False
 Notif_QRTBaseTweet = "Kamu hanya bisa mengirim url tweet dari base ini :("
 
 Only_twitterUrl = True
