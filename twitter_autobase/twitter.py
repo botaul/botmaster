@@ -197,7 +197,7 @@ class Twitter:
     def post_tweet(self, tweet: str, sender_id: str, media_url: str=None, attachment_url: str=None,
                 media_idsAndTypes: list=list(), possibly_sensitive: bool=False) -> dict:
         '''Post a tweet, contains watermark module
-        Per tweet delay is 36s + self.random_time, but the last delay is deleted
+        Per tweet delay is 36s + self.random_time
         :param tweet: message
         :param media_url: url of the media that sent from dm
         :param attachment_url: url that will be attached to twett (retweet)
@@ -206,6 +206,7 @@ class Twitter:
         :return: {'postid': '', 'error_code': ''} -> dict
         '''
         try:
+            sleep(36+self.credential.Delay_time)
             #### ADD MEDIA_ID AND MEDIA_TYPE TO LIST_MEDIA_IDS ####
             # media_idsAndTypes e.g. [(media_id, media_type), (media_id, media_type), ]
             if media_url != None:

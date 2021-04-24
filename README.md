@@ -1,7 +1,6 @@
 # twitter_autobase
-A Twitter bot that can read your DMs, then tweets like Twitter autobase. This project is a re-code of
-[autodm_base](https://github.com/ydhnwb/autodm_base) by [Prieyudha Akadita S.](https://github.com/ydhnwb)
-with many improvements and fixed bugs. You can try on my autobase account
+A Twitter bot that can read your DMs, then tweets like Twitter autobase. Inspired by
+https://github.com/ydhnwb/autodm_base and using https://github.com/twitivity/twitivity You can try on my autobase account
 [@autobase_reborn](https://twitter.com/autobase_reborn).
 
 - **Read Twitter rules[[1]](https://help.twitter.com/en/rules-and-policies/twitter-search-policies)[[2]](https://developer.twitter.com/en/developer-terms/more-on-restricted-use-cases)[[3]](https://help.twitter.com/en/rules-and-policies/twitter-automation)** <br>

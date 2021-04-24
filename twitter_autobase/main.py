@@ -127,11 +127,7 @@ class Autobase(Twitter, ProcessDM):
             if self.credential.Private_mediaTweet:
                 z += len(dm['attachment_urls']['media']) * 3
 
-            # Delay for the first tweet (not a thread) is very quick, so, it won't be notified
-            if x == 1:
-                return
-
-            sent_time = time + timedelta(seconds= (x - 1) * (37 + self.credential.Delay_time) + z)
+            sent_time = time + timedelta(seconds= x * (37 + self.credential.Delay_time) + z)
             sent_time = datetime.strftime(sent_time, '%H:%M')
             notif = self.credential.Notify_queueMessage.format(str(y), sent_time)
             self.send_dm(recipient_id=dm['sender_id'], text=notif)
@@ -168,7 +164,6 @@ class Autobase(Twitter, ProcessDM):
     def start_automenfess(self) -> NoReturn:
         '''
         Process data from self.dms, the process must be separated by Thread or Process(if there is a Database app i.e. Postgres)
-        The last self.post_tweet delay is moved here to reduce the delay before posting menfess
         '''
         while len(self.dms):
             self.dms[0]['posting'] = True
@@ -233,7 +228,6 @@ class Autobase(Twitter, ProcessDM):
                 else:
                     # credential.Notify_sent is False
                     pass
-                sleep(36+self.credential.Delay_time)
 
             except Exception as ex:
                 text = self.credential.Notify_sentFail1 + "\nerror_code: start_autobase, " + str(ex)
