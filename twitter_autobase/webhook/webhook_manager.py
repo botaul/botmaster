@@ -2,7 +2,10 @@ from .twitivity import Event, Activity
 from pyngrok import ngrok
 from time import sleep
 from typing import NoReturn
+import logging
 import json
+
+logger = logging.getLogger(__name__)
 
 # Connect ngrok
 def connect_ngrok(ngrok_auth_token: str) -> str:
@@ -13,7 +16,7 @@ def connect_ngrok(ngrok_auth_token: str) -> str:
         ngrok.set_auth_token(ngrok_auth_token)
         ngrok_tunnel = ngrok.connect(8080)
     except:
-        print("waiting ngrok... Make sure you have disconnected another client session!")
+        logger.warning("waiting ngrok... Make sure you have disconnected another client session!")
         sleep(15)
         ngrok.set_auth_token(ngrok_auth_token)
         ngrok_tunnel = ngrok.connect(8080)

@@ -11,7 +11,10 @@ from datetime import datetime, timezone, timedelta
 from threading import Thread
 from time import sleep
 from typing import NoReturn
+import logging
+import traceback
 
+logger = logging.getLogger(__name__)
 
 class Autobase(Twitter, ProcessDM):
     '''
@@ -104,9 +107,8 @@ class Autobase(Twitter, ProcessDM):
                 if len(self.db_sent[sender_id]) == 0:
                     del self.db_sent[sender_id]
 
-        except Exception as ex:
-            pass
-            print(ex)
+        except:
+            logger.error(traceback.format_exc())
 
     
     def notify_queue(self, dm: dict, queue: int) -> NoReturn:
@@ -130,12 +132,10 @@ class Autobase(Twitter, ProcessDM):
             sent_time = time + timedelta(seconds= x * (37 + self.credential.Delay_time) + z)
             sent_time = datetime.strftime(sent_time, '%H:%M')
             notif = self.credential.Notify_queueMessage.format(str(y), sent_time)
-            self.send_dm(recipient_id=dm['sender_id'], text=notif)
+            self.send_dm(dm['sender_id'], notif)
 
-        except Exception as ex:
-            pass
-            print(ex)
-            sleep(60)
+        except:
+            logger.error(traceback.format_exc())
 
 
     def webhook_connector(self, raw_data: dict) -> NoReturn:
@@ -218,22 +218,19 @@ class Autobase(Twitter, ProcessDM):
                     if self.credential.Notify_sent:
                         notif = self.credential.Notify_sentMessage.format(self.bot_username)
                         text = notif + str(response['postid'])
-                        self.send_dm(recipient_id=sender_id, text=text)
+                        self.send_dm(sender_id, text)
                     # ADD TO DB_SENT
                     self.db_sent_updater('add_sent', sender_id, response['postid'], response['list_postid_thread'])
                 elif response['postid'] == None:
-                    # Error happen on system
-                    text = self.credential.Notify_sentFail1 + f"\nerror_code: {response['error_code']}"                         
-                    self.send_dm(recipient_id=sender_id, text=text)
+                    # Error happen on system                     
+                    self.send_dm(sender_id, self.credential.Notify_sentFail1)
                 else:
                     # credential.Notify_sent is False
                     pass
 
-            except Exception as ex:
-                text = self.credential.Notify_sentFail1 + "\nerror_code: start_autobase, " + str(ex)
-                self.send_dm(recipient_id=sender_id, text=text)
-                print(ex)
-                pass
+            except:
+                self.send_dm(sender_id, self.credential.Notify_sentFail1)
+                logger.error(traceback.format_exc())
 
             finally:
                 # self.notify_queue is using len of dms to count queue, it's why the dms[0] deleted here

@@ -2,7 +2,10 @@ from .dm_command import DMCommand
 from abc import abstractmethod, ABC
 from datetime import datetime, timezone, timedelta
 from time import sleep
+import logging
+import traceback
 
+logger = logging.getLogger(__name__)
 
 class ProcessDM(DMCommand, ABC):
     api: object = None
@@ -62,8 +65,7 @@ class ProcessDM(DMCommand, ABC):
                             break
 
                     except Exception as ex:
-                        pass
-                        print(ex)
+                        logger.warning(ex)
                         notif += f"\nException: {ex}"
 
             else:
@@ -71,8 +73,7 @@ class ProcessDM(DMCommand, ABC):
                     notif += f"\nprocessed: {command}"
                     exec(dict_command[command.lower()])
                 except Exception as ex:
-                    pass
-                    print(ex)
+                    logger.warning(ex)
                     notif += f"\nException: {ex}"
                         
             # Skip notif if '#no_notif' in command's comment
@@ -151,7 +152,7 @@ class ProcessDM(DMCommand, ABC):
             if sender_id in self.db_intervalTime:
                 free_time = datetime.strftime(self.db_intervalTime[sender_id], '%H:%M')
                 notif = self.credential.Notify_intervalPerSender.format(free_time)
-                self.send_dm(recipient_id=sender_id, text=notif)
+                self.send_dm(sender_id, notif)
                 return True
 
         # Minimum/Maximum lenMenfess
@@ -186,17 +187,12 @@ class ProcessDM(DMCommand, ABC):
         # BLACKLIST WORDS
         list_blacklist = [i.lower() for i in self.credential.Blacklist_words]
         if any(i in message.lower() for i in list_blacklist):
-            notif = self.credential.Notify_blacklistWords
-            self.send_dm(recipient_id=sender_id, text=notif)
-
+            self.send_dm(sender_id, self.credential.Notify_blacklistWords)
             if self.credential.Notify_blacklistWordsAdmin:
                 if username == 0:
                     username = self.get_user_screen_name(sender_id)
                 for id in self.credential.Admin_id:
-                    self.send_dm(
-                        recipient_id=id,
-                        text=f"{message}\nstatus: blacklistWords\nfrom: @{username}\nid: {sender_id}"
-                    )
+                    self.send_dm(id, f"{message}\nstatus: blacklistWords\nfrom: @{username}\nid: {sender_id}")
 
             return True
 
@@ -267,18 +263,16 @@ class ProcessDM(DMCommand, ABC):
 
         # WRONG TRIGGER
         else:
-            if self.credential.Notify_wrongTriggerUser:
-                # Send notif to user
-                notif = self.credential.Notify_wrongTriggerMsg
-                self.send_dm(recipient_id=sender_id, text=notif)
+            if self.credential.Notify_wrongTrigger['user']:
+                self.send_dm(sender_id, self.credential.Notify_wrongTrigger['message'])
 
-            if self.credential.Notify_wrongTriggerAdmin:
+            if self.credential.Notify_wrongTrigger['admin']:
                 # Send wrong menfess to admin
                 username = self.get_user_screen_name(sender_id)
                 notif = message + f"\nstatus: wrong trigger\nfrom: @{username}\nid: {sender_id}"
 
                 for admin in self.credential.Admin_id:
-                    self.send_dm(recipient_id=admin, text=notif)
+                    self.send_dm(admin, notif)
                 
         return dict_dm
 
@@ -331,9 +325,7 @@ class ProcessDM(DMCommand, ABC):
             
             return self.__menfess_trigger(sender_id, message, message_data, date_now)
             
-        except Exception as ex:
-            pass
-            print(ex)
-            self.send_dm(sender_id,
-                self.credential.Notify_sentFail1 + f"\nerror_code: process_dm, {str(ex)}")
+        except:
+            logger.error(traceback.format_exc())
+            self.send_dm(sender_id, self.credential.Notify_sentFail1)
             return None

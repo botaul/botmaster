@@ -83,7 +83,7 @@ Private_mediaTweet = False
 # 4 or the space is not available, THE REST OF THE MEDIA WILL BE ATTACHED TO THE
 # SUBSEQUENT TWEETS IN SORTED ORDER.
 
-Watermark = True
+Watermark = False
 # bool, True: Add watermark text to menfess's photo
 Watermark_data = {
     'image'     : 'twitter_autobase/watermark/photo.png', # bool (True: default image, False: no image) or image file path (str) 
@@ -112,9 +112,11 @@ Off_scheduleMsg = f"Automenfess dimatikan setiap pukul {Off_scheduleData['start'
 sampai dengan pukul {Off_scheduleData['end'][0]}:{Off_scheduleData['end'][1]}"
 
 Trigger_word = ["fess!", "blablabla!"]
-Notify_wrongTriggerUser = True # Will be sent to user
-Notify_wrongTriggerAdmin = False # Will be sent to admin
-Notify_wrongTriggerMsg = "Trigger menfess tidak terdeteksi"
+Notify_wrongTrigger = {
+    'user'      : True, # send notif to user
+    'admin'     : False, # send wrong trigger menfess to admin
+    'message'   : "Trigger menfess tidak terdeteksi",
+}
 
 Sensitive_word = "/sensitive"
 # Used when sender send sensitive content, order them to use this word

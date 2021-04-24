@@ -12,9 +12,12 @@ from requests_oauthlib import OAuth1
 from time import sleep
 from tweepy import OAuthHandler, API, Cursor
 from typing import NoReturn
+import logging
 import re
 import requests
+import traceback
 
+logger = logging.getLogger(__name__)
 
 class Twitter:
     '''
@@ -38,10 +41,12 @@ class Twitter:
             credential.ACCESS_KEY, credential.ACCESS_SECRET)
         self.api = API(
             auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
-        self.me = self.api.me()
+        try:
+            self.me = self.api.me()
+        except:
+            logger.error("Check your twitter credentials in config")
+            exit()
         print(f"Initializing twitter... ({self.me.screen_name})")
-        self.api.verify_credentials()
-    
     
     def send_dm(self, recipient_id: str, text: str) -> NoReturn:
         '''
@@ -49,10 +54,8 @@ class Twitter:
         '''
         try:
             self.api.send_direct_message(recipient_id=recipient_id, text=text)
-        except Exception as ex:
-            pass
-            print(ex)
-            sleep(60)
+        except:
+            logger.error(traceback.format_exc())
 
 
     def get_user_screen_name(self, id: str) -> str:
@@ -64,10 +67,8 @@ class Twitter:
             user = self.api.get_user(id)
             return user.screen_name
 
-        except Exception as ex:
-            pass
-            print(ex)
-            sleep(60)
+        except:
+            logger.error(traceback.format_exc())
             return "Exception"
 
 
@@ -118,9 +119,8 @@ class Twitter:
             
             return output
 
-        except Exception as ex:
-            pass
-            print(ex)
+        except:
+            logger.error(traceback.format_exc())
             return filename
 
 
@@ -172,10 +172,8 @@ class Twitter:
         
             return media_idsAndTypes # e.g [(media_id, media_type), (media_id, media_type), ]
 
-        except Exception as ex:
-            pass
-            print(ex)
-            sleep(60)
+        except:
+            logger.error(traceback.format_exc())
             return list()
 
 
@@ -202,7 +200,7 @@ class Twitter:
         :param attachment_url: url that will be attached to twett (retweet)
         :param media_idsAndTypes: [(media_ids, media_type),]
         :param possibly_sensitive: True if menfess contains sensitive contents
-        :return: {'postid': '', 'error_code': ''} -> dict
+        :return: {'postid': str, list_postid_thread: list} -> dict
         '''
         try:
             sleep(36+self.credential.Delay_time)
@@ -293,10 +291,9 @@ class Twitter:
 
                 list_media_ids = list_media_ids[1:] + [[]]
 
-            print('Menfess is posted -> postid:', str(postid))            
+            print(f'Menfess is posted -> postid: {postid}')            
             return {'postid': str(postid), 'list_postid_thread': list_postid_thread}
 
-        except Exception as ex:
-            pass
-            print(ex)
-            return {'postid': None, 'error_code': 'post_tweet, ' + str(ex)}
+        except:
+            logger.error(traceback.format_exc())
+            return {'postid': None}

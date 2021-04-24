@@ -4,6 +4,8 @@ from time import sleep
 from twitter_autobase import Autobase
 from twitter_autobase import webhook_manager as webMan
 import config
+import logging
+logging.basicConfig(level=logging.WARNING, format="%(name)s - %(levelname)s - %(message)s")
 
 # if you want to run multiple account, create a copy of config.py. example: config2.py , etc.
 # then follow these ## template...
