@@ -20,7 +20,8 @@ Timezone = 7
 Notify_queue = True
 # bool, True: Send the menfess queue to sender
 # The first tweet in queue won't be notified to sender (the delay is very quick).
-Notify_queueMessage = "Menfess kamu berada pada urutan ke-{}, akan terkirim sekitar pukul {}"
+Notify_queueMessage = "Menfess kamu berada pada urutan ke-{}, akan terkirim sekitar pukul {}. kirim '/cancel' untuk " \
+                      "Membatalkan menfess sebelum terkirim"
 # Please keep the "{}" format -> .format(queue, time)
 
 Notify_sent = True
@@ -33,13 +34,14 @@ Notify_sentFail1 = "Maaf ada kesalahan pada sistem :( \ntolong screenshot & lapo
 
 Interval_perSender = False # bool
 Interval_time = 5 # int
-# Interval time (in minutes) of sending menfess per sender, Admin pass this filter
+# Interval time (in minute) of sending menfess per sender, Admin pass this filter
 Notify_intervalPerSender = "Mengirim menfess dibatasi! silakan coba lagi setelah pukul {}"
 # Please keep the "{}".format(time)
 
-Delay_time = 0 # int, seconds
+Delay_time = 24 # int, seconds
 # Twitter API limits user to post tweet. System will delay 36s per/tweet. You can add it by input
-# seconds in Delay_time. e.g Delay_time = 60, it means system will delay 96 seconds per tweet
+# seconds in Delay_time. e.g Delay_time = 24, it means system will delay 60 seconds per tweet
+# I advice you to fill Delay_time to avoid being banned from twitter
 
 # Welcome message to new followers
 Greet_newFollower = True
@@ -81,22 +83,17 @@ Private_mediaTweet = False
 # 4 or the space is not available, THE REST OF THE MEDIA WILL BE ATTACHED TO THE
 # SUBSEQUENT TWEETS IN SORTED ORDER.
 
-Watermark = False
-# bool, True: Add watermark text to sender's photo
-Watermark_image = "twitter_autobase/watermark/photo.png" # bool or str
-# bool, True: Add watermark using default image. str, file_path e.g 'twitter_autobase/watermark/photo.png'
-# Watermark image's size must be square
-Watermark_text = "lorem ipsum"
-# If you won't to add text, fill str() or "" to Watermark_text.
-# You can add enter "\n", maximum: 2 lines
-Watermark_font = "twitter_autobase/watermark/FreeMono.ttf"
-Watermark_textColor = (100,0,0,1)
-Watermark_textStroke = (0,225,225,1)
-# RGBA color format, you can search it on google
-Watermark_ratio = 0.15 # float number under 1 , ratio between watermark and sender's photo
-Watermark_position = ('right', 'bottom') # (x, y)
-# x: 'left', 'center', 'right'
-# y: 'top', 'center', 'bottom'
+Watermark = True
+# bool, True: Add watermark text to menfess's photo
+Watermark_data = {
+    'image'     : 'twitter_autobase/watermark/photo.png', # bool (True: default image, False: no image) or image file path (str) 
+    'text'      : 'lorem ipsum', # if you won't to add text, fill it with empty string ''
+    'font'      : 'twitter_autobase/watermark/FreeMono.ttf', # font file path
+    'textColor' : (100,0,0,1), # RGBA
+    'textStroke': (0,225,225,1), # RGBA
+    'ratio'     : 0.15, # ratio between watermark and photo (float number under 1)
+    'position'  : ('right', 'bottom'), # (x, y) | x: 'left', 'center', 'right' | y: 'top', 'center', 'bottom'
+}
 
 Account_status = True
 # bool, True: Turn on the automenfess. If it turned into False, this bot won't
@@ -161,7 +158,8 @@ Notif_DMCmdDelete = {
 # Notif_DMCmdDelete is only for user, '/unsend' using this notif too
 Notif_DMCmdCancel = {
     'succeed'   : 'Yeay! Menfess kamu berhasil di-cancel',
-    'failed'    : 'Duh! Menfess kamu ngga bisa di-cancel'
+    'failed'    : 'Duh! Menfess kamu ngga bisa di-cancel',
+    'on_process': 'Duh! Menfess kamu lagi diproses, kirim "/unsend" setelah menfess terkirim',
 }
 
 DMCmdMenu = '''\

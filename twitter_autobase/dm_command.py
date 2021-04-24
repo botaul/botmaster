@@ -216,8 +216,11 @@ class DMCommand(ABC):
         '''
         Cancel menfess when it's still on self.dms queue
         '''
-        for x in self.dms.copy():
-            if x['sender_id'] == sender_id and x['posting'] is False:
+        for x in self.dms.copy()[::-1]:
+            if x['sender_id'] == sender_id:
+                if x['posting']:
+                    self.send_dm(sender_id, self.credential.Notif_DMCmdCancel['on_process'])
+                    return
                 self.dms.remove(x)
                 self.send_dm(sender_id, self.credential.Notif_DMCmdCancel['succeed'])
                 break

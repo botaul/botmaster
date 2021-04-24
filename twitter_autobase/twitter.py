@@ -111,11 +111,10 @@ class Twitter:
             file_type = filename.split('.')[-1]
             if file_type in "jpg jpeg png webp":
                 print("Adding watermark...")
-                adm = self.credential
-                watermark.watermark_text_image(filename, text=adm.Watermark_text, font=adm.Watermark_font,
-                ratio=adm.Watermark_ratio, pos=adm.Watermark_position,
-                output=output, color=adm.Watermark_textColor,
-                stroke_color=adm.Watermark_textStroke, watermark=adm.Watermark_image)
+                i = self.credential.Watermark_data
+                watermark.watermark_text_image(filename, text=i['text'], font=i['font'],
+                ratio=i['ratio'], pos=i['position'], output=output, color=i['textColor'],
+                stroke_color=i['textStroke'], watermark=i['image'])
             
             return output
 

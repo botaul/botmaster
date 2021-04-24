@@ -53,6 +53,7 @@ pip3 install -r requirements.txt
 Make .gitignore file <br>
 ```
 venv/
+**/__pycache__
 # add another, up to you
 ```
 After modifying contents on config, run app by using syntax: `python3 app.py`
@@ -65,7 +66,7 @@ After modifying contents on config, run app by using syntax: `python3 app.py`
 git add .
 git commit -m "initial commit"
 heroku git:remote -a your_heroku_app_name
-git push heroku master
+git push -f heroku master
 ```
 
 ### Heroku limitations
