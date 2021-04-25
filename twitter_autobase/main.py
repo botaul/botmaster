@@ -43,6 +43,7 @@ class Autobase(Twitter, ProcessDM):
         self.db_sent = dict() # { 'sender_id': {'postid': [list_postid_thread],}, }
         self.db_deleted = dict() # { 'sender_id': ['postid',] }
         self.dms = list() # list of filtered dms that processed by process_dm
+        self._tmp_dms = list() # used if Verify_beforeSent is True
         self.prevent_loop = prevent_loop # list of all bot_id (str) that runs using this bot to prevent loop messages from each accounts
         self.indicator = {
             'day': (datetime.now(timezone.utc) + timedelta(hours=credential.Timezone)).day,
@@ -137,6 +138,14 @@ class Autobase(Twitter, ProcessDM):
         except:
             logger.error(traceback.format_exc())
 
+    def transfer_dm(self, dm):
+        if self.credential.Notify_queue:
+            # notify queue to sender
+            self.notify_queue(dm, queue=len(self.dms))   
+        self.dms.append(dm)
+        if self.indicator['automenfess'] == 0:
+            self.indicator['automenfess'] = 1
+            Thread(target=self.start_automenfess).start()
 
     def webhook_connector(self, raw_data: dict) -> NoReturn:
         '''
@@ -148,14 +157,11 @@ class Autobase(Twitter, ProcessDM):
         if 'direct_message_events' in raw_data:
             dm = self.process_dm(raw_data) # Inherited from ProcessDM class
             if dm != None:
-                if self.credential.Notify_queue is True:
-                    # notify queue to sender
-                    self.notify_queue(dm, queue=len(self.dms))
-                
-                self.dms.append(dm)
-                if self.indicator['automenfess'] == 0:
-                    self.indicator['automenfess'] = 1
-                    Thread(target=self.start_automenfess).start()
+                if self.credential.Verify_beforeSent:
+                    self.send_verif_button(dm) # Inherited from ProcessDM class
+                    self._tmp_dms.append(dm)
+                else:
+                    self.transfer_dm(dm)
         
         elif 'follow_events' in raw_data:
             self.notify_follow(raw_data)
@@ -230,7 +236,7 @@ class Autobase(Twitter, ProcessDM):
 
             except:
                 self.send_dm(sender_id, self.credential.Notify_sentFail1)
-                logger.error(traceback.format_exc())
+                logger.critical(traceback.format_exc())
 
             finally:
                 # self.notify_queue is using len of dms to count queue, it's why the dms[0] deleted here

@@ -18,11 +18,12 @@ class DMCommand(ABC):
         pass
 
     @abstractmethod
-    def send_dm(self, recipient_id, text):
+    def send_dm(self, recipient_id, text, quick_reply_type=None, quick_reply_data=None,
+                attachment_type=None, attachment_media_id=None) -> NoReturn:
         pass
 
     @abstractmethod
-    def db_sent_updater(self, action, sender_id, postid, list_postid_thread=list()):
+    def db_sent_updater(self, action, sender_id, postid, list_postid_thread=list()) -> NoReturn:
         pass
 
     def _add_blacklist(self, word: str) -> NoReturn:
@@ -176,7 +177,8 @@ class DMCommand(ABC):
         '''
         Send command's menu to sender
         '''
-        self.send_dm(sender_id, self.credential.DMCmdMenu)
+        self.send_dm(sender_id, self.credential.DMCmdMenu['text'], quick_reply_type='options',
+                     quick_reply_data=self.credential.DMCmdMenu['options'])
 
     def _block_user(self, sender_id, urls):
         '''

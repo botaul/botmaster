@@ -1,4 +1,5 @@
 from .dm_command import DMCommand
+from .quick_reply import ProcessQReply
 from abc import abstractmethod, ABC
 from datetime import datetime, timezone, timedelta
 from time import sleep
@@ -7,7 +8,7 @@ import traceback
 
 logger = logging.getLogger(__name__)
 
-class ProcessDM(DMCommand, ABC):
+class ProcessDM(ProcessQReply, DMCommand, ABC):
     api: object = None
     bot_username: str = None
     credential: object = None
@@ -15,7 +16,8 @@ class ProcessDM(DMCommand, ABC):
     prevent_loop: list = None
     
     @abstractmethod
-    def send_dm(self, recipient_id, text):
+    def send_dm(self, recipient_id, text, quick_reply_type=None, quick_reply_data=None,
+                attachment_type=None, attachment_media_id=None):
         pass
 
     @abstractmethod
@@ -311,8 +313,14 @@ class ProcessDM(DMCommand, ABC):
             # Avoid keyword error & loop messages by skipping bot messages
             if sender_id in self.prevent_loop:
                 return None
-
             print(f"Processing direct message, sender_id: {sender_id}")
+
+            # button (quick reply response)
+            if "quick_reply_response" in message_data:
+                metadata = message_data['quick_reply_response']['metadata']
+                if metadata != "command":
+                    self._quick_reply_manager(sender_id, metadata)
+                    return None
             
             # ADMIN & USER COMMAND
             if self.__command(sender_id, message, message_data):
@@ -326,6 +334,6 @@ class ProcessDM(DMCommand, ABC):
             return self.__menfess_trigger(sender_id, message, message_data, date_now)
             
         except:
-            logger.error(traceback.format_exc())
+            logger.critical(traceback.format_exc())
             self.send_dm(sender_id, self.credential.Notify_sentFail1)
             return None

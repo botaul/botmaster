@@ -136,4 +136,4 @@ bin/
 twitter_autobase/**/config.py
 Darksiede**
 autobase_reborn**
-**/test.py
+**/test**.py

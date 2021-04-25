@@ -6,11 +6,10 @@
 # Source: https://github.com/fakhrirofi/twitter_autobase
 
 from os.path import getsize
-from time import sleep
-import json
 from requests import get, post
-from requests_oauthlib import OAuth1
+from time import sleep
 from typing import NoReturn
+import json
 
 
 MEDIA_ENDPOINT_URL = 'https://upload.twitter.com/1.1/media/upload.json'
@@ -22,32 +21,25 @@ class MediaUpload:
     Upload media using twitter api v.1.1
 
     Attributes:
-        - video_filename
+        - filename
         - total_bytes
         - media_id
         - processing_info
         - file_format
         - media_type
         - media_category
-
-    :param credential: object contains following attributes: CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET
     :param file_name: filename of the media
     :param media_category: 'tweet' or 'dm'
     '''
 
-    def __init__(self, credential: object, file_name: str, media_category: str='tweet'):
+    def __init__(self, auth: object, file_name: str, media_category: str='tweet'):
         '''
-        :param credential: object contains following attributes: CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET
         :param file_name: filename of the media
         :param media_category: 'tweet' or 'dm'
         '''
-        self.oauth = OAuth1(credential.CONSUMER_KEY,
-               client_secret=credential.CONSUMER_SECRET,
-               resource_owner_key=credential.ACCESS_KEY,
-               resource_owner_secret=credential.ACCESS_SECRET)
-
-        self.video_filename = file_name
-        self.total_bytes = getsize(self.video_filename)
+        self.oauth = auth
+        self.filename = file_name
+        self.total_bytes = getsize(self.filename)
         self.media_id = None
         self.processing_info = None
         data_media = {
@@ -113,7 +105,7 @@ class MediaUpload:
         '''
         segment_id = 0
         bytes_sent = 0
-        file = open(self.video_filename, 'rb')
+        file = open(self.filename, 'rb')
 
         while bytes_sent < self.total_bytes:
             chunk = file.read(1024*1024)

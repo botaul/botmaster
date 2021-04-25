@@ -20,7 +20,7 @@ Timezone = 7
 Notify_queue = True
 # bool, True: Send the menfess queue to sender
 # The first tweet in queue won't be notified to sender (the delay is very quick).
-Notify_queueMessage = "Menfess kamu berada pada urutan ke-{}, akan terkirim sekitar pukul {}. kirim '/cancel' untuk " \
+Notify_queueMessage = "Menfess kamu berada pada urutan ke-{}, akan terkirim sekitar pukul {}.\nKirim '/cancel' untuk " \
                       "Membatalkan menfess sebelum terkirim"
 # Please keep the "{}" format -> .format(queue, time)
 
@@ -63,6 +63,24 @@ Notif_QRTBaseTweet = "Kamu hanya bisa mengirim url tweet dari base ini :("
 
 Only_twitterUrl = True
 Notif_twitterUrl = "Kamu hanya bisa mengirim url yang berasal dari twitter :("
+
+Verify_beforeSent = True
+Verify_beforeSentData = {
+    'text'      : 'Baca dulu peraturan base di blabla. Kamu yakin mau mengirim menfess ini?',
+    'options'   : [
+        {
+            'label'         : 'ya',
+            'description'   : 'melanjutkan untuk mengirim menfess', # max 72 chars (include space)
+            'metadata'      : 'accept_send_menfess'
+        },
+        {
+            'label'         : 'tidak',
+            'description'   : 'membatalkan untuk mengirim menfess', # max 72 chars (include space)
+            'metadata'      : 'reject_send_menfess'
+        }
+    ]
+}
+# Please keep the metadata
 
 Sender_requirements = False
 # bool, True: sender should passes the following requirements:   (admin pass this filter)
@@ -164,9 +182,21 @@ Notif_DMCmdCancel = {
     'on_process': 'Duh! Menfess kamu lagi diproses, kirim "/unsend" setelah menfess terkirim',
 }
 
-DMCmdMenu = '''\
-/menu : Menampilkan pesan ini
-/unsend : Menghapus menfess terakhir yang sudah ter-post
-/cancel : Menghapus menfess terakhir yang sedang dalam antrian
-/delete (tweet_url) : Menghapus menfess tertentu dengan menyertakan url
-'''
+# Max 20 options, Max 72 chars description, Please keep the metadata
+# When user click the button, It is automatically sent to webhook (dont use if command has an argument e.g. /delete (url))
+DMCmdMenu = {
+    'text'      : 'Kamu bisa mengirim beberapa command secara langsung, atau menulis manual:\n'
+                  '/delete (url) : menghapus menfess dengan menyertakan url\n',
+    'options'   : [
+        {
+            'label'         : '/unsend',
+            'description'   : 'menghapus menfess terakhir yang telah terkirim',
+            'metadata'      : 'command'
+        },
+        {
+            'label'         : '/cancel',
+            'description'   : 'Menghapus menfess sebelum terkirim',
+            'metadata'      : 'command' 
+        },
+    ]
+}

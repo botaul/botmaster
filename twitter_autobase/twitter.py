@@ -8,9 +8,9 @@ from .clean_dm_autobase import count_emoji, get_list_media_ids
 from .watermark import app as watermark
 from html import unescape
 from os import remove
-from requests_oauthlib import OAuth1
 from time import sleep
-from tweepy import OAuthHandler, API, Cursor
+from tweepy import OAuthHandler, API
+from tweepy.binder import bind_api
 from typing import NoReturn
 import logging
 import re
@@ -18,6 +18,51 @@ import requests
 import traceback
 
 logger = logging.getLogger(__name__)
+
+class EditedAPI(API):
+    '''
+    Add quick reply support
+    Ref: https://developer.twitter.com/en/docs/twitter-api/v1/direct-messages/quick-replies/api-reference/options
+    '''
+    def send_direct_message(self, recipient_id, text, quick_reply_type=None, quick_reply_data=None,
+                            attachment_type=None, attachment_media_id=None):
+        """
+        Send a direct message to the specified user from the authenticating
+        user
+        """
+        json_payload = {
+            'event': {'type': 'message_create',
+                      'message_create': {
+                          'target': {'recipient_id': recipient_id},
+                          'message_data': {'text': text}
+                      }
+            }
+        }
+        message_data = json_payload['event']['message_create']['message_data']
+        if quick_reply_type is not None:
+            message_data['quick_reply'] = {'type': quick_reply_type}
+            message_data['quick_reply'][quick_reply_type] = quick_reply_data
+        if attachment_type is not None and attachment_media_id is not None:
+            message_data['attachment'] = {'type': attachment_type}
+            message_data['attachment']['media'] = {'id': attachment_media_id}
+        return self._send_direct_message(json_payload=json_payload)
+
+    @property
+    def _send_direct_message(self):
+        """ :reference: https://developer.twitter.com/en/docs/direct-messages/sending-and-receiving/api-reference/new-event
+            :allowed_param: 'recipient_id', 'text', 'quick_reply_type', 'quick_reply_data',
+                            'attachment_type', attachment_media_id'
+        """
+        return bind_api(
+            api=self,
+            path='/direct_messages/events/new.json',
+            method='POST',
+            payload_type='direct_message',
+            allowed_param=['recipient_id', 'text', 'quick_reply_type', 'quick_reply_data',
+                           'attachment_type', 'attachment_media_id'],
+            require_auth=True
+        )
+
 
 class Twitter:
     '''
@@ -28,19 +73,15 @@ class Twitter:
         - me
     :param credential: object that contains attributes like config
     '''
-
     def __init__(self, credential: object):
         '''
         initialize twitter with tweepy
         :param credential: object that contains attributes like config
         '''
         self.credential = credential
-        auth = OAuthHandler(
-            credential.CONSUMER_KEY, credential.CONSUMER_SECRET)
-        auth.set_access_token(
-            credential.ACCESS_KEY, credential.ACCESS_SECRET)
-        self.api = API(
-            auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+        self._auth = OAuthHandler(credential.CONSUMER_KEY, credential.CONSUMER_SECRET)
+        self._auth.set_access_token(credential.ACCESS_KEY, credential.ACCESS_SECRET)
+        self.api = EditedAPI(self._auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
         try:
             self.me = self.api.me()
         except:
@@ -48,15 +89,20 @@ class Twitter:
             exit()
         print(f"Initializing twitter... ({self.me.screen_name})")
     
-    def send_dm(self, recipient_id: str, text: str) -> NoReturn:
+    def send_dm(self, recipient_id: str, text: str, quick_reply_type: str=None, quick_reply_data: list=None,
+                attachment_type: str=None, attachment_media_id: str=None) -> NoReturn:
         '''
         :param recipient_id: account target
+        :param quick_reply_type: 'options'
+        :param quick_reply_data: list of json quick reply object
+        :param attachment_type: 'media'
+        :param attachment_media_id: media id that returned from upload_media method
         '''
         try:
-            self.api.send_direct_message(recipient_id=recipient_id, text=text)
+            self.api.send_direct_message(recipient_id, text, quick_reply_type, quick_reply_data,
+                attachment_type, attachment_media_id)
         except:
             logger.error(traceback.format_exc())
-
 
     def get_user_screen_name(self, id: str) -> str:
         '''
@@ -71,7 +117,6 @@ class Twitter:
             logger.error(traceback.format_exc())
             return "Exception"
 
-
     def download_media(self, media_url: str, filename: str=None) -> str:
         '''Download media from url
         :param media_url: url
@@ -79,13 +124,7 @@ class Twitter:
         :return: file name (if filename==None)
         '''
         print("Downloading media...")
-        oauth = OAuth1(client_key=self.credential.CONSUMER_KEY,
-                       client_secret=self.credential.CONSUMER_SECRET,
-                       resource_owner_key=self.credential.ACCESS_KEY,
-                       resource_owner_secret=self.credential.ACCESS_SECRET)
-
-        r = requests.get(media_url, auth=oauth)
-
+        r = requests.get(media_url, auth=self._auth.apply_auth())
         if filename == None:
             for i in re.sub("[/?=]", " ", media_url).split():
                 if re.search(r"\.mp4$|\.gif$|\.jpg$|\.jpeg$|\.png$|\.webp$", i):
@@ -100,7 +139,6 @@ class Twitter:
 
         return filename
     
-
     def add_watermark(self, filename: str, output: str=None) -> str:
         '''Add watermark to photo, then save as output. Only support photo type
         :returns: output file name
@@ -122,7 +160,6 @@ class Twitter:
         except:
             logger.error(traceback.format_exc())
             return filename
-
 
     def upload_media_tweet(self, media_tweet_url: str) -> list:
         '''Upload media from media tweet url
@@ -176,20 +213,18 @@ class Twitter:
             logger.error(traceback.format_exc())
             return list()
 
-
     def upload_media(self, filename: str, media_category: str='tweet') -> tuple:
         '''Upload media using twitter api v1.1
         This method are needed when you want to use media to do something on twitter
         :param media_category: 'tweet' or 'dm'. default to 'tweet'
         :return: media id, media_type
         '''
-        mediaupload = MediaUpload(self.credential, filename, media_category)
+        mediaupload = MediaUpload(self._auth.apply_auth(), filename, media_category)
         media_id, media_type = mediaupload.upload_init()
         mediaupload.upload_append()
         mediaupload.upload_finalize()
         del mediaupload
         return media_id, media_type
-
 
     def post_tweet(self, tweet: str, sender_id: str, media_url: str=None, attachment_url: str=None,
                 media_idsAndTypes: list=list(), possibly_sensitive: bool=False) -> dict:
