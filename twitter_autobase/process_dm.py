@@ -42,56 +42,45 @@ class ProcessDM(ProcessQReply, DMCommand, ABC):
         if command not in list_command:
             return False
 
+        if command in self.credential.Admin_cmd:
+            if sender_id not in self.credential.Admin_id:
+                return False
+            dict_command = self.credential.Admin_cmd
         else:
-            contents = message.split(" ")[1:]
-            notif = str()
-                        
-            if command in self.credential.Admin_cmd:
-                # Manage admin access
-                if sender_id not in self.credential.Admin_id:
-                    return False
+            dict_command = self.credential.User_cmd
 
-            print(f"command {command} {str(contents)} in progress...")
-
-            dict_command = self.credential.Admin_cmd.copy()
-            dict_command.update(self.credential.User_cmd)
-
-            if len(contents):
-                urls = message_data["entities"]["urls"] #pylint: disable=unused-variable
-                for arg in contents:
-                    try:
-                        notif += f"\nprocessed: {command} {arg}"
-                        fix_command = dict_command[command.lower()]
-                        exec(fix_command)
-                        if "urls" in fix_command:
-                            break
-
-                    except Exception as ex:
-                        logger.warning(ex)
-                        notif += f"\nException: {ex}"
-
-            else:
+        contents = message.split(" ")[1:]
+        print(f"command {command} {str(contents)} in progress...")
+        notif = str() # terminal message
+        if len(contents):
+            urls = message_data["entities"]["urls"] #pylint: disable=unused-variable
+            for arg in contents:
                 try:
-                    notif += f"\nprocessed: {command}"
-                    exec(dict_command[command.lower()])
+                    notif += f"\nprocessed: {command} {arg}"
+                    exec(dict_command[command])
+                    if "urls" in dict_command[command]:
+                        break
                 except Exception as ex:
                     logger.warning(ex)
                     notif += f"\nException: {ex}"
-                        
-            # Skip notif if '#no_notif' in command's comment
-            if "#no_notif" in dict_command[command.lower()]:
-                if "Exception" not in notif:
-                    return True
-                        
-            # Manage notification for user
-            if sender_id not in self.credential.Admin_id:
-                if "Exception" not in notif:
-                    notif = self.credential.Notif_DMCmdDelete['succeed']
-                else:
-                    notif = self.credential.Notif_DMCmdDelete['failed']
-                        
-            self.send_dm(sender_id, notif)
+        else:
+            try:
+                notif += f"\nprocessed: {command}"
+                exec(dict_command[command])
+            except Exception as ex:
+                logger.warning(ex)
+                notif += f"\nException: {ex}"
+
+        if sender_id not in self.credential.Admin_id:
             return True
+        if "#no_notif" in dict_command[command]:
+            return True
+        if "arg" not in dict_command[command]:
+            if "Exception" not in notif:
+                return True
+           
+        self.send_dm(sender_id, notif)
+        return True
 
 
     def __check_off_schedule(self, sender_id: str, date_now: object) -> bool:
@@ -318,7 +307,7 @@ class ProcessDM(ProcessQReply, DMCommand, ABC):
             # button (quick reply response)
             if "quick_reply_response" in message_data:
                 metadata = message_data['quick_reply_response']['metadata']
-                if metadata != "command":
+                if metadata != "None|None":
                     self._quick_reply_manager(sender_id, metadata)
                     return None
             

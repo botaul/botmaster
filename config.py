@@ -21,7 +21,7 @@ Notify_queue = True
 # bool, True: Send the menfess queue to sender
 # The first tweet in queue won't be notified to sender (the delay is very quick).
 Notify_queueMessage = "Menfess kamu berada pada urutan ke-{}, akan terkirim sekitar pukul {}.\nKirim '/cancel' untuk " \
-                      "Membatalkan menfess sebelum terkirim"
+                      "membatalkan menfess sebelum terkirim"
 # Please keep the "{}" format -> .format(queue, time)
 
 Notify_sent = True
@@ -71,16 +71,16 @@ Verify_beforeSentData = {
         {
             'label'         : 'ya',
             'description'   : 'melanjutkan untuk mengirim menfess', # max 72 chars (include space)
-            'metadata'      : 'accept_send_menfess'
+            'metadata'      : 'exec|self._verif_menfess("accept", sender_id)'
         },
         {
             'label'         : 'tidak',
             'description'   : 'membatalkan untuk mengirim menfess', # max 72 chars (include space)
-            'metadata'      : 'reject_send_menfess'
+            'metadata'      : 'exec|self._verif_menfess("reject", sender_id)'
         }
     ]
 }
-# Please keep the metadata
+# Please keep the metadata, Read metadata documentation at README.md
 
 Sender_requirements = False
 # bool, True: sender should passes the following requirements:   (admin pass this filter)
@@ -152,22 +152,23 @@ Notify_blacklistWordsAdmin = False # Will be sent to admin
 Admin_cmd = {
     '/add_blacklist'    : 'self._add_blacklist(arg)', # /add_blacklist word1 word2 word-n
     '/rm_blacklist'     : 'self._rm_blacklist(arg)', # /rm_blacklist word1 word2 wordn
-    '/display_blacklist': 'self._display_blacklist(sender_id) #no_notif', # /display_blacklist
-    '/who'              : 'self._who_sender(sender_id, urls) #no_notif', # /who tweet_url
+    '/display_blacklist': 'self._display_blacklist(sender_id)', # /display_blacklist
+    '/who'              : 'self._who_sender(sender_id, urls)', # /who tweet_url
     '/add_admin'        : 'self._add_admin(arg)', # /add_admin username1 username2 username-n
     '/rm_admin'         : 'self._rm_admin(arg)', # /rm_admin username username2 username-n
     '/switch'           : 'self._switch_status(arg)', # /switch on | /switch off
-    '/block'            : 'self._block_user(sender_id, urls) #no_notif', # /block tweet_url
-    '/unfoll'           : 'self._unfoll_user(sender_id, urls) #no_notif', # /unfoll tweet_url
+    '/block'            : 'self._block_user(sender_id, urls)', # /block tweet_url
+    '/unfoll'           : 'self._unfoll_user(sender_id, urls)', # /unfoll tweet_url
 }
-# #no_notif is an indicator to skip send notif to admin
+# if arg parameter exists on command call, the terminal message will be sent to sender (admin).
+# You can prevent it by adding #no_notif after the function call command.
 # who is only available for one day (reset every midnight or heroku dyno cycling)
 
 User_cmd = {
     '/delete'           : 'self._delete_menfess(sender_id, urls)', # /delete tweet_url
     '/unsend'           : 'self._unsend_menfess(sender_id)', # /unsend
-    '/menu'             : 'self._menu_dm(sender_id) #no_notif', # /menu
-    '/cancel'           : 'self._cancel_menfess(sender_id) #no_notif', # /cancel
+    '/menu'             : 'self._menu_dm(sender_id)', # /menu
+    '/cancel'           : 'self._cancel_menfess(sender_id)', # /cancel
 }
 # delete and unsend is not available for user when bot was just started and user id not in db_sent
 # delete & db_sent are only available for one day (reset every midnight or heroku dyno cycling)
@@ -182,7 +183,7 @@ Notif_DMCmdCancel = {
     'on_process': 'Duh! Menfess kamu lagi diproses, kirim "/unsend" setelah menfess terkirim',
 }
 
-# Max 20 options, Max 72 chars description, Please keep the metadata
+# Max 20 options, Max 72 chars description, Please keep the metadata, Read metadata doc at README.md
 # When user click the button, It is automatically sent to webhook (dont use if command has an argument e.g. /delete (url))
 DMCmdMenu = {
     'text'      : 'Kamu bisa mengirim beberapa command secara langsung, atau menulis manual:\n'
@@ -191,12 +192,12 @@ DMCmdMenu = {
         {
             'label'         : '/unsend',
             'description'   : 'menghapus menfess terakhir yang telah terkirim',
-            'metadata'      : 'command'
+            'metadata'      : 'None|None'
         },
         {
             'label'         : '/cancel',
             'description'   : 'Menghapus menfess sebelum terkirim',
-            'metadata'      : 'command' 
+            'metadata'      : 'None|None' 
         },
     ]
 }

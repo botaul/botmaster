@@ -1,6 +1,6 @@
-import re
-from typing import NoReturn
 from abc import abstractmethod, ABC
+from typing import NoReturn
+import re
 
 
 class DMCommand(ABC):
@@ -111,13 +111,12 @@ class DMCommand(ABC):
         except Exception as ex:
             raise Exception(f"You can't delete this tweet. Error: {ex}")
 
-    def _delete_menfess(self, sender_id: str, urls: list):
+    def __delete_menfess(self, sender_id: str, urls: list) -> str:
         '''Delete tweet
         :param urls: list of urls from dm
         '''
         if sender_id not in self.db_sent and sender_id not in self.credential.Admin_id:
             raise Exception("sender_id not in db_sent")
-
         if len(urls) == 0:
             raise Exception("Tweet link is not mentioned")
         
@@ -125,15 +124,13 @@ class DMCommand(ABC):
             if "?" in i["expanded_url"]:
                 postid = re.sub("[/?]", " ", i["expanded_url"]).split()[-2]
             else:
-                postid = i["expanded_url"].split("/")[-1]   
+                postid = i["expanded_url"].split("/")[-1]
 
             if sender_id in self.db_sent: # user has sent menfess
                 if postid in self.db_sent[sender_id]: # normal succes
                     list_postid_thread = self.db_sent[sender_id][postid]
-                    
                     self.db_sent_updater('add_deleted', sender_id, postid)
                     self.db_sent_updater('delete_sent', sender_id, postid)
-                    
                     self.__delete_tweet(postid, list_postid_thread)
                     return sender_id
 
@@ -161,30 +158,43 @@ class DMCommand(ABC):
             self.__delete_tweet(postid, list_postid_thread)
             if found != 0: return found
     
+    def _delete_menfess(self, sender_id: str, urls: list) -> NoReturn:
+        try:
+            self.__delete_menfess(sender_id, urls)
+        except Exception as e:
+            self.send_dm(sender_id, self.credential.Notif_DMCmdDelete['failed'])
+            raise e
+        else:
+            self.send_dm(sender_id, self.credential.Notif_DMCmdDelete['succeed'])
+    
     def _unsend_menfess(self, sender_id: str) -> NoReturn:
         '''
         Delete the last tweet that sent by sender
         '''
-        last_postid = list(self.db_sent[sender_id])[-1]
-            
-        list_postid_thread = self.db_sent[sender_id][last_postid]
-        self.db_sent_updater('add_deleted', sender_id, last_postid)
-        self.db_sent_updater('delete_sent', sender_id, last_postid)
+        try:
+            last_postid = list(self.db_sent[sender_id])[-1]
+            list_postid_thread = self.db_sent[sender_id][last_postid]
+            self.db_sent_updater('add_deleted', sender_id, last_postid)
+            self.db_sent_updater('delete_sent', sender_id, last_postid)
+            self.__delete_tweet(last_postid, list_postid_thread)
+        except Exception as e:
+            self.send_dm(sender_id, self.credential.Notif_DMCmdDelete['failed'])
+            raise e
+        else:
+            self.send_dm(sender_id, self.credential.Notif_DMCmdDelete['succeed'])
 
-        self.__delete_tweet(last_postid, list_postid_thread)
-
-    def _menu_dm(self, sender_id):
+    def _menu_dm(self, sender_id) -> NoReturn:
         '''
         Send command's menu to sender
         '''
         self.send_dm(sender_id, self.credential.DMCmdMenu['text'], quick_reply_type='options',
                      quick_reply_data=self.credential.DMCmdMenu['options'])
 
-    def _block_user(self, sender_id, urls):
+    def _block_user(self, sender_id, urls) -> NoReturn:
         '''
         Delete menfess and block the sender
         '''
-        sender_idx = self._delete_menfess(sender_id, urls)
+        sender_idx = self.__delete_menfess(sender_id, urls)
         if sender_idx is None:
             raise Exception("sender_id not found")
         elif sender_idx in self.credential.Admin_id:
@@ -196,13 +206,14 @@ class DMCommand(ABC):
             self.api.create_block(user_id=sender_idx)
         except:
             raise Exception("You can't block the sender")
-        self.send_dm(sender_id, f'username: @{username}\nid: {sender_idx}\nstatus: blocked')
+        else:
+            self.send_dm(sender_id, f'username: @{username}\nid: {sender_idx}\nstatus: blocked')
     
-    def _unfoll_user(self, sender_id, urls):
+    def _unfoll_user(self, sender_id, urls) -> NoReturn:
         '''
         Delete menfess and unfoll the sender
         '''
-        sender_idx = self._delete_menfess(sender_id, urls)
+        sender_idx = self.__delete_menfess(sender_id, urls)
         if sender_idx is None:
             raise Exception("sender_id not found")
         else:
@@ -212,9 +223,10 @@ class DMCommand(ABC):
             self.api.destroy_friendship(user_id=sender_idx)
         except:
             raise Exception("You can't unfollow the sender")
-        self.send_dm(sender_id, f'username: @{username}\nid: {sender_idx}\nstatus: unfollowed')
+        else:
+            self.send_dm(sender_id, f'username: @{username}\nid: {sender_idx}\nstatus: unfollowed')
     
-    def _cancel_menfess(self, sender_id):
+    def _cancel_menfess(self, sender_id) -> NoReturn:
         '''
         Cancel menfess when it's still on self.dms queue
         '''

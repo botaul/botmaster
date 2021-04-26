@@ -18,28 +18,33 @@ class ProcessQReply(ABC):
                 attachment_type=None, attachment_media_id=None) -> NoReturn:
         pass
     
-    def _quick_reply_manager(self, sender_id, metadata) -> NoReturn:
+    def _verif_menfess(self, action, sender_id) -> NoReturn:
+        for x in self._tmp_dms.copy()[::-1]:
+            if x['sender_id'] == sender_id:
+                if action == "accept":
+                    self.transfer_dm(x)
+                self._tmp_dms.remove(x)
+                break
+
+    def _quick_reply_manager(self, sender_id: str, metadata: str) -> NoReturn:
         '''
         Manage dm buttons
         '''
-        def accept_menfess():
-            for x in self._tmp_dms.copy()[::-1]:
-                if x['sender_id'] == sender_id:
-                    self.transfer_dm(x)
-                    self._tmp_dms.remove(x)
-                    break
+        metadata = metadata.split("|")
+        action = metadata[0]
+        data = metadata[1]
 
-        def reject_menfess():
-            for x in self._tmp_dms.copy()[::-1]:
-                if x['sender_id'] == sender_id:
-                    self._tmp_dms.remove(x)
-                    break
-                    
-        dict_meta = {
-            'accept_send_menfess'   : accept_menfess,
-            'reject_send_menfess'   : reject_menfess,
-        }
-        dict_meta[metadata]()
+        if action == "send_text":
+            data = eval(data)
+            self.send_dm(sender_id, data)
+        elif action == "send_button":
+            data = eval(data)
+            self.send_dm(sender_id, data['text'], quick_reply_type='options',
+                         quick_reply_data=data['options'])
+        elif action == "exec":
+            exec(data)
+        else:
+            raise Exception("action is not valid")
 
     def send_verif_button(self, dm) -> NoReturn:
         data = self.credential.Verify_beforeSentData
