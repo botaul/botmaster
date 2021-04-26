@@ -158,7 +158,9 @@ class Autobase(Twitter, ProcessDM):
             dm = self.process_dm(raw_data) # Inherited from ProcessDM class
             if dm != None:
                 if self.credential.Verify_beforeSent:
-                    self.send_verif_button(dm) # Inherited from ProcessDM class
+                    button = self.credential.Verify_beforeSentData
+                    self.send_dm(dm['sender_id'], button['text'], quick_reply_type='options',
+                                 quick_reply_data=button['options'])
                     self._tmp_dms.append(dm)
                 else:
                     self.transfer_dm(dm)

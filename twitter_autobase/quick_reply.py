@@ -17,14 +17,32 @@ class ProcessQReply(ABC):
     def send_dm(self, recipient_id, text, quick_reply_type=None, quick_reply_data=None,
                 attachment_type=None, attachment_media_id=None) -> NoReturn:
         pass
+
+    @abstractmethod
+    def _command(self, sender_id: str, message: str, message_data: dict) -> bool:
+        pass
     
     def _verif_menfess(self, action, sender_id) -> NoReturn:
+        '''
+        Move dm dict from self._tmp_dms to self.dms
+        '''
         for x in self._tmp_dms.copy()[::-1]:
             if x['sender_id'] == sender_id:
                 if action == "accept":
                     self.transfer_dm(x)
                 self._tmp_dms.remove(x)
                 break
+    
+    def _button_command(self, sender_id, message) -> NoReturn:
+        '''
+        Process dm command using button
+        '''
+        message_data = {
+            'entities'  : {
+                'urls'  : []
+            }
+        }
+        self._command(sender_id, message, message_data)
 
     def _quick_reply_manager(self, sender_id: str, metadata: str) -> NoReturn:
         '''
@@ -45,9 +63,4 @@ class ProcessQReply(ABC):
             exec(data)
         else:
             raise Exception("action is not valid")
-
-    def send_verif_button(self, dm) -> NoReturn:
-        data = self.credential.Verify_beforeSentData
-        self.send_dm(dm['sender_id'], data['text'], quick_reply_type='options',
-                     quick_reply_data=data['options'])
     

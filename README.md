@@ -131,40 +131,37 @@ Reference: https://developer.twitter.com/en/docs/twitter-api/v1/direct-messages/
 ```
 The maximum of options is 20 and the maximum characters of description is 72
 
+### Raw Send DM
+```python
+self.send_dm(sender_id, data['text'], quick_reply_type='options', quick_reply_data=data['options'])
+```
+- `data` : [Quick Reply Json](#quick-reply-json)
+
 ### Metadata
 You can see the code of metadata processing on _quick_reply_manager method at quick_reply.py. The abstract value of metadata is: `action|data`
 
 ### Execute method call `exec|method_call`
-The method can be normal method or protected method. Method call must be only has one abstract parameter (sender_id) and has no arguments (from dm), or you can fill the metadata with `None|None` to execute it as Admin_cmd or User_cmd. Example: <br>
-Method
+The method can be normal method or protected method. Method call must have only one undefined sender_id argument. Example: <br>
+Method:
 ```python
-# something.py (inside  class)
-def _verif_menfess(self, action, sender_id) -> NoReturn:
-    for x in self._tmp_dms.copy()[::-1]:
-        if x['sender_id'] == sender_id:
-            if action == "accept":
-                self.transfer_dm(x)
-            self._tmp_dms.remove(x)
-            break
+# something.py (inside class that inherited to Autobase class)
+def _do_something(self, sender_id, defined_argument) -> NoReturn:
+    pass
 ```
-Metadata: `exec|self._verif_menfess("accept", sender_id)`
-
-### No action `None|None`
-The purpose of the button is to display menu or options of the Admin_cmd and User_cmd that have only sender_id abstract parameter. User can't fill arguments using quick reply button. Because when the quick reply button is pressed, the message is sent directly to the the webhook with no arguments. The user should type it manually if command requires arguments. <br>
-The simple explanation is `None|None` do nothing, just send message from user to webhook.
+Metadata: `exec|self._do_something(sender_id, "defined argument")` # sender_id is only one undefined argument here
 
 ### Send text message `send_text|attribute_string`
-Send object attribute to user. Example: <br>
-Attribute
+Send Autobase's attribute (string) to user. Example: <br>
+Attribute:
 ```python
 # config.py (credential)
 Notif_something = "This message will be sent to sender"
 ```
-config.py is object attribute (credential) of the autobase object. So the metadata is: `send_text|self.credential.Notif_something`
+Metadata: `send_text|self.credential.Notif_something`
 
 ### Send quick reply button `send_button|attribute_quick_reply_json`
 attribute_quick_reply_json template is [Quick Reply Json](#quick-reply-json). Example: <br>
-Attribute
+Attribute:
 ```python
 # config.py (credential)
 Button_something = {
@@ -173,7 +170,7 @@ Button_something = {
         {
             'label'         : 'something',
             'description'   : 'something description',
-            'metadata'      : 'None|None',
+            'metadata'      : 'exec|self._do_something(sender_id, "defined argument")',
         }
     ]
 }

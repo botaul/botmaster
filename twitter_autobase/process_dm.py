@@ -28,7 +28,7 @@ class ProcessDM(ProcessQReply, DMCommand, ABC):
     def db_sent_updater(self, action=str(), sender_id=str(), postid=str(), list_postid_thread=list()):
         pass
 
-    def __command(self, sender_id: str, message: str, message_data: dict) -> bool:
+    def _command(self, sender_id: str, message: str, message_data: dict) -> bool:
         '''
         Process command (DMCmd) that sent from dm
         :param sender_id: id of account who sends the message
@@ -307,12 +307,11 @@ class ProcessDM(ProcessQReply, DMCommand, ABC):
             # button (quick reply response)
             if "quick_reply_response" in message_data:
                 metadata = message_data['quick_reply_response']['metadata']
-                if metadata != "None|None":
-                    self._quick_reply_manager(sender_id, metadata)
-                    return None
+                self._quick_reply_manager(sender_id, metadata)
+                return None
             
             # ADMIN & USER COMMAND
-            if self.__command(sender_id, message, message_data):
+            if self._command(sender_id, message, message_data):
                 return None       
             
             date_now = datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)

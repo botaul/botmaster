@@ -192,12 +192,12 @@ DMCmdMenu = {
         {
             'label'         : '/unsend',
             'description'   : 'menghapus menfess terakhir yang telah terkirim',
-            'metadata'      : 'None|None'
+            'metadata'      : 'exec|self._button_command(sender_id, "/unsend")'
         },
         {
             'label'         : '/cancel',
             'description'   : 'Menghapus menfess sebelum terkirim',
-            'metadata'      : 'None|None' 
+            'metadata'      : 'exec|self._button_command(sender_id, "/cancel")' 
         },
     ]
 }
