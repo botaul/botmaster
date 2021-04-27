@@ -130,7 +130,7 @@ class Twitter:
                 if re.search(r"\.mp4$|\.gif$|\.jpg$|\.jpeg$|\.png$|\.webp$", i):
                     filename = i
                     break
-            if filename == None:
+            else:
                 raise Exception("filename is not supported, please check the link")
 
         with open(filename, 'wb') as f:
@@ -229,13 +229,13 @@ class Twitter:
     def post_tweet(self, tweet: str, sender_id: str, media_url: str=None, attachment_url: str=None,
                 media_idsAndTypes: list=list(), possibly_sensitive: bool=False) -> dict:
         '''Post a tweet, contains watermark module
-        Per tweet delay is 36s + self.random_time
+        Per tweet delay is 36s + self.credential.Delay_time
         :param tweet: message
         :param media_url: url of the media that sent from dm
         :param attachment_url: url that will be attached to twett (retweet)
         :param media_idsAndTypes: [(media_ids, media_type),]
         :param possibly_sensitive: True if menfess contains sensitive contents
-        :return: {'postid': str, list_postid_thread: list} -> dict
+        :return: {'postid': str, 'list_postid_thread': list} -> dict
         '''
         try:
             sleep(36+self.credential.Delay_time)

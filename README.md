@@ -11,7 +11,8 @@ https://github.com/ydhnwb/autodm_base and using https://github.com/twitivity/twi
 - User (account) requirements
 - Tweet photo, GIF, and video
 - Post a Thread when characters > 280
-- Send command from admin account (on DM)
+- Make quick reply button
+- Send command from admin account (via DM)
 - Run multiple autobase accounts (see on app.py)
 - etc. see on config.py
 

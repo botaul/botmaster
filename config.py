@@ -1,5 +1,6 @@
 NGROK_AUTH_TOKEN = ""
 # copy the auth token from https://dashboard.ngrok.com/get-started/your-authtoken
+# you don't need to fill ngrok auth token for debugging on local
 
 CONSUMER_KEY = ""
 CONSUMER_SECRET = ""
@@ -131,7 +132,7 @@ sampai dengan pukul {Off_scheduleData['end'][0]}:{Off_scheduleData['end'][1]}"
 
 Trigger_word = ["fess!", "blablabla!"]
 Notify_wrongTrigger = {
-    'user'      : True, # send notif to user
+    'user'      : False, # send notif to user
     'admin'     : False, # send wrong trigger menfess to admin
     'message'   : "Trigger menfess tidak terdeteksi",
 }
@@ -160,9 +161,9 @@ Admin_cmd = {
     '/block'            : 'self._block_user(sender_id, urls)', # /block tweet_url
     '/unfoll'           : 'self._unfoll_user(sender_id, urls)', # /unfoll tweet_url
 }
-# if arg parameter exists on command call, the terminal message will be sent to sender (admin).
-# You can prevent it by adding #no_notif after the function call command.
-# who is only available for one day (reset every midnight or heroku dyno cycling)
+# if arg argument exists on method call, the terminal message will be sent to sender (admin).
+# You can prevent it by adding #no_notif after the method call.
+# /who is only available for one day (reset every midnight or heroku dyno cycling)
 
 User_cmd = {
     '/delete'           : 'self._delete_menfess(sender_id, urls)', # /delete tweet_url
@@ -170,8 +171,8 @@ User_cmd = {
     '/menu'             : 'self._menu_dm(sender_id)', # /menu
     '/cancel'           : 'self._cancel_menfess(sender_id)', # /cancel
 }
-# delete and unsend is not available for user when bot was just started and user id not in db_sent
-# delete & db_sent are only available for one day (reset every midnight or heroku dyno cycling)
+# /delete and /unsend is not available for user when bot was just started and user id not in db_sent
+# /delete & db_sent are only available for one day (reset every midnight or heroku dyno cycling)
 Notif_DMCmdDelete = {
     'succeed'   : 'Yeay! Menfess kamu sudah berhasil dihapus',
     'failed'    : 'Duh! Menfess ini ngga bisa kamu hapus :('
@@ -190,12 +191,12 @@ DMCmdMenu = {
                   '/delete (url) : menghapus menfess dengan menyertakan url\n',
     'options'   : [
         {
-            'label'         : '/unsend',
+            'label'         : 'unsend',
             'description'   : 'menghapus menfess terakhir yang telah terkirim',
             'metadata'      : 'exec|self._button_command(sender_id, "/unsend")'
         },
         {
-            'label'         : '/cancel',
+            'label'         : 'cancel',
             'description'   : 'Menghapus menfess sebelum terkirim',
             'metadata'      : 'exec|self._button_command(sender_id, "/cancel")' 
         },

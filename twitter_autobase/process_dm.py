@@ -108,10 +108,9 @@ class ProcessDM(ProcessQReply, DMCommand, ABC):
             return False
 
 
-    def __user_filter(self, sender_id: str, message: str, date_now: object) -> bool:
+    def __user_filter(self, sender_id: str, message: str) -> bool:
         '''
         Filter user requirements and rules which has been set on config.py
-        :param date_now: date object that will be used on Off_Schedule, Interval per sender, and sender requirements (minimum-age)
         :return: bool, True: dm shouldn't be processed, False: dm should be processed
         '''
 
@@ -126,6 +125,7 @@ class ProcessDM(ProcessQReply, DMCommand, ABC):
 
         # DATA
         username = 0 # Will be edited on requirements or used on blacklist words, to make get_user effectively
+        date_now = datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)
         # Used on Off schedule, interval per sender, and sender requirements (minimum age)
 
         # Off schedule
@@ -145,6 +145,8 @@ class ProcessDM(ProcessQReply, DMCommand, ABC):
                 notif = self.credential.Notify_intervalPerSender.format(free_time)
                 self.send_dm(sender_id, notif)
                 return True
+            else:
+                self.db_intervalTime[sender_id] = date_now + timedelta(minutes=self.credential.Interval_time)
 
         # Minimum/Maximum lenMenfess
         if len(message) < self.credential.Minimum_lenMenfess or len(message) > self.credential.Maximum_lenMenfess:
@@ -191,18 +193,15 @@ class ProcessDM(ProcessQReply, DMCommand, ABC):
         return False
 
 
-    def __menfess_trigger(self, sender_id: str, message: str, message_data: dict, date_now: object) -> dict or None:
+    def __menfess_trigger(self, sender_id: str, message: str, message_data: dict) -> dict or None:
         '''
-        Clean data from raw message_data
-        :param date_now: date object that will be used to set db_intervalTime
+        Clean data from raw message_data, Contains __user_filter method call
         :return: dict dm that contains menfess trigger or None
         '''
-        dict_dm = None
-
-        if any(j.lower() in message.lower() for j in self.credential.Trigger_word):         
-            # Set db_intervalTime
-            if self.credential.Interval_perSender and sender_id not in self.credential.Admin_id:
-                self.db_intervalTime[sender_id] = date_now + timedelta(minutes=self.credential.Interval_time)
+        if any(j.lower() in message.lower() for j in self.credential.Trigger_word):
+            # User Filter
+            if self.__user_filter(sender_id, message):
+                return None
 
             dict_dm = dict(message=message, sender_id=sender_id, posting=False,
                 media_url=None, attachment_urls={'tweet':(None, None),
@@ -237,7 +236,7 @@ class ProcessDM(ProcessQReply, DMCommand, ABC):
                 media = message_data['attachment']['media']
                 media_type = media['type']
                 if media_type == 'photo':
-                    media_url = media['media_url']
+                    dict_dm['media_url'] = media['media_url']
                 elif media_type == 'video':
                     media_urls = media['video_info']['variants']
                     temp_bitrate = list()
@@ -246,11 +245,11 @@ class ProcessDM(ProcessQReply, DMCommand, ABC):
                             temp_bitrate.append((varian['bitrate'], varian['url']))
                     # sort to choose the highest bitrate
                     temp_bitrate.sort()
-                    media_url = temp_bitrate[-1][1]
+                    dict_dm['media_url'] = temp_bitrate[-1][1]
                 elif media_type == 'animated_gif':
-                    media_url = media['video_info']['variants'][0]['url']                            
+                    dict_dm['media_url'] = media['video_info']['variants'][0]['url']                            
                 
-                dict_dm['media_url'] = media_url
+            return dict_dm
 
         # WRONG TRIGGER
         else:
@@ -261,11 +260,10 @@ class ProcessDM(ProcessQReply, DMCommand, ABC):
                 # Send wrong menfess to admin
                 username = self.get_user_screen_name(sender_id)
                 notif = message + f"\nstatus: wrong trigger\nfrom: @{username}\nid: {sender_id}"
-
                 for admin in self.credential.Admin_id:
                     self.send_dm(admin, notif)
-                
-        return dict_dm
+            
+            return None
 
         
     def process_dm(self, raw_dm: dict) -> dict or None:
@@ -314,12 +312,7 @@ class ProcessDM(ProcessQReply, DMCommand, ABC):
             if self._command(sender_id, message, message_data):
                 return None       
             
-            date_now = datetime.now(timezone.utc) + timedelta(hours=self.credential.Timezone)
-            # FILTER FOR USER
-            if self.__user_filter(sender_id, message, date_now):
-                return None
-            
-            return self.__menfess_trigger(sender_id, message, message_data, date_now)
+            return self.__menfess_trigger(sender_id, message, message_data)
             
         except:
             logger.critical(traceback.format_exc())
