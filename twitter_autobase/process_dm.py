@@ -14,6 +14,7 @@ class ProcessDM(ProcessQReply, DMCommand, ABC):
     credential: object = None
     db_intervalTime: dict = None
     prevent_loop: list = None
+    _lock: object = None
     
     @abstractmethod
     def send_dm(self, recipient_id, text, quick_reply_type=None, quick_reply_data=None,
@@ -135,10 +136,11 @@ class ProcessDM(ProcessQReply, DMCommand, ABC):
 
         # Interval time per sender
         if self.credential.Interval_perSender:
-            for i in list(self.db_intervalTime):
-                # cleaning self.db_intervalTime
-                if self.db_intervalTime[i] < date_now:
-                    del self.db_intervalTime[i]
+            with self._lock: # pylint: disable=not-context-manager
+                for i in list(self.db_intervalTime):
+                    # cleaning self.db_intervalTime
+                    if self.db_intervalTime[i] < date_now:
+                        del self.db_intervalTime[i]
 
             if sender_id in self.db_intervalTime:
                 free_time = datetime.strftime(self.db_intervalTime[sender_id], '%H:%M')

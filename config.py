@@ -132,7 +132,7 @@ sampai dengan pukul {Off_scheduleData['end'][0]}:{Off_scheduleData['end'][1]}"
 
 Trigger_word = ["fess!", "blablabla!"]
 Notify_wrongTrigger = {
-    'user'      : False, # send notif to user
+    'user'      : True, # send notif to user
     'admin'     : False, # send wrong trigger menfess to admin
     'message'   : "Trigger menfess tidak terdeteksi",
 }

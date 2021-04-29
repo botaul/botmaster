@@ -8,7 +8,7 @@ from .clean_dm_autobase import delete_trigger_word
 from .process_dm import ProcessDM
 from .twitter import Twitter
 from datetime import datetime, timezone, timedelta
-from threading import Thread
+from threading import Thread, Lock
 from time import sleep
 from typing import NoReturn
 import logging
@@ -49,7 +49,7 @@ class Autobase(Twitter, ProcessDM):
             'day': (datetime.now(timezone.utc) + timedelta(hours=credential.Timezone)).day,
             'automenfess': 0,
         }
-
+        self._lock = Lock()
         prevent_loop.append(self.bot_id)
 
 
@@ -138,7 +138,10 @@ class Autobase(Twitter, ProcessDM):
         except:
             logger.error(traceback.format_exc())
 
-    def transfer_dm(self, dm):
+    def transfer_dm(self, dm) -> NoReturn:
+        '''
+        Append dm dict to self.dms
+        '''
         if self.credential.Notify_queue:
             # notify queue to sender
             self.notify_queue(dm, queue=len(self.dms))   

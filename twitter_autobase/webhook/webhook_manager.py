@@ -14,17 +14,16 @@ def connect_ngrok(ngrok_auth_token: str) -> str:
     '''
     try:
         ngrok.set_auth_token(ngrok_auth_token)
-        ngrok_tunnel = ngrok.connect(8080)
+        ngrok_tunnel = ngrok.connect(8080, bind_tls=True)
     except:
         logger.warning("waiting ngrok... Make sure you have disconnected another client session!")
         sleep(15)
         ngrok.set_auth_token(ngrok_auth_token)
-        ngrok_tunnel = ngrok.connect(8080)
+        ngrok_tunnel = ngrok.connect(8080, bind_tls=True)
 
-    public_url = (ngrok_tunnel.public_url).replace("http", "https")
-    print("NGROK URL: {}".format(public_url))
+    print("NGROK URL: {}".format(ngrok_tunnel.public_url))
     
-    return public_url
+    return ngrok_tunnel.public_url
 
 # Register webhook
 def register_webhook(url: str, name: str, credential: object, delLastWeb: bool=True) -> object:
