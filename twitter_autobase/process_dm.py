@@ -59,7 +59,7 @@ class ProcessDM(ProcessQReply, DMCommand, ABC):
                 try:
                     notif += f"\nprocessed: {command} {arg}"
                     exec(dict_command[command])
-                    if "urls" in dict_command[command]:
+                    if "urls" in dict_command[command] or "arg" not in dict_command[command]:
                         break
                 except Exception as ex:
                     logger.warning(ex)

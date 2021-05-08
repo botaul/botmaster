@@ -13,7 +13,6 @@ ENV_NAME = ""
 
 Admin_id = [""] # list of str
 # Admin id is like sender id. To check it, send a menfess from your admin account.
-# or you can use api.get_user(screen_name="usernameoftheaccount")
 # IF YOU WANT TO TEST THE CONFIG, REMEMBER THIS! USERS IN ADMIN_ID PASS ALL USER'S FILTERS, you should delete your id on Admin_id
 
 Timezone = 7

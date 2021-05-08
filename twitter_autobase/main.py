@@ -29,12 +29,12 @@ class Autobase(Twitter, ProcessDM):
         - indicator
 
     :param credential: object that contains attributes like config.py
-    :param prevent_loop: list of (str) bot_id
     '''
-    def __init__(self, credential: object, prevent_loop: list):
+    prevent_loop = list() # list of all bot_id (str) that runs using this bot to prevent loop messages from each accounts
+
+    def __init__(self, credential: object):
         '''
         :param credential: object that contains attributes like config.py
-        :param prevent_loop: list of (str) bot_id
         '''
         super().__init__(credential)
         self.bot_username = self.me.screen_name
@@ -44,14 +44,16 @@ class Autobase(Twitter, ProcessDM):
         self.db_deleted = dict() # { 'sender_id': ['postid',] }
         self.dms = list() # list of filtered dms that processed by process_dm
         self._tmp_dms = list() # used if Verify_beforeSent is True
-        self.prevent_loop = prevent_loop # list of all bot_id (str) that runs using this bot to prevent loop messages from each accounts
         self.indicator = {
             'day': (datetime.now(timezone.utc) + timedelta(hours=credential.Timezone)).day,
             'automenfess': 0,
         }
         self._lock = Lock()
-        prevent_loop.append(self.bot_id)
+        self.add_prevent_loop(self.bot_id)
 
+    @classmethod
+    def add_prevent_loop(cls, bot_id):
+        cls.prevent_loop.append(bot_id)
 
     def notify_follow(self, follow_events: dict) -> NoReturn:
         '''
@@ -76,7 +78,6 @@ class Autobase(Twitter, ProcessDM):
 
             if target_id not in self.prevent_loop:
                 self.send_dm(target_id, self.credential.Notif_followed)
-
 
     def db_sent_updater(self, action: str, sender_id=str(), postid=str(), list_postid_thread=list()) -> NoReturn:
         '''Update self.db_sent and self.db_deleted
@@ -110,8 +111,7 @@ class Autobase(Twitter, ProcessDM):
 
         except:
             logger.error(traceback.format_exc())
-
-    
+ 
     def notify_queue(self, dm: dict, queue: int) -> NoReturn:
         """Notify the menfess queue to sender
         :param dm: dict that returned from process_dm
@@ -170,7 +170,6 @@ class Autobase(Twitter, ProcessDM):
         
         elif 'follow_events' in raw_data:
             self.notify_follow(raw_data)
-
 
     def start_automenfess(self) -> NoReturn:
         '''

@@ -13,11 +13,8 @@ logging.basicConfig(level=logging.WARNING, format="%(name)s - %(levelname)s - %(
 
 ## import config2
 
-prevent_loop = list()
-# list of all bot_id (str) (that runs using this bot) to prevent loop messages from each account
-
-User = Autobase(config, prevent_loop)
-## User2 = Autobase(config2, prevent_loop)
+User = Autobase(config)
+## User2 = Autobase(config2)
 
 # SETTING NGROK AND WEBHOOK SERVER
 url = webMan.connect_ngrok(config.NGROK_AUTH_TOKEN)
