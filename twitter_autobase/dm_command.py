@@ -226,6 +226,14 @@ class DMCommand(ABC):
         else:
             self.send_dm(sender_id, f'username: @{username}\nid: {sender_idx}\nstatus: unfollowed')
     
+    def _foll_user(self, username: str) -> NoReturn:
+        '''
+        Follow user
+        :param username: username without '@'
+        '''
+        user = (self.api.get_user(screen_name=username))._json
+        self.api.create_friendship(str(user['id']))
+    
     def _cancel_menfess(self, sender_id) -> NoReturn:
         '''
         Cancel menfess when it's still on self.dms queue
