@@ -159,6 +159,7 @@ Admin_cmd = {
     '/switch'           : 'self._switch_status(arg)', # /switch on | /switch off
     '/block'            : 'self._block_user(sender_id, urls)', # /block tweet_url
     '/unfoll'           : 'self._unfoll_user(sender_id, urls)', # /unfoll tweet_url
+    '/follow'           : 'self._foll_user(arg)', #/follow username
 }
 # if arg argument exists on method call, the terminal message will be sent to sender (admin).
 # You can prevent it by adding #no_notif after the method call.
