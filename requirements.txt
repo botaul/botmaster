@@ -3,5 +3,5 @@ oauth2==1.9.0.post1
 Pillow==8.2.0
 pyngrok==5.0.5
 requests==2.25.1
-tweepy==3.10.0
+tweepy==4.12.0
 waitress==2.0.0
